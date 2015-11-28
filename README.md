@@ -1,6 +1,6 @@
 # android-app
 
-This is an Android app I'm making during the classes I'm teaching in Afeka Academic College for Engineering, TLV.
+This is an Android app I'm developing during the classes I'm teaching in Afeka Academic College of Engineering, TLV.
 
 It demonstrating tools usage for the beginner developer (the student), such as:
 * Threads (with UI changes)
