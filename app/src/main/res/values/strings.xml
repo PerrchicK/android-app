@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">TicTacToe Game</string>
+    <string name="provider_read_permission_label">ProviderReadPermission</string>
+
+    <string name="second_activity_title">This is a different activity</string>
+
+    <string name="btn_from_xml">Button click from XML</string>
+
+    <string name="instructions">Start by clicking the buttons:</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="action_download_image">Download image</string>
+    <string name="action_make_phone_call">Make a phone call</string>
+    <string name="action_go_storage">Storage</string>
+    <string name="action_animate">Animate</string>
+    <string name="action_go_notification">Go Notify</string>
+
+    <string name="title_activity_another">AnotherActivity</string>
+    <string name="title_activity_storage">StorageActivity</string>
+
+    <string name="storage_activity_title">Storage activity</string>
+    <string name="storage_activity_txt_shared_prefs">this text will be saved in the shared preferences</string>
+    <string name="storage_activity_txt_sqlite">this text will be saved in the SQL Lite</string>
+
+    <string name="spinner_title">Keep Calm And …</string>
+    <string name="title_activity_notifications">NotificationsActivity</string>
+
+    <string name="notification_title">Notification\'s Title</string>
+    <string name="notification_text">Notification\'s Text</string>
+    <string name="notification_dispatch_time">Dispatch Time:</string>
+    <string name="notification_btn_create">GO!</string>
+
+</resources>

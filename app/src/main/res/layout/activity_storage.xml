@@ -1,0 +1,35 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical"
+    tools:context="com.perrchick.someapplication.StorageActivity">
+
+    <TextView android:text="@string/storage_activity_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/txt_shared_prefs"
+        android:hint="@string/storage_activity_txt_shared_prefs"
+        android:text=""
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
+        android:id="@+id/txt_sqlite"
+        android:hint="@string/storage_activity_txt_sqlite"
+        android:text=""
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <Spinner
+        android:id="@+id/enums_spinner"
+        android:prompt="@string/spinner_title"
+        android:spinnerMode="dialog"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+    </Spinner>
+</LinearLayout>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.perrchick.someapplication" >
+
+    <permission android:name="com.perrchick.someapplication.provider.READ" />
+
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ImageDownload"
+            android:label="@string/title_activity_another" >
+            <intent-filter>
+                <action android:name="com.perrchick.someapplication.ANOTHER_ACTIVITY" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".StorageActivity"
+            android:label="@string/title_activity_storage" >
+        </activity>
+
+        <provider
+            android:name=".data.SomeApplicationProvider"
+            android:authorities="com.perrchick.someapplication.provider"
+            android:exported="true"
+            android:readPermission="com.perrchick.someapplication.provider.READ" />
+
+        <activity
+            android:name=".NotificationsActivity"
+            android:label="@string/title_activity_notifications" >
+        </activity>
+    </application>
+
+</manifest>
