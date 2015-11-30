@@ -1,6 +1,6 @@
 # android-app
 
-This is an Android app I'm developing during the classes I'm teaching in [Afeka Academic College of Engineering, TLV](http://english.afeka.ac.il/).
+This is an Android app I'm developing during the classes I'm teaching in ![Afeka Academic College of Engineering, TLV](http://english.afeka.ac.il/).
 
 It demonstrates different usages in Android development, such as:
 * Intent + Activities (intent's extra, other apps' activities, phone call etc.)
