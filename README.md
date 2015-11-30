@@ -8,3 +8,6 @@ It demonstrates different usages in Android development for the Java developers 
 * Storage (Shared Preferences, SQLite, custom Content Provider)
 * Animations
 * Notifications
+
+Check:
+![Solarized](http://i59.tinypic.com/2v15dur.png)
