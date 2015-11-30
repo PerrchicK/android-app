@@ -7,6 +7,8 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_storage" android:title="@string/action_go_storage"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_rotate" android:title="@string/action_rotate"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_animate" android:title="@string/action_animate"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_notification" android:title="@string/action_go_notification"

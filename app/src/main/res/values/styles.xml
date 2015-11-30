@@ -5,4 +5,9 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="SomeTheme" parent="android:Theme.DeviceDefault">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:textColorPrimary">#ffff00aa</item>
+    </style>
 </resources>

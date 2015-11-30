@@ -1,5 +1,7 @@
 package com.perrchick.someapplication.utilities;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -9,7 +11,13 @@ import android.net.Uri;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.view.Display;
+import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.BounceInterpolator;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.TranslateAnimation;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -23,19 +31,6 @@ public class PerrFuncs {
     private Activity _topActivity;
     private DisplayMetrics _metrics;
     private Context _applicationContext;
-
-    public static int getIndexOfItemInArray(Object item, Object[] arr) {
-        int index = -1;
-        int length = arr.length;
-
-        for (int i =0; i < length; i++) {
-            if (item == arr[i]) {
-                index = i;
-            }
-        }
-
-        return index;
-    }
 
     public interface Callback {
         void callbackCall(Object callbackObject);
@@ -156,5 +151,36 @@ public class PerrFuncs {
         }
 
         return _metrics;
+    }
+
+    public static int getIndexOfItemInArray(Object item, Object[] arr) {
+        int index = -1;
+        int length = arr.length;
+
+        for (int i =0; i < length; i++) {
+            if (item == arr[i]) {
+                index = i;
+            }
+        }
+
+        return index;
+    }
+
+    public static void sayNo(final View view) {
+        ObjectAnimator animator1 = ObjectAnimator.ofFloat(view, "translationX", 20f);
+        animator1.setRepeatCount(0);
+        animator1.setDuration(50);
+
+        ObjectAnimator animator2 = ObjectAnimator.ofFloat(view, "translationX", -20f);
+        animator2.setRepeatCount(0);
+        animator2.setDuration(50);
+
+        ObjectAnimator animator3 = ObjectAnimator.ofFloat(view, "translationX", 5f);
+        animator3.setRepeatCount(0);
+        animator3.setDuration(50);
+
+        AnimatorSet set = new AnimatorSet();
+        set.playSequentially(animator1, animator2, animator3);
+        set.start();
     }
 }

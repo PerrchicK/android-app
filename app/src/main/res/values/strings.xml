@@ -9,9 +9,10 @@
     <string name="instructions">Start by clicking the buttons:</string>
 
     <string name="action_settings">Settings</string>
-    <string name="action_download_image">Download image</string>
-    <string name="action_make_phone_call">Make a phone call</string>
+    <string name="action_download_image">Download image…</string>
+    <string name="action_make_phone_call">Make a phone call…</string>
     <string name="action_go_storage">Storage</string>
+    <string name="action_rotate">Rotate</string>
     <string name="action_animate">Animate</string>
     <string name="action_go_notification">Go Notify</string>
 
@@ -29,5 +30,8 @@
     <string name="notification_text">Notification\'s Text</string>
     <string name="notification_dispatch_time">Dispatch Time:</string>
     <string name="notification_btn_create">GO!</string>
+    <string name="title_activity_animations">AnimationsActivity</string>
+
+    <string name="hello_world">Hello world!</string>
 
 </resources>
