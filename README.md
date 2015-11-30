@@ -10,4 +10,4 @@ It demonstrates different usages in Android development for the Java developers 
 * Notifications
 
 Check:
-(http://i59.tinypic.com/2v15dur.png)
+![PerrchicK](https://dl.dropboxusercontent.com/u/23741087/GitHub/GenyMotion-android-app.png)
