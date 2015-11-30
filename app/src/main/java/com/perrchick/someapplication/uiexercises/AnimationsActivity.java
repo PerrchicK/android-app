@@ -3,6 +3,7 @@ package com.perrchick.someapplication.uiexercises;
 import android.animation.ObjectAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Layout;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -116,7 +118,18 @@ public class AnimationsActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        // Disappear the main layout
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        mainLayout.setAlpha(0);
+
+        // Prepare UI
         scaleImage(this.scaleSeekBar.getProgress());
+
+        // Fade the main layout in
+        ObjectAnimator fadeIn = ObjectAnimator.ofFloat(mainLayout, "alpha", 0.0f, 1.0f);
+        long duration = 4000;
+        fadeIn.setDuration(duration);
+        fadeIn.start();
     }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
