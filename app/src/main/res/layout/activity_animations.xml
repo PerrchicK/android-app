@@ -8,8 +8,18 @@
     android:theme="@style/SomeTheme"
     tools:context="com.perrchick.someapplication.uiexercises.AnimationsActivity">
 
+    <TextView android:id="@+id/txtShrinking"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
+        android:gravity="center"
+        android:text="@string/shrinking_text"
+        android:textColor="#000000"
+        android:layout_weight="10" />
+
     <LinearLayout android:orientation="vertical"
         android:layout_width="fill_parent"
+        android:layout_below="@id/txtShrinking"
         android:layout_height="fill_parent">
 
         <SeekBar android:id="@+id/seekBar"
@@ -23,7 +33,7 @@
             android:layout_height="wrap_content"
             android:paddingBottom="10dp"
             android:gravity="center"
-            android:text="0"
+            android:text="@string/zero_value"
             android:textColor="#000000"
             android:layout_weight="10" />
         <RelativeLayout

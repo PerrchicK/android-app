@@ -13,7 +13,7 @@
     <string name="action_make_phone_call">Make a phone call…</string>
     <string name="action_go_storage">Storage</string>
     <string name="action_rotate">Rotate</string>
-    <string name="action_animate">Animate</string>
+    <string name="action_go_to_animations">Animations</string>
     <string name="action_go_notification">Go Notify</string>
 
     <string name="title_activity_another">AnotherActivity</string>
@@ -33,5 +33,7 @@
     <string name="title_activity_animations">AnimationsActivity</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="zero_value">0</string>
+    <string name="shrinking_text">shrinking</string>
 
 </resources>

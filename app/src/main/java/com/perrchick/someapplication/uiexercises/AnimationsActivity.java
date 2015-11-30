@@ -1,5 +1,6 @@
 package com.perrchick.someapplication.uiexercises;
 
+import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
+import android.view.animation.Transformation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -18,16 +20,24 @@ import android.widget.TextView;
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
+import java.util.Date;
+
+import javax.xml.transform.Transformer;
+
 public class AnimationsActivity extends AppCompatActivity {
     ImageView spinnerView;
     private RotateAnimation rotateAnimation;
     private TextView txtScaleValue;
     private SeekBar scaleSeekBar;
+    private TextView shrinkingText;
+    private ObjectAnimator shrinkingTextAnimator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animations);
+
+        this.shrinkingText = (TextView) findViewById(R.id.txtShrinking);
 
         this.scaleSeekBar = (SeekBar) findViewById(R.id.seekBar);
         this.scaleSeekBar.setProgress(6);
@@ -88,11 +98,10 @@ public class AnimationsActivity extends AppCompatActivity {
     private void toggleSpinnerAnimation(boolean start) {
         if (start) {
             rotateAnimation = getRotateAnimation(this.spinnerView);
-            rotateAnimation.setRepeatCount(-1);
+            rotateAnimation.setRepeatCount(Animation.INFINITE);
             rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
                 @Override
                 public void onAnimationStart(Animation animation) {
-
                 }
 
                 @Override
@@ -104,6 +113,7 @@ public class AnimationsActivity extends AppCompatActivity {
                 public void onAnimationRepeat(Animation animation) {
                 }
             });
+
             this.spinnerView.startAnimation(rotateAnimation);
         } else {
             rotateAnimation.setRepeatCount(0);
@@ -118,6 +128,27 @@ public class AnimationsActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        this.shrinkingTextAnimator = ObjectAnimator.ofFloat(this.shrinkingText, "scaleY", 1.0f, 0.0f);
+        this.shrinkingTextAnimator.setDuration(1000);
+        this.shrinkingTextAnimator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                AnimationsActivity.this.shrinkingText.setScaleY(0.0f);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+            }
+        });
+
         // Disappear the main layout
         RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
         mainLayout.setAlpha(0);
@@ -129,6 +160,27 @@ public class AnimationsActivity extends AppCompatActivity {
         ObjectAnimator fadeIn = ObjectAnimator.ofFloat(mainLayout, "alpha", 0.0f, 1.0f);
         long duration = 4000;
         fadeIn.setDuration(duration);
+        fadeIn.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                AnimationsActivity.this.shrinkingTextAnimator.start();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         fadeIn.start();
     }
     @Override
@@ -154,7 +206,7 @@ public class AnimationsActivity extends AppCompatActivity {
     }
 
     public RotateAnimation getRotateAnimation(View viewToRotate) {
-        RotateAnimation rotateAnimation = new RotateAnimation(0f, -360f,viewToRotate.getWidth() / 2.0f,viewToRotate.getHeight() / 2.0f);
+        RotateAnimation rotateAnimation = new RotateAnimation(0f, 360f,viewToRotate.getWidth() / 2.0f,viewToRotate.getHeight() / 2.0f);
         rotateAnimation.setInterpolator(new LinearInterpolator());
         rotateAnimation.setDuration(500);
         rotateAnimation.setFillAfter(true);

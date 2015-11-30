@@ -14,6 +14,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
@@ -188,16 +190,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //noinspection SimplifiableIfStatement
         switch (id) {
-            case R.id.action_animate:
-                // Goto animations
+            case R.id.action_go_to_animations:
                 startActivity(new Intent(this, AnimationsActivity.class));
                 return true;
             case R.id.action_rotate: {
                 // Do animations
+
                 //Animation animHyperspaceJump = AnimationUtils.loadAnimation(this, R.anim.hyperspace_jump);
                 //Animation slideInFromLeftAnimation = AnimationUtils.makeInAnimation(this, true);
+                //this.gridLayout.setAnimation(animHyperspaceJump);
 
-                //this.gridLayout.setAnimation(animation);
                 RotateAnimation rotateAnimation = new RotateAnimation(0f, -360f,gridLayout.getWidth() / 2.0f,gridLayout.getHeight() / 2.0f);
                 rotateAnimation.setInterpolator(new AccelerateInterpolator());
                 rotateAnimation.setDuration(2000);
