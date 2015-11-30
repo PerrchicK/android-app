@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".uiexcercises.ImageDownload"
+            android:name=".uiexercises.ImageDownload"
             android:label="@string/title_activity_another" >
             <intent-filter>
                 <action android:name="com.perrchick.someapplication.ANOTHER_ACTIVITY" />
@@ -46,7 +46,7 @@
             android:label="@string/title_activity_notifications" >
         </activity>
         <activity
-            android:name=".uiexcercises.AnimationsActivity"
+            android:name=".uiexercises.AnimationsActivity"
             android:label="@string/title_activity_animations" >
         </activity>
     </application>

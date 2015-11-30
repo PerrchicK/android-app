@@ -1,8 +1,6 @@
-package com.perrchick.someapplication.uiexcercises;
+package com.perrchick.someapplication.uiexercises;
 
-import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;

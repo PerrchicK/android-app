@@ -14,14 +14,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
-import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
-import com.perrchick.someapplication.uiexcercises.AnimationsActivity;
-import com.perrchick.someapplication.uiexcercises.ImageDownload;
+import com.perrchick.someapplication.uiexercises.AnimationsActivity;
+import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
