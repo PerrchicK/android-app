@@ -9,5 +9,5 @@ It demonstrates different usages in Android development for the Java developers 
 * Animations
 * Notifications
 
-Check:\n
-![Solarized](http://i59.tinypic.com/2v15dur.png)
+Check:
+(http://i59.tinypic.com/2v15dur.png)
