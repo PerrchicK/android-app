@@ -35,5 +35,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="zero_value">0</string>
     <string name="shrinking_text">shrinking</string>
+    <string name="txt_values"><![CDATA[<values>]]></string>
 
 </resources>

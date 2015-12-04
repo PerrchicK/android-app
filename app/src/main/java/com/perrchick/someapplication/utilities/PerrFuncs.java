@@ -23,6 +23,10 @@ import android.widget.Toast;
 
 import com.perrchick.someapplication.StorageActivity;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * Created by perrchick on 10/23/15.
  */
@@ -42,6 +46,11 @@ public class PerrFuncs {
         }
 
         return _perrFuncsInstance;
+    }
+
+    public static String getCurrentTime() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss MM/dd/yyyy", Locale.US);
+        return (dateFormat.format(new Date()));
     }
 
     public static void toast(String toastMessage) {

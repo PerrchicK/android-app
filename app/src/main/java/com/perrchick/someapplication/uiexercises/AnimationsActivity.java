@@ -128,11 +128,13 @@ public class AnimationsActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        this.shrinkingText.setText("Will shrink...");
         this.shrinkingTextAnimator = ObjectAnimator.ofFloat(this.shrinkingText, "scaleY", 1.0f, 0.0f);
         this.shrinkingTextAnimator.setDuration(1000);
         this.shrinkingTextAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
+                AnimationsActivity.this.shrinkingText.setText("... shrinking...");
             }
 
             @Override
@@ -183,6 +185,7 @@ public class AnimationsActivity extends AppCompatActivity {
         });
         fadeIn.start();
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
