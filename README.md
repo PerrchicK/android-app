@@ -7,7 +7,11 @@ It demonstrates different usages in Android development, such as:
 * Threads (with UI changes)
 * Storage (Shared Preferences, SQLite, custom Content Provider)
 * Animations (View animations, Property animations)
+* Bound service
+* BroadcastReceiver
+* Fragment
+* Sensors usage
+* Mock Sensor
 * Local Notifications
 
-
-![AndroidApp](https://camo.githubusercontent.com/4b72635739320ca908b33ef61aa00ce05ffc7e3b/68747470733a2f2f646c2e64726f70626f7875736572636f6e74656e742e636f6d2f752f32333734313038372f4769744875622f47656e794d6f74696f6e2d616e64726f69642d6170702e706e67)
+![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitAndroidAppPreview.png)
