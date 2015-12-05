@@ -10,8 +10,7 @@ It demonstrates different usages in Android development, such as:
 * Bound service
 * BroadcastReceiver
 * Fragment
-* Sensors usage
-* Mock Sensor
+* Sensors usage + Mock Sensor
 * Local Notifications
 
 ![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitAndroidAppPreview.png)
