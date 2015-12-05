@@ -1,61 +1,54 @@
 package com.perrchick.someapplication;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.nfc.Tag;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Created by perrchick on 12/4/15.
+ * Created by perrchick on 12/5/15.
  */
-public class SensorService extends Service {
-
+public class SensorService extends Service implements SensorEventListener {
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
 
-    private static final long TIME_TO_SLEEP = 1000;
-    private static final String TAG = SensorService.class.getSimpleName();
+    private static final String _TAG = SensorService.class.getSimpleName();
     private final IBinder sensorServiceBinder = new SensorServiceBinder();
-    private boolean shouldRun = false;
-    private Random random = new Random();
-    private float values;
+    protected float values;
 
     /** A client is binding to the service with bindService() */
     @Override
     public IBinder onBind(Intent intent) {
-        shouldRun = true;
+        SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);;
+        Sensor gyroUncalibrated = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        sensorManager.registerListener(this, gyroUncalibrated, SensorManager.SENSOR_DELAY_NORMAL);
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (shouldRun) {
-                    try {
-                        Thread.sleep(TIME_TO_SLEEP);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    evaluateAndNotify();
-                }
-            }
-        }).start();
         return sensorServiceBinder;
     }
 
-    private float evaluate() {
-        return values = random.nextFloat();
+    protected float[] evaluate() {
+        return new float[]{0.1f, 0.1f, 0.1f};
     }
 
-    private void evaluateAndNotify() {
-        float newValue = evaluate();
+    protected void evaluateAndNotify() {
+        evaluateAndNotify(evaluate());
+    }
+
+    protected void evaluateAndNotify(float[] values) {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SENSOR_SERVICE_BROADCAST_ACTION);
-        broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, newValue);
+        broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
+        Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
         sendBroadcast(broadcastIntent);
     }
 
@@ -63,9 +56,27 @@ public class SensorService extends Service {
         return values;
     }
 
+    public String getTag() {
+        return _TAG;
+    }
+
+    public SensorService getSelf() {
+        return this;
+    }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        evaluateAndNotify(event.values);
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
+
     class SensorServiceBinder extends Binder {
         SensorService getService() {
-            return SensorService.this;
+            return SensorService.this.getSelf();
         }
     }
 }

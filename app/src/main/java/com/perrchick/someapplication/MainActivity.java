@@ -1,15 +1,12 @@
 package com.perrchick.someapplication;
 
 import android.app.AlertDialog;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.IBinder;
@@ -25,7 +22,6 @@ import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.perrchick.someapplication.ui.SensorsFragment;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
@@ -34,8 +30,12 @@ import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 
+    private static final boolean SHOULD_USE_MOCK = true;
     private final String TAG = MainActivity.class.getSimpleName();
 
     private TicTacToeButton[] buttons = new TicTacToeButton[9];
@@ -61,8 +61,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // Q: Should I bind it to the main activity or to the app?
         // A: It doesn't matter as long as you remenber to shut the service down / destroy the Application
-        // (for more info: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
-        bindService(new Intent(this, SensorService.class), mConnection, Context.BIND_AUTO_CREATE);
+        // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
+        if (SHOULD_USE_MOCK) { // if 'true' then the 'else' won't even be compiled thanks to the 'final' keyword
+            bindService(new Intent(this, SensorServiceMock.class), mConnection, Context.BIND_AUTO_CREATE);
+        } else {
+            bindService(new Intent(this, SensorService.class), mConnection, Context.BIND_AUTO_CREATE);
+        }
+        // Now, this activity has its own bound service, which broadcasts its own info.
+        // In this specific case, a fragment listens to the service's broadcast
 
         boardLayout.setOnClickListener(this);
     }
@@ -325,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
     @Override
-    public void valuesUpdated(float someData) {
-        // In case the fragment wants to update its parent view
+    public void valuesUpdated(float[] someData) {
+        Log.v(TAG, "Got an update from fragment: "+Arrays.toString(someData));
     }
 }

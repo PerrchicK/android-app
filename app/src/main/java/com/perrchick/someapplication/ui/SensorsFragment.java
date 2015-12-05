@@ -14,6 +14,10 @@ import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SensorService;
+import com.perrchick.someapplication.SensorServiceMock;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
 
 /**
  * Created by perrchick on 12/4/15.
@@ -22,12 +26,13 @@ import com.perrchick.someapplication.SensorService;
  */
 public class SensorsFragment extends Fragment {
 
-    private SensorsFragmentListener fragmentListener;
+    private SensorsFragmentListener _fragmentListener;
+    private BroadcastReceiver broadcastReceiver;
     private TextView txtInfo;
     protected View fragmentView;
 
     public interface SensorsFragmentListener {
-        void valuesUpdated(float someData);
+        void valuesUpdated(float[] someData);
     }
 
     IntentFilter intentFilter;
@@ -43,7 +48,7 @@ public class SensorsFragment extends Fragment {
             activity = (Activity) getContext();
 
             try {
-                fragmentListener = (SensorsFragmentListener) activity;
+                _fragmentListener = (SensorsFragmentListener) activity;
             } catch (ClassCastException e) {
                 throw new ClassCastException(activity.toString() + " must implement " + SensorsFragmentListener.class.getSimpleName());
             }
@@ -61,8 +66,22 @@ public class SensorsFragment extends Fragment {
         this.fragmentView = inflater.inflate(R.layout.fragment_sensors, container, false);
         txtInfo = (TextView) fragmentView.findViewById(R.id.txtInfo);
         intentFilter = new IntentFilter();
+        //intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
         intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
+        //bindService(new Intent(this, SensorServiceMock.class), mConnection, Context.BIND_AUTO_CREATE);
         //intentFilter.addAction(PHONE_BROADCAST_ACTION);
+
+        // Q: Should I bind it to the main activity or to the app?
+        // A: It doesn't matter as long as you remenber to shut the service down / destroy the Application
+        // (for more info: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(SensorService.SENSOR_SERVICE_BROADCAST_ACTION)) {
+                    senseDetected(intent.getFloatArrayExtra(SensorService.SENSOR_SERVICE_VALUES_KEY));
+                }
+            }
+        };
         this.fragmentView.getContext().registerReceiver(broadcastReceiver, intentFilter);
 
         return fragmentView;
@@ -111,16 +130,11 @@ public class SensorsFragment extends Fragment {
     }
     /* Ending of Fragment's Lifecycle */
 
-    private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(SensorService.SENSOR_SERVICE_BROADCAST_ACTION)) {
-                senseDetected(intent.getFloatExtra(SensorService.SENSOR_SERVICE_VALUES_KEY, 0));
-            }
+    public void senseDetected(float[] sensorAngles) {
+        if (this._fragmentListener != null) {
+            this._fragmentListener.valuesUpdated(sensorAngles);
         }
-    };
 
-    public void senseDetected(float sensorAngle) {
-        this.txtInfo.setText("" + sensorAngle);
+        this.txtInfo.setText("" + Arrays.toString(sensorAngles));
     }
 }
