@@ -15,7 +15,7 @@ public class SensorsFragmentBlue extends SensorsFragment {
         // Which is the same as: this.fragmentView (it doesn't really matter)
         View theCreatedView = super.onCreateView(inflater, container, savedInstanceState);
         // Inflate the layout for this fragment
-        theCreatedView.setBackgroundColor(Color.BLUE);
+        theCreatedView.setBackgroundColor(Color.argb(255, 0, 0, 200));
         return theCreatedView;
     }
 }

@@ -1,8 +1,6 @@
 package com.perrchick.someapplication;
 
 import android.app.AlertDialog;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -10,6 +8,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.IBinder;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -34,17 +35,18 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 
-    private static final boolean SHOULD_USE_MOCK = true;
+    private static final boolean SHOULD_USE_MOCK = false;
     private final String TAG = MainActivity.class.getSimpleName();
 
     private TicTacToeButton[] buttons = new TicTacToeButton[9];
     private GridLayout mGridLayout;
     private boolean mXTurn = true;
 
-    SensorsFragment sensorsFragment;
+    Fragment sensorsFragment;
 
     private boolean isServiceBound = false;
     private SensorService sensorService;
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,11 +61,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         boardLayout.addView(createNewGrid(3, 3), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         boardLayout.setOnClickListener(this);
-    }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+        fragmentManager = getSupportFragmentManager();
+        sensorsFragment = fragmentManager.findFragmentByTag(SensorsFragment.class.getSimpleName());
 
         // Q: Should I bind it to the main activity or to the app?
         // A: It doesn't matter as long as you remenber to shut the service down / destroy the Application
@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (int column = 0; column < colsNum; column++) {
             for (int row = 0; row < rowsNum; row++) {
                 TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
-                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(100, 100));
+                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
                 mGridLayout.addView(btnTicTacToe);
@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onResume() {
+        // Starts interaction with the user
         super.onResume();
 
         PerrFuncs.setTopActivity(this);
@@ -109,9 +110,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
+    protected void onDestroy() {
+        super.onDestroy();
         unbindService(sensorsBoundServiceConnection);
     }
 
@@ -140,20 +140,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             Log.v(TAG, "clicked on a View which is not a '" + TicTacToeButton.class.getSimpleName());
 
-            switch (-1) {//temporarily disabled [v.getId()]
+            switch (-1) {//temporarily disabled, was: switch (v.getId())
                 case R.id.verticalLinearLayout: {
-                    FragmentManager fragmentManager = getFragmentManager();
-
-                    sensorsFragment = (SensorsFragment) getFragmentManager().findFragmentById(R.id.sensorsFragment);
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
+                    String sensorsFragmentTag = sensorsFragment.getTag();
 
                     if(sensorsFragment instanceof SensorsFragmentBlue) {
-                        sensorsFragment = (SensorsFragment) fragmentManager.getFragment(new Bundle(), SensorsFragmentRed.class.getSimpleName());
+                        if (fragmentManager.findFragmentByTag(SensorsFragmentRed.class.getSimpleName()) == null) {
+                            fragmentTransaction.hide(sensorsFragment);
+                            sensorsFragment = new SensorsFragmentRed();
+                            fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                        }
                     }else {
-                        sensorsFragment = (SensorsFragment) fragmentManager.getFragment(new Bundle(), SensorsFragmentBlue.class.getSimpleName());
+                        if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.class.getSimpleName()) == null) {
+                            fragmentTransaction.hide(sensorsFragment);
+                            sensorsFragment = new SensorsFragmentBlue();
+                            fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                        }
                     }
 
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    fragmentTransaction.replace(R.id.sensorsFragment, sensorsFragment, sensorsFragment.getClass().getSimpleName());
+                    fragmentTransaction.show(sensorsFragment);
                     fragmentTransaction.commit();
                 }
                 break;

@@ -1,12 +1,14 @@
 package com.perrchick.someapplication.ui;
 
 import android.app.Activity;
-import android.app.Fragment;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,9 +16,7 @@ import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SensorService;
-import com.perrchick.someapplication.SensorServiceMock;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 /**
@@ -24,18 +24,21 @@ import java.util.Arrays;
  *
  * This fragment tells you the sensor's state in a numerically form
  */
+// http://stackoverflow.com/questions/17553374/android-app-fragments-vs-android-support-v4-app-using-viewpager
 public class SensorsFragment extends Fragment {
 
     private SensorsFragmentListener _fragmentListener;
     private BroadcastReceiver broadcastReceiver;
     private TextView txtInfo;
+    private TextView txtCounter;
     protected View fragmentView;
+    private IntentFilter intentFilter;
+    static private int counter = 0;
+    private boolean shouldCount = true;
 
     public interface SensorsFragmentListener {
         void valuesUpdated(float[] someData);
     }
-
-    IntentFilter intentFilter;
 
     /* Beginning of Fragment's Lifecycle */
 
@@ -50,7 +53,8 @@ public class SensorsFragment extends Fragment {
             try {
                 _fragmentListener = (SensorsFragmentListener) activity;
             } catch (ClassCastException e) {
-                throw new ClassCastException(activity.toString() + " must implement " + SensorsFragmentListener.class.getSimpleName());
+                //throw new ClassCastException(activity.toString() + " must implement " + SensorsFragmentListener.class.getSimpleName());
+                Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
             }
         }
     }
@@ -58,13 +62,15 @@ public class SensorsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         this.fragmentView = inflater.inflate(R.layout.fragment_sensors, container, false);
-        txtInfo = (TextView) fragmentView.findViewById(R.id.txtInfo);
+        txtInfo = (TextView) fragmentView.findViewById(R.id.lblInfo);
+        txtCounter = (TextView) fragmentView.findViewById(R.id.lblCounter);
 
         return fragmentView;
     }
@@ -102,12 +108,40 @@ public class SensorsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        txtCounter.setText("---");
+
+        shouldCount = true;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (shouldCount) {
+                    // Count seconds
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (getView() != null) {
+                        getView().post(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtCounter.setText("" + counter++);
+                            }
+                        });
+                    }
+                }
+            }
+        }).start();
     }
 
     // As a fragment is no longer being used, it goes through a reverse series of callbacks
 
     @Override
     public void onPause() {
+        shouldCount = false;
+
         super.onPause();
     }
 
@@ -124,11 +158,6 @@ public class SensorsFragment extends Fragment {
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
-
-    @Override
     public void onDetach() {
         super.onDetach();
     }
@@ -139,6 +168,11 @@ public class SensorsFragment extends Fragment {
             this._fragmentListener.valuesUpdated(sensorAngles);
         }
 
-        this.txtInfo.setText("" + Arrays.toString(sensorAngles));
+        int[] values = new int[sensorAngles.length];
+        for (int i =0; i < sensorAngles.length; i++) {
+            values[i] = Math.round(sensorAngles[i]);
+        }
+
+        this.txtInfo.setText("" + Arrays.toString(values));
     }
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
+    android:background="#555555"
     android:layout_height="match_parent">
 
     <TextView
@@ -10,9 +11,16 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_weight="10"/>
+    <TextView
+        android:id="@+id/lblCounter"
+        android:gravity="center"
+        android:textColor="#4499ff"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"/>
 
     <TextView
-        android:id="@+id/txtInfo"
+        android:id="@+id/lblInfo"
         android:gravity="center"
         android:text="@string/txt_values"
         android:textColor="#aadd00"

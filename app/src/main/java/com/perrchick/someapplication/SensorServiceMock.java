@@ -32,6 +32,8 @@ public class SensorServiceMock extends SensorService {
 
                     notifyEvaluation(evaluate());
                 }
+
+                // shouldRun == false => Anonymous Thread is gonna be dead
             }
         }).start();
 

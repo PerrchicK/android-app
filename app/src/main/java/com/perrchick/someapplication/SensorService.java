@@ -34,9 +34,11 @@ public class SensorService extends Service implements SensorEventListener {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
         Log.v(getTag(), "Available sensors: " + sensorList);
-        //Sensor gyroUncalibratedSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
-        Sensor gyroUncalibratedSensor = sensorList.get(0);
-        sensorManager.registerListener(this, gyroUncalibratedSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE); // null in Genymotion free edition of course
+        if (sensor == null && sensorList.size() > 0) {
+            sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
+        }
+        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         return sensorServiceBinder;
     }
@@ -81,12 +83,16 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        notifyEvaluation(event.values);
+        float[] values = new float[event.values.length];
+        for (int i =0; i < event.values.length; i++) {
+            values[i] = event.values[i] * 1000000.0f;
+        }
+
+        notifyEvaluation(values);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
     }
 
     class SensorServiceBinder extends Binder {

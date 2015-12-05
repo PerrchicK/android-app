@@ -7,6 +7,12 @@
     android:orientation="vertical"
     tools:context="com.perrchick.someapplication.NotificationsActivity">
 
+    <fragment android:id="@+id/sensorsFragment"
+        android:name="com.perrchick.someapplication.ui.SensorsFragment"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        tools:layout="@layout/fragment_sensors" />
+
     <EditText android:id="@+id/txtNotificationTitle"
         android:hint="@string/notification_title"
         android:layout_width="wrap_content"
