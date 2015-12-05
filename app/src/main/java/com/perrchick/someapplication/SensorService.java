@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -23,17 +24,31 @@ public class SensorService extends Service implements SensorEventListener {
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
 
     private static final String _TAG = SensorService.class.getSimpleName();
-    private final IBinder sensorServiceBinder = new SensorServiceBinder();
+    protected final IBinder sensorServiceBinder = new SensorServiceBinder();
     protected float values;
+    private SensorManager sensorManager;
 
     /** A client is binding to the service with bindService() */
     @Override
     public IBinder onBind(Intent intent) {
-        SensorManager sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);;
-        Sensor gyroUncalibrated = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
-        sensorManager.registerListener(this, gyroUncalibrated, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
+        List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
+        Log.v(getTag(), "Available sensors: " + sensorList);
+        //Sensor gyroUncalibratedSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE_UNCALIBRATED);
+        Sensor gyroUncalibratedSensor = sensorList.get(0);
+        sensorManager.registerListener(this, gyroUncalibratedSensor, SensorManager.SENSOR_DELAY_NORMAL);
 
         return sensorServiceBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(this);
+            sensorManager = null;
+        }
+
+        return super.onUnbind(intent);
     }
 
     protected float[] evaluate() {
@@ -41,10 +56,10 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     protected void evaluateAndNotify() {
-        evaluateAndNotify(evaluate());
+        notifyEvaluation(evaluate());
     }
 
-    protected void evaluateAndNotify(float[] values) {
+    protected void notifyEvaluation(float[] values) {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SENSOR_SERVICE_BROADCAST_ACTION);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
@@ -66,7 +81,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        evaluateAndNotify(event.values);
+        notifyEvaluation(event.values);
     }
 
     @Override

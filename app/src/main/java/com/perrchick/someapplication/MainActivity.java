@@ -30,7 +30,6 @@ import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
@@ -59,18 +58,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         LinearLayout boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
         boardLayout.addView(createNewGrid(3, 3), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        boardLayout.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
         // Q: Should I bind it to the main activity or to the app?
         // A: It doesn't matter as long as you remenber to shut the service down / destroy the Application
         // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
-        if (SHOULD_USE_MOCK) { // if 'true' then the 'else' won't even be compiled thanks to the 'final' keyword
-            bindService(new Intent(this, SensorServiceMock.class), mConnection, Context.BIND_AUTO_CREATE);
+        if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
+            bindService(new Intent(this, SensorServiceMock.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
         } else {
-            bindService(new Intent(this, SensorService.class), mConnection, Context.BIND_AUTO_CREATE);
+            bindService(new Intent(this, SensorService.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
         }
         // Now, this activity has its own bound service, which broadcasts its own info.
         // In this specific case, a fragment listens to the service's broadcast
-
-        boardLayout.setOnClickListener(this);
     }
 
     private GridLayout createNewGrid(int colsNum, int rowsNum) {
@@ -102,6 +106,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         PerrFuncs.setTopActivity(this);
         PerrFuncs.toast("resumed activity");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        unbindService(sensorsBoundServiceConnection);
     }
 
     // The method that was defined from the hard coded XML file
@@ -315,7 +326,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
+    private ServiceConnection sensorsBoundServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {

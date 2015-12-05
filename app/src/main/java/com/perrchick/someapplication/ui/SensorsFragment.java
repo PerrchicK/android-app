@@ -65,6 +65,19 @@ public class SensorsFragment extends Fragment {
         // Inflate the layout for this fragment
         this.fragmentView = inflater.inflate(R.layout.fragment_sensors, container, false);
         txtInfo = (TextView) fragmentView.findViewById(R.id.txtInfo);
+
+        return fragmentView;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
         intentFilter = new IntentFilter();
         //intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
         intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
@@ -82,19 +95,8 @@ public class SensorsFragment extends Fragment {
                 }
             }
         };
+
         this.fragmentView.getContext().registerReceiver(broadcastReceiver, intentFilter);
-
-        return fragmentView;
-    }
-
-    @Override
-    public void onActivityCreated(Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
     }
 
     @Override
@@ -112,6 +114,8 @@ public class SensorsFragment extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
+
+        this.fragmentView.getContext().unregisterReceiver(broadcastReceiver);
     }
 
     @Override

@@ -30,11 +30,19 @@ public class SensorServiceMock extends SensorService {
                         e.printStackTrace();
                     }
 
-                    evaluateAndNotify(evaluate());
+                    notifyEvaluation(evaluate());
                 }
             }
         }).start();
-        return super.onBind(intent);
+
+        return sensorServiceBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        shouldRun = false;
+
+        return super.onUnbind(intent);
     }
 
     @Override

@@ -4,9 +4,19 @@
     android:layout_height="match_parent">
 
     <TextView
+        android:gravity="center"
+        android:text="@string/fragment_title"
+        android:textColor="#cc99aa"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="10"/>
+
+    <TextView
         android:id="@+id/txtInfo"
         android:gravity="center"
         android:text="@string/txt_values"
+        android:textColor="#aadd00"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent" />
+        android:layout_height="fill_parent"
+        android:layout_weight="10"/>
 </LinearLayout>

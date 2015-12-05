@@ -36,5 +36,6 @@
     <string name="zero_value">0</string>
     <string name="shrinking_text">shrinking</string>
     <string name="txt_values"><![CDATA[<values>]]></string>
+    <string name="fragment_title">a fragment that receives broadcasts from the MainActivity\'s bound service</string>
 
 </resources>
