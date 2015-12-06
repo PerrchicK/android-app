@@ -32,7 +32,6 @@ public class SensorsFragment extends Fragment {
     private TextView txtInfo;
     private TextView txtCounter;
     protected View fragmentView;
-    private IntentFilter intentFilter;
     static private int counter = 0;
     private boolean shouldCount = true;
 
@@ -84,9 +83,7 @@ public class SensorsFragment extends Fragment {
     public void onStart() {
         super.onStart();
 
-        intentFilter = new IntentFilter();
         //intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
-        intentFilter.addAction(SensorService.SENSOR_SERVICE_BROADCAST_ACTION);
         //bindService(new Intent(this, SensorServiceMock.class), mConnection, Context.BIND_AUTO_CREATE);
         //intentFilter.addAction(PHONE_BROADCAST_ACTION);
 
@@ -102,14 +99,14 @@ public class SensorsFragment extends Fragment {
             }
         };
 
-        this.fragmentView.getContext().registerReceiver(broadcastReceiver, intentFilter);
+        this.fragmentView.getContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
     }
 
     @Override
     public void onResume() {
         super.onResume();
 
-        txtCounter.setText("---");
+        txtCounter.setText("" + counter);
 
         shouldCount = true;
         new Thread(new Runnable() {
