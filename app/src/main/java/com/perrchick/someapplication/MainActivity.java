@@ -42,11 +42,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private GridLayout mGridLayout;
     private boolean mXTurn = true;
 
-    Fragment sensorsFragment;
+    private Fragment sensorsFragment;
+    private FragmentManager fragmentManager;
 
     private boolean isServiceBound = false;
-    private SensorService sensorService;
-    private FragmentManager fragmentManager;
+    public SensorService.SensorServiceBinder binder;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -337,8 +338,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
-            SensorService.SensorServiceBinder binder = (SensorService.SensorServiceBinder) service;
-            sensorService = binder.getService();
+            binder = (SensorService.SensorServiceBinder) service;
             isServiceBound = true;
         }
 
@@ -351,5 +351,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void valuesUpdated(float[] someData) {
         Log.v(TAG, "Got an update from fragment: "+Arrays.toString(someData));
+    }
+
+    void notifyBoundService(String massageFromActivity) {
+        if (isServiceBound) {
+            binder.notifyService(massageFromActivity);
+        }
     }
 }

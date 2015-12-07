@@ -34,12 +34,13 @@ public class SensorService extends Service implements SensorEventListener {
         sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
         List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
         Log.v(getTag(), "Available sensors: " + sensorList);
-        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE); // null in Genymotion free edition of course
+        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // null in Genymotion free edition of course
         if (sensor == null && sensorList.size() > 0) {
             sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
         }
         sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
 
+        // A.D: "You must always implement this method, but if you don't want to allow binding, then you should return null."
         return sensorServiceBinder;
     }
 
@@ -55,10 +56,6 @@ public class SensorService extends Service implements SensorEventListener {
 
     protected float[] evaluate() {
         return new float[]{0.1f, 0.1f, 0.1f};
-    }
-
-    protected void evaluateAndNotify() {
-        notifyEvaluation(evaluate());
     }
 
     protected void notifyEvaluation(float[] values) {
@@ -98,6 +95,12 @@ public class SensorService extends Service implements SensorEventListener {
     class SensorServiceBinder extends Binder {
         SensorService getService() {
             return SensorService.this.getSelf();
+        }
+
+        void notifyService(String msg) {
+            // A.D: "you must provide an interface that clients use to communicate with the service, by returning an IBinder."
+            Log.v(getTag(), SensorService.class.getSimpleName() +
+                    " has got a message from its binding activity. Message: " + msg);
         }
     }
 }
