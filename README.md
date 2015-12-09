@@ -13,4 +13,4 @@ It demonstrates different usages in Android development, such as:
 * Sensors usage + Mock Sensor
 * Local Notifications
 
-![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitAndroidAppPreview.png)
+![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitHubPic-AndroidApp.png)
