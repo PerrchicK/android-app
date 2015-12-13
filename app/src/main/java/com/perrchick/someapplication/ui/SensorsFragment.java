@@ -12,6 +12,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
@@ -30,7 +33,7 @@ public class SensorsFragment extends Fragment {
     private SensorsFragmentListener _fragmentListener;
     private BroadcastReceiver broadcastReceiver;
     private TextView txtInfo;
-    private TextView txtCounter;
+    private TextSwitcher txtCounter;
     protected View fragmentView;
     static private int counter = 0;
     private boolean shouldCount = true;
@@ -69,7 +72,11 @@ public class SensorsFragment extends Fragment {
         // Inflate the layout for this fragment
         this.fragmentView = inflater.inflate(R.layout.fragment_sensors, container, false);
         txtInfo = (TextView) fragmentView.findViewById(R.id.lblInfo);
-        txtCounter = (TextView) fragmentView.findViewById(R.id.lblCounter);
+        txtCounter = (TextSwitcher) fragmentView.findViewById(R.id.lblCounter);
+        Animation in = AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left);
+        Animation out = AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right);
+        txtCounter.setInAnimation(in);
+        txtCounter.setOutAnimation(out);
 
         return fragmentView;
     }
@@ -106,7 +113,7 @@ public class SensorsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        txtCounter.setText("" + counter);
+        txtCounter.setCurrentText(String.valueOf(counter));
 
         shouldCount = true;
         new Thread(new Runnable() {
@@ -124,7 +131,7 @@ public class SensorsFragment extends Fragment {
                         getView().post(new Runnable() {
                             @Override
                             public void run() {
-                                txtCounter.setText("" + counter++);
+                                txtCounter.setText(String.valueOf(++counter));
                             }
                         });
                     }
@@ -139,6 +146,7 @@ public class SensorsFragment extends Fragment {
     public void onPause() {
         shouldCount = false;
 
+        txtCounter.setCurrentText("---");
         super.onPause();
     }
 
