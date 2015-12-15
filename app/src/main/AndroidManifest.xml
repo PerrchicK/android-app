@@ -54,6 +54,9 @@
             android:name=".uiexercises.AnimationsActivity"
             android:label="@string/title_activity_animations" >
         </activity>
+
+        <receiver android:name=".utilities.NotificationPublisher" />
+
     </application>
 
 </manifest>

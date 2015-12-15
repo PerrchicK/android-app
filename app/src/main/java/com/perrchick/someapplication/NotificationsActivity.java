@@ -1,15 +1,26 @@
 package com.perrchick.someapplication;
 
+import android.app.AlarmManager;
+import android.app.Notification;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.os.SystemClock;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
+import android.text.format.DateFormat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TimePicker;
+
+import com.perrchick.someapplication.utilities.NotificationPublisher;
+import com.perrchick.someapplication.utilities.PerrFuncs;
+
+import java.util.Date;
 
 public class NotificationsActivity extends AppCompatActivity {
 
@@ -25,6 +36,8 @@ public class NotificationsActivity extends AppCompatActivity {
                 CharSequence notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText();
 
                 int notificationId = 0;
+                // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
+                // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
                 NotificationCompat.Builder notificationsBuilder = new NotificationCompat.Builder(getApplicationContext());
                 notificationsBuilder.setContentTitle(notificationTitle);
                 notificationsBuilder.setContentText(notificationText);
@@ -34,12 +47,25 @@ public class NotificationsActivity extends AppCompatActivity {
                 android.support.v4.app.NotificationCompat.Action notificationAction = new android.support.v4.app.NotificationCompat.Action(R.drawable.ic_notification_icon,
                         "Open this app's landing screen", pendingIntent);
                 notificationsBuilder.addAction(notificationAction);
-                // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
-                // Android prior to 3.0 (API 11?) that doesn't support newer features
-                NotificationManagerCompat.from(getApplicationContext())
-                        .notify(notificationId, notificationsBuilder.build());
+                TimePicker timePicker = (TimePicker) findViewById(R.id.dateDispatchTime);
+                long timeFromNow = PerrFuncs.getMillisFrom1970(timePicker);
+
+                // Instead of dispatching it now by calling:
+                // NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notificationsBuilder.build());
+                scheduleNotification(notificationsBuilder.build(), (int) (timeFromNow - (new Date()).getTime()));
             }
         });
+    }
+
+    private void scheduleNotification(Notification notification, int delay) {
+        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
+        notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        long futureInMillis = SystemClock.elapsedRealtime() + delay;
+        AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
     }
 
     @Override

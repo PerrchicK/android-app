@@ -62,7 +62,7 @@ public class SensorService extends Service implements SensorEventListener {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SENSOR_SERVICE_BROADCAST_ACTION);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
-        Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
+        //Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
         sendBroadcast(broadcastIntent);
     }
 
@@ -82,7 +82,7 @@ public class SensorService extends Service implements SensorEventListener {
     public void onSensorChanged(SensorEvent event) {
         float[] values = new float[event.values.length];
         for (int i =0; i < event.values.length; i++) {
-            values[i] = event.values[i] * 1000000.0f;
+            values[i] = event.values[i];// * 1000000.0f;
         }
 
         notifyEvaluation(values);

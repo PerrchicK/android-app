@@ -19,11 +19,13 @@ import android.view.animation.BounceInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.TranslateAnimation;
 import android.widget.EditText;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.perrchick.someapplication.StorageActivity;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -35,6 +37,30 @@ public class PerrFuncs {
     private Activity _topActivity;
     private DisplayMetrics _metrics;
     private Context _applicationContext;
+
+    public static long getMillisFrom1970(TimePicker timePicker) {
+
+        // Solves exception: java.lang.NoSuchMethodError
+        int hour = 0;
+        int minutes = 0;
+
+        int currentApiVersion = android.os.Build.VERSION.SDK_INT;
+        // java.lang.NoSuchMethodError: No virtual method getHour()I in class Landroid/widget/TimePicker; or its super classes (declaration of 'android.widget.TimePicker' appears in /system/framework/framework.jar:classes2.dex)
+        if (currentApiVersion > android.os.Build.VERSION_CODES.LOLLIPOP_MR1) {
+            hour = timePicker.getHour();
+            minutes = timePicker.getMinute();
+        } else {
+            hour = timePicker.getCurrentHour();
+            minutes = timePicker.getCurrentMinute();
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH),
+                hour, minutes, 0);
+        long startTime = calendar.getTimeInMillis();
+
+        return startTime;
+    }
 
     public interface Callback {
         void callbackCall(Object callbackObject);

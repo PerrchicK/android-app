@@ -106,7 +106,7 @@ public class SensorsFragment extends Fragment {
             }
         };
 
-        this.fragmentView.getContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
+        getContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
     }
 
     @Override
@@ -154,7 +154,7 @@ public class SensorsFragment extends Fragment {
     public void onStop() {
         super.onStop();
 
-        this.fragmentView.getContext().unregisterReceiver(broadcastReceiver);
+        getContext().unregisterReceiver(broadcastReceiver);
     }
 
     @Override
@@ -178,6 +178,6 @@ public class SensorsFragment extends Fragment {
             values[i] = Math.round(sensorAngles[i]);
         }
 
-        this.txtInfo.setText("" + Arrays.toString(values));
+        this.txtInfo.setText(Arrays.toString(values));
     }
 }

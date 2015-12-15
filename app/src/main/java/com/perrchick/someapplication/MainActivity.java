@@ -350,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void valuesUpdated(float[] someData) {
-        Log.v(TAG, "Got an update from fragment: "+Arrays.toString(someData));
+        //Log.v(TAG, "Got an update from fragment: "+Arrays.toString(someData));
     }
 
     void notifyBoundService(String massageFromActivity) {
