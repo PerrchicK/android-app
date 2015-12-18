@@ -5,9 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.perrchick.someapplication.R;
+import com.perrchick.someapplication.uiexercises.SensorsFragment;
 
 /**
  * Created by perrchick on 12/4/15.

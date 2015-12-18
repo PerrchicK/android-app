@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.perrchick.someapplication.Manifest;
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.squareup.okhttp.OkHttpClient;
@@ -38,7 +40,7 @@ public class ImageDownload extends AppCompatActivity {
                 dataLabel.setText(intent.getStringExtra("data"));
             }
 
-            Uri data = intent.getData();
+            //Uri data = intent.getData();
             if (intent.getType() != null) {
                 // Figure out what to do based on the intent type
                 if (intent.getType().indexOf("image/") != -1) {
@@ -81,6 +83,23 @@ public class ImageDownload extends AppCompatActivity {
             }
         });
 
+    }
+
+    /**
+     * For Android Marshmallow SDK, version 6.0 (API 23) and above. Checks the permissions in runtime.
+     * @return Boolean that determines whether it is allowed to access the given permission
+     */
+    private boolean checkPermissionFor(String permission) {
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            // More details on:
+            // http://developer.android.com/training/permissions/best-practices.html
+            // And on:
+            // http://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition/en
+        } else {
+            // Pre-Marshmallow - not interesting...
+        }
+
+        return true;
     }
 
     /**

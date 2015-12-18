@@ -1,4 +1,4 @@
-package com.perrchick.someapplication.ui;
+package com.perrchick.someapplication.uiexercises;
 
 import android.app.Activity;
 

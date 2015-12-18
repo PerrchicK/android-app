@@ -24,14 +24,12 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
-import com.perrchick.someapplication.ui.SensorsFragment;
+import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
-
-import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 

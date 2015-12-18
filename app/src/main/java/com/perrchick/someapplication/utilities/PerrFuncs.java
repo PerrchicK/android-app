@@ -13,16 +13,9 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.BounceInterpolator;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.TranslateAnimation;
 import android.widget.EditText;
 import android.widget.TimePicker;
 import android.widget.Toast;
-
-import com.perrchick.someapplication.StorageActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -37,6 +30,14 @@ public class PerrFuncs {
     private Activity _topActivity;
     private DisplayMetrics _metrics;
     private Context _applicationContext;
+
+    /**
+     * Returns the number of milliseconds since the Unix epoch (1.1.1970)
+     * @return The number of milliseconds since the Unix epoch (1.1.1970)
+     */
+    public static long getMillisFrom1970() {
+        return System.currentTimeMillis();
+    }
 
     public static long getMillisFrom1970(TimePicker timePicker) {
 
@@ -76,7 +77,7 @@ public class PerrFuncs {
 
     public static String getCurrentTime() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss MM/dd/yyyy", Locale.US);
-        return (dateFormat.format(new Date()));
+        return (dateFormat.format(System.currentTimeMillis()));
     }
 
     public static void toast(String toastMessage) {

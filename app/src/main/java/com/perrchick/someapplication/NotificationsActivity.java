@@ -35,24 +35,30 @@ public class NotificationsActivity extends AppCompatActivity {
                 CharSequence notificationTitle = ((EditText) findViewById(R.id.txtNotificationTitle)).getText();
                 CharSequence notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText();
 
-                int notificationId = 0;
-                // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
-                // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
-                NotificationCompat.Builder notificationsBuilder = new NotificationCompat.Builder(getApplicationContext());
-                notificationsBuilder.setContentTitle(notificationTitle);
-                notificationsBuilder.setContentText(notificationText);
-                notificationsBuilder.setSmallIcon(R.drawable.ic_notification_icon);
+                if (getSupportActionBar() != null) {
+                    getSupportActionBar().hide();
+                }
+
                 Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, MODE_PRIVATE);
+                int notificationId = 0;
+                PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, MODE_PRIVATE);
                 android.support.v4.app.NotificationCompat.Action notificationAction = new android.support.v4.app.NotificationCompat.Action(R.drawable.ic_notification_icon,
-                        "Open this app's landing screen", pendingIntent);
-                notificationsBuilder.addAction(notificationAction);
+                        "Open this app's landing screen", mainActivityPendingIntent);
                 TimePicker timePicker = (TimePicker) findViewById(R.id.dateDispatchTime);
                 long timeFromNow = PerrFuncs.getMillisFrom1970(timePicker);
 
+                // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
+                // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
+                Notification notification = new NotificationCompat.Builder(getApplicationContext())
+                        .setContentTitle(notificationTitle)
+                        .setContentText(notificationText)
+                        .setSmallIcon(R.drawable.ic_notification_icon)
+                        .addAction(notificationAction).build(); // Builder Pattern
+
                 // Instead of dispatching it now by calling:
                 // NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notificationsBuilder.build());
-                scheduleNotification(notificationsBuilder.build(), (int) (timeFromNow - (new Date()).getTime()));
+                int delay = (int) (timeFromNow - System.currentTimeMillis());
+                scheduleNotification(notification, delay);
             }
         });
     }
