@@ -17,17 +17,10 @@ import android.view.animation.AnimationUtils;
 import android.widget.TextSwitcher;
 import android.widget.TextView;
 
-import com.parse.FindCallback;
-import com.parse.ParseException;
-import com.parse.ParseObject;
-import com.parse.SaveCallback;
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SensorService;
-import com.perrchick.someapplication.data.AndroidGlobalParse;
-import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Created by perrchick on 12/4/15.

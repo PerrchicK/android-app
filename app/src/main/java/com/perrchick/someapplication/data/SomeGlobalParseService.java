@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by perrchick on 12/15/15.
  */
-public class AndroidGlobalParse {
+public class SomeGlobalParseService {
 
     public interface GetAllObjectsCallback {
         void done(HashMap<String, String> objects, ParseException e);

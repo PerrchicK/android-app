@@ -3,34 +3,22 @@ package com.perrchick.someapplication;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
-import android.widget.TextView;
 
-import com.parse.FindCallback;
 import com.parse.ParseException;
-import com.parse.ParseObject;
 import com.parse.SaveCallback;
-import com.perrchick.someapplication.data.AndroidGlobalParse;
+import com.perrchick.someapplication.data.SomeGlobalParseService;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
-import com.perrchick.someapplication.data.parse.ParseSavedObject;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 public class StorageActivity extends AppCompatActivity {
 
@@ -171,7 +159,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        AndroidGlobalParse.getParseSharedPreferences(getApplicationContext()).getObject(EDIT_TEXT_PERSISTENCE_KEY, new AndroidGlobalParse.GetObjectCallback() {
+        SomeGlobalParseService.getParseSharedPreferences(getApplicationContext()).getObject(EDIT_TEXT_PERSISTENCE_KEY, new SomeGlobalParseService.GetObjectCallback() {
             @Override
             public void done(String value, ParseException e) {
                 if (value != null) {
@@ -185,7 +173,7 @@ public class StorageActivity extends AppCompatActivity {
         dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId), KeepCalmAnd.values()));
 
         // Restore Parse List View
-        AndroidGlobalParse.getParseSharedPreferences(getApplicationContext()).getAllObjects(new AndroidGlobalParse.GetAllObjectsCallback() {
+        SomeGlobalParseService.getParseSharedPreferences(getApplicationContext()).getAllObjects(new SomeGlobalParseService.GetAllObjectsCallback() {
             @Override
             public void done(HashMap<String, String> objects, ParseException e) {
                 if (e == null) {
@@ -229,10 +217,10 @@ public class StorageActivity extends AppCompatActivity {
 
     protected void saveInParseCloud(String key, String value, SaveCallback saveCallback) {
         // Also 'this' may be passed
-        AndroidGlobalParse.getParseSharedPreferences(this).putObject(key, value).commitInBackground(saveCallback);
+        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commitInBackground(saveCallback);
     }
 
     protected void saveInParseCloud(String key, String value) {
-        AndroidGlobalParse.getParseSharedPreferences(this).putObject(key, value).commit();
+        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commit();
     }
 }
