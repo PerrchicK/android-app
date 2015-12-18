@@ -29,15 +29,15 @@ public class NotificationsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
 
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().hide();
+        }
+
         findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 CharSequence notificationTitle = ((EditText) findViewById(R.id.txtNotificationTitle)).getText();
                 CharSequence notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText();
-
-                if (getSupportActionBar() != null) {
-                    getSupportActionBar().hide();
-                }
 
                 Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
                 int notificationId = 0;
