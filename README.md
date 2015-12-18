@@ -12,7 +12,7 @@ It demonstrates different usages in Android development, such as:
 * Fragment
 * Sensors usage + Mock Sensor
 * Local scheduled notifications
-* Parse usage (for an online-shared-preferences-like experience)
+* Parse Cloud usage (for an online-shared-preferences-like experience)
 * Example for A/B Testing usage
 
 ![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitHubPic-AndroidApp.png)
