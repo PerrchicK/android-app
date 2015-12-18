@@ -3,6 +3,7 @@ package com.perrchick.someapplication;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,6 +25,7 @@ public class StorageActivity extends AppCompatActivity {
 
     private static final String EDIT_TEXT_PERSISTENCE_KEY = "EDIT_TEXT_PERSISTENCE_KEY";
     private static final String SELECTED_ENUM_PERSISTENCE_KEY = "SELECTED_ENUM_PERSISTENCE_KEY";
+    private static final String TAG = StorageActivity.class.getSimpleName();
 
     private SharedPreferences db_sharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
@@ -86,6 +88,29 @@ public class StorageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
 
+        // Use Parse abilities for A/B Testing:
+        SomeGlobalParseService.getParseSharedPreferences(this).getObject("hide action bar", new SomeGlobalParseService.GetObjectCallback() {
+            @Override
+            public void done(String value, ParseException parseException) {
+                if (value != null) {
+                    if(Boolean.parseBoolean(value.toString()) == true) {
+                        getSupportActionBar().hide();
+                    } else {
+                        try {
+                            if(Integer.parseInt(value.toString()) == 1) {
+                                getSupportActionBar().hide();
+                            }
+                        } catch (NumberFormatException numberFormatException) {
+                            Log.e(TAG, "Unknown boolean value (" + value + ") for 'show action bar' test.\nException:" + numberFormatException.toString());
+                        }
+                    }
+                } else {
+                    if (parseException != null) {
+                        parseException.printStackTrace();
+                    }
+                }
+            }
+        });
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
