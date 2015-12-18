@@ -8,13 +8,29 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.SaveCallback;
+import com.perrchick.someapplication.data.AndroidGlobalParse;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
+import com.perrchick.someapplication.data.parse.ParseSavedObject;
 import com.perrchick.someapplication.utilities.PerrFuncs;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class StorageActivity extends AppCompatActivity {
 
@@ -27,7 +43,11 @@ public class StorageActivity extends AppCompatActivity {
 
     private EditText editTextSharedPrefs;
     private EditText editTextSQLite;
+    private EditText editTextParse;
+
     private Spinner dropdownList;
+    private ListView listOfParseSavedObjects;
+    private HashMap<String, String> objects;
 
     private enum KeepCalmAnd {
         Relax(-1),
@@ -84,6 +104,25 @@ public class StorageActivity extends AppCompatActivity {
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
         this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
+        this.editTextParse = (EditText) findViewById(R.id.txt_parse);
+
+        this.listOfParseSavedObjects = (ListView)findViewById(R.id.listOfParseSavedObjects);
+        this.listOfParseSavedObjects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Object object = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
+                if (object instanceof String) {
+                    PerrFuncs.toast(objects.get(object.toString()));
+                }
+            }
+        });
+        findViewById(R.id.btnAddParseSavedObject).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PerrFuncs.toast("later...");
+                //saveInParseCloud(key, value);
+            }
+        });
 
         this.dropdownList = (Spinner)findViewById(R.id.enums_spinner);
         KeepCalmAnd[] items = KeepCalmAnd.values();
@@ -130,23 +169,70 @@ public class StorageActivity extends AppCompatActivity {
         super.onResume();
 
         // Restore texts
-        this.editTextSharedPrefs.setText(this.db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        this.editTextSQLite.setText(this.db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
+        editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
+        editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
+        AndroidGlobalParse.getParseSharedPreferences(getApplicationContext()).getObject(EDIT_TEXT_PERSISTENCE_KEY, new AndroidGlobalParse.GetObjectCallback() {
+            @Override
+            public void done(String value, ParseException e) {
+                if (value != null) {
+                    editTextParse.setText(value);
+                }
+            }
+        });
 
         // Restore Spinner selected option
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
-        dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId),KeepCalmAnd.values()));
+        dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId), KeepCalmAnd.values()));
+
+        // Restore Parse List View
+        AndroidGlobalParse.getParseSharedPreferences(getApplicationContext()).getAllObjects(new AndroidGlobalParse.GetAllObjectsCallback() {
+            @Override
+            public void done(HashMap<String, String> objects, ParseException e) {
+                if (e == null) {
+                    StorageActivity.this.objects = objects;
+                    ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
+                    listOfParseSavedObjects.setAdapter(adapter);
+                } else {
+                    PerrFuncs.toast("Error! Exception:\n" + e);
+                }
+            }
+        });
     }
 
     @Override
     public void onPause() {
         super.onPause();
 
+        // Using different kinds of persistence:
         String editTextSharedPrefsString = this.editTextSharedPrefs.getText().toString();
         String editTextSQLiteString = this.editTextSQLite.getText().toString();
-        if (!this.db_sharedPreferencesEditor.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit() ||
-                this.db_sqLiteHelper.put(EDIT_TEXT_PERSISTENCE_KEY, editTextSQLiteString) == -1) {
-            PerrFuncs.toast("Failed to update");
+        String editTextParseString = this.editTextParse.getText().toString();
+
+        // Shared Preferences
+        if (!this.db_sharedPreferencesEditor.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit()) {
+            PerrFuncs.toast("Failed to update Shared Preferences!");
         }
+        // SQLite
+        if (this.db_sqLiteHelper.put(EDIT_TEXT_PERSISTENCE_KEY, editTextSQLiteString) == -1) {
+            PerrFuncs.toast("Failed to update SQLite!");
+        }
+        // Parse Cloud
+        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if (e != null) {
+                    PerrFuncs.toast("Failed to update Parse! Exception:\n" + e);
+                }
+            }
+        });
+    }
+
+    protected void saveInParseCloud(String key, String value, SaveCallback saveCallback) {
+        // Also 'this' may be passed
+        AndroidGlobalParse.getParseSharedPreferences(this).putObject(key, value).commitInBackground(saveCallback);
+    }
+
+    protected void saveInParseCloud(String key, String value) {
+        AndroidGlobalParse.getParseSharedPreferences(this).putObject(key, value).commit();
     }
 }
