@@ -38,12 +38,17 @@ public class NotificationsActivity extends AppCompatActivity {
             public void onClick(View v) {
                 CharSequence notificationTitle = ((EditText) findViewById(R.id.txtNotificationTitle)).getText();
                 CharSequence notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText();
+                CharSequence notificationData = ((EditText) findViewById(R.id.txtNotificationData)).getText();
 
                 Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                int notificationId = 0;
+                mainActivityIntent.putExtra("data", notificationData.toString()); // Convert CharSequence  to String so using later with 'getString(...)'
+                mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+                int notificationId = (int) (System.currentTimeMillis() & 0xfffffff); // Convert long to int
                 PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, MODE_PRIVATE);
-                android.support.v4.app.NotificationCompat.Action notificationAction = new android.support.v4.app.NotificationCompat.Action(R.drawable.ic_notification_icon,
+                NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon,
                         "Open this app's landing screen", mainActivityPendingIntent);
+
                 TimePicker timePicker = (TimePicker) findViewById(R.id.dateDispatchTime);
                 long timeFromNow = PerrFuncs.getMillisFrom1970(timePicker);
 
@@ -55,9 +60,9 @@ public class NotificationsActivity extends AppCompatActivity {
                         .setSmallIcon(R.drawable.ic_notification_icon)
                         .addAction(notificationAction).build(); // Builder Pattern
 
-                // Instead of dispatching it now by calling:
-                // NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notificationsBuilder.build());
+                // Dispatch now by calling: NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notification);
                 int delay = (int) (timeFromNow - System.currentTimeMillis());
+                PerrFuncs.toast("Will notify in " + delay / 1000 + " seconds...");
                 scheduleNotification(notification, delay);
             }
         });
@@ -67,11 +72,11 @@ public class NotificationsActivity extends AppCompatActivity {
         Intent notificationIntent = new Intent(this, NotificationPublisher.class);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, 1);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent broadcastPendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long futureInMillis = SystemClock.elapsedRealtime() + delay;
         AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, pendingIntent);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, broadcastPendingIntent);
     }
 
     @Override

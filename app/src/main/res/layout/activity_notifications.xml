@@ -21,6 +21,10 @@
         android:hint="@string/notification_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+    <EditText android:id="@+id/txtNotificationData"
+        android:hint="@string/notification_data"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 
     <TextView android:text="@string/notification_dispatch_time"
         android:gravity="center"

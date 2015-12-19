@@ -50,8 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         PerrFuncs.setApplicationContext(getApplicationContext());
+
+        if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("data")) {
+            PerrFuncs.toast("Got data from notification: " + getIntent().getExtras().getString("data"));
+        }
 
         setContentView(R.layout.activity_main);
 
