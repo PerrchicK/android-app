@@ -29,6 +29,7 @@
 
     <string name="notification_title">Notification\'s Title</string>
     <string name="notification_text">Notification\'s Text</string>
+    <string name="notification_data">Notification\'s Data</string>
     <string name="notification_dispatch_time">Dispatch Time:</string>
     <string name="notification_btn_create">GO!</string>
     <string name="title_activity_animations">AnimationsActivity</string>

@@ -11,6 +11,8 @@ It demonstrates different usages in Android development, such as:
 * BroadcastReceiver
 * Fragment
 * Sensors usage + Mock Sensor
-* Local Notifications
+* Local scheduled notifications
+* Parse Cloud usage (for an online-shared-preferences-like experience)
+* Example for A/B Testing usage
 
 ![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitHubPic-AndroidApp.png)
