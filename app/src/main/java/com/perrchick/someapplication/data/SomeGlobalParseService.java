@@ -2,13 +2,10 @@ package com.perrchick.someapplication.data;
 
 import android.content.Context;
 
-import com.parse.DeleteCallback;
 import com.parse.FindCallback;
-import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
-import com.perrchick.someapplication.Application;
 import com.perrchick.someapplication.data.parse.ParseSavedObject;
 
 import java.util.HashMap;
@@ -28,6 +25,9 @@ public class SomeGlobalParseService {
     public interface GetObjectCallback {
         void done(String value, ParseException e);
     }
+    public interface CommitCallback {
+        void done(ParseException e);
+    }
 
     public static ParseSharedPreferences getParseSharedPreferences(Context context) {
         return new ParseSharedPreferences(context);
@@ -43,7 +43,7 @@ public class SomeGlobalParseService {
             this.context = context;
         }
 
-        public ParseSharedPreferences putObject(String key, Object value) {
+        public ParseSharedPreferences putObject(String key, String value) {
             editedObject.putObject(key, value);
 
             return this;
@@ -82,12 +82,19 @@ public class SomeGlobalParseService {
             });
         }
 
-        public void commit() {
+        public void commitInBackground() {
             editedObject.saveInBackground(null);
         }
 
-        public void commitInBackground(final SaveCallback saveCallback) {
-            editedObject.saveInBackground(saveCallback);
+        public void commitInBackground(final CommitCallback saveCallback) {
+            editedObject.saveInBackground(new SaveCallback() {
+                @Override
+                public void done(ParseException e) {
+                    if (saveCallback != null) {
+                        saveCallback.done(e);
+                    }
+                }
+            });
         }
     }
 

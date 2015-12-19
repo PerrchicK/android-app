@@ -88,8 +88,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Programmatically create the buttons layout
         for (int column = 0; column < colsNum; column++) {
             for (int row = 0; row < rowsNum; row++) {
+                int density = 5;
+                int width = PerrFuncs.screenWidthPixels() / density;
+
                 TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
-                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(200, 200));
+                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(width, width));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
                 mGridLayout.addView(btnTicTacToe);

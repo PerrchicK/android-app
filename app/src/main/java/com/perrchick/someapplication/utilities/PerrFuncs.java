@@ -14,10 +14,12 @@ import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -137,7 +139,40 @@ public class PerrFuncs {
         PerrFuncs.getInstance()._topActivity = topActivity;
     }
 
+    public static void askUser(Activity inActivity, String title, final Callback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(inActivity);
+        builder.setTitle(title);
+
+        // Set up the buttons
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.callbackCall(new Boolean(true));
+            }
+        });
+        builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.callbackCall(new Boolean(false));
+            }
+        });
+
+        builder.show();
+    }
+
     public static void getTextFromUser(Activity inActivity, String title, final Callback callback) {
+        PerrFuncs.getTextFromUser(inActivity, title, "", callback);
+    }
+
+    public static void getTextFromUser(Activity inActivity, String title, String defaultText, final Callback callback) {
+        if (callback == null) {
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(inActivity);
         builder.setTitle(title);
 
@@ -146,6 +181,7 @@ public class PerrFuncs {
 
         // Specify the type of input expected; this, for example, add "| InputType.TYPE_TEXT_VARIATION_PASSWORD" and will mask the text
         inputText.setInputType(InputType.TYPE_CLASS_TEXT);
+        inputText.setText(defaultText);
         builder.setView(inputText);
 
         // Set up the buttons
@@ -154,6 +190,45 @@ public class PerrFuncs {
             public void onClick(DialogInterface dialog, int which) {
                 String result = inputText.getText().toString();
                 callback.callbackCall(result);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
+    }
+
+    public static void getTextsFromUser(Activity inActivity, String title, final EditText[] textInputs, final Callback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(inActivity);
+        builder.setTitle(title);
+
+        // Set up the input control
+        final LinearLayout inputTexts = new LinearLayout(inActivity);
+        inputTexts.setOrientation(LinearLayout.VERTICAL);
+        for (EditText editText:textInputs) {
+            inputTexts.addView(editText);
+        }
+
+        // Specify the type of input expected; this, for example, add "| InputType.TYPE_TEXT_VARIATION_PASSWORD" and will mask the text
+        builder.setView(inputTexts);
+
+        // Set up the buttons
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ArrayList<String> texts = new ArrayList<>(2);
+                for (EditText inputText:textInputs) {
+                    texts.add(inputText.getText().toString());
+                }
+                callback.callbackCall(texts);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {

@@ -1,5 +1,7 @@
 package com.perrchick.someapplication;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,8 +19,10 @@ import com.parse.ParseException;
 import com.parse.SaveCallback;
 import com.perrchick.someapplication.data.SomeGlobalParseService;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
+import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class StorageActivity extends AppCompatActivity {
@@ -123,16 +127,92 @@ public class StorageActivity extends AppCompatActivity {
         this.listOfParseSavedObjects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Object object = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
-                if (object instanceof String) {
-                    PerrFuncs.toast(objects.get(object.toString()));
-                }
+                Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
+                String value = objects.get(pressedKey.toString());
+                PerrFuncs.toast(value);
             }
         });
+        this.listOfParseSavedObjects.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+
+                PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.Callback() {
+                    @Override
+                    public void callbackCall(Object callbackObject) {
+                        if (callbackObject instanceof Boolean) {
+                            if ((Boolean)callbackObject) {
+                                // Delete
+                            }
+                        }
+                    }
+                });
+                final Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
+                String oldValue = objects.get(pressedKey.toString());
+                PerrFuncs.getTextFromUser(StorageActivity.this, "New string", oldValue, new PerrFuncs.Callback() {
+                    @Override
+                    public void callbackCall(Object callbackObject) {
+                        if (callbackObject instanceof String) {
+                            final String key = (String) pressedKey;
+                            final String newValue = (String)callbackObject;
+                            saveInParseCloud(key, newValue, new SomeGlobalParseService.CommitCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    String completionMessage;
+                                    if (e == null) {
+                                        objects.put(key, newValue);
+                                        completionMessage = "Saved successfully in Parse cloud";
+                                    } else {
+                                        completionMessage = "Failed to save in Parse cloud, Exception: " + e.toString();
+                                    }
+
+                                    PerrFuncs.toast(completionMessage);
+                                }
+                            });
+                        }
+                    }
+                });
+                return true;
+            }
+        });
+
         findViewById(R.id.btnAddParseSavedObject).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PerrFuncs.toast("later...");
+                final StorageActivity storageActivity = StorageActivity.this;
+                EditText keyTextInput = new EditText(storageActivity);
+                keyTextInput.setHint("key");
+                EditText valueTextInput = new EditText(storageActivity);
+                valueTextInput.setHint("value");
+                EditText[] textInputs = new EditText[]{keyTextInput, valueTextInput};
+
+                PerrFuncs.getTextsFromUser(storageActivity, "Add new <key,value>", textInputs , new PerrFuncs.Callback() {
+                    @Override
+                    public void callbackCall(Object callbackObject) {
+                        if (callbackObject instanceof ArrayList) {
+                            ArrayList<String> texts = (ArrayList<String>) callbackObject;
+                            String key = texts.get(0);
+                            String value = texts.get(1);
+
+                            // Validate
+                            if (key.length() == 0 && value.length() == 0) {
+                                return;
+                            }
+
+                            // <key,value> are valid, proceed...
+                            SomeGlobalParseService.getParseSharedPreferences(storageActivity).putObject(key, value).commitInBackground(new SomeGlobalParseService.CommitCallback() {
+                                @Override
+                                public void done(ParseException e) {
+                                    if (e == null) {
+                                        PerrFuncs.toast("Added!");
+                                    } else {
+                                        PerrFuncs.toast("Error in adding  <"+","+">" + e.toString());
+                                    }
+
+                                }
+                            });
+                        }
+                    }
+                });
                 //saveInParseCloud(key, value);
             }
         });
@@ -230,7 +310,7 @@ public class StorageActivity extends AppCompatActivity {
             PerrFuncs.toast("Failed to update SQLite!");
         }
         // Parse Cloud
-        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new SaveCallback() {
+        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new SomeGlobalParseService.CommitCallback() {
             @Override
             public void done(ParseException e) {
                 if (e != null) {
@@ -240,12 +320,12 @@ public class StorageActivity extends AppCompatActivity {
         });
     }
 
-    protected void saveInParseCloud(String key, String value, SaveCallback saveCallback) {
+    protected void saveInParseCloud(String key, String value, SomeGlobalParseService.CommitCallback saveCallback) {
         // Also 'this' may be passed
         SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commitInBackground(saveCallback);
     }
 
-    protected void saveInParseCloud(String key, String value) {
-        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commit();
+    protected void saveInParseCloud(final String key, final String value) {
+        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commitInBackground();
     }
 }
