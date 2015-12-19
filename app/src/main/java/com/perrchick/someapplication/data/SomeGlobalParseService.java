@@ -2,6 +2,7 @@ package com.perrchick.someapplication.data;
 
 import android.content.Context;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
@@ -28,6 +29,9 @@ public class SomeGlobalParseService {
     public interface CommitCallback {
         void done(ParseException e);
     }
+    public interface RemoveCallback {
+        void done(ParseException e);
+    }
 
     public static ParseSharedPreferences getParseSharedPreferences(Context context) {
         return new ParseSharedPreferences(context);
@@ -49,17 +53,13 @@ public class SomeGlobalParseService {
             return this;
         }
 
-        public void getAllObjects(final GetAllObjectsCallback callback) {
-            final ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
-            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, context.getPackageName());
-            parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+        public void remove(String key, final RemoveCallback removeCallback) {
+            editedObject.remove(key, new DeleteCallback() {
                 @Override
-                public void done(List<ParseSavedObject> objects, ParseException e) {
-                    HashMap<String, String> savedObjects = new HashMap<String, String>(objects.size());
-                    for (ParseSavedObject savedObject : objects) {
-                        savedObjects.put(savedObject.getKey(), savedObject.getValue());
+                public void done(ParseException e) {
+                    if (removeCallback != null) {
+                        removeCallback.done(e);
                     }
-                    callback.done(savedObjects, e);
                 }
             });
         }
@@ -82,6 +82,21 @@ public class SomeGlobalParseService {
             });
         }
 
+        public void getAllObjects(final GetAllObjectsCallback callback) {
+            final ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, context.getPackageName());
+            parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+                @Override
+                public void done(List<ParseSavedObject> objects, ParseException e) {
+                    HashMap<String, String> savedObjects = new HashMap<String, String>(objects.size());
+                    for (ParseSavedObject savedObject : objects) {
+                        savedObjects.put(savedObject.getKey(), savedObject.getValue());
+                    }
+                    callback.done(savedObjects, e);
+                }
+            });
+        }
+
         public void commitInBackground() {
             editedObject.saveInBackground(null);
         }
@@ -96,6 +111,7 @@ public class SomeGlobalParseService {
                 }
             });
         }
+
     }
 
     // Adapter pattern (Object Adapter)
@@ -114,9 +130,32 @@ public class SomeGlobalParseService {
             innerObject.put(ParseSavedObject.SAVED_OBJECT_VALUE, value);
         }
 
+        public void remove(String key, final DeleteCallback deleteCallback) {
+            ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+            parseQuery.whereEqualTo(ParseSharedPreferences.PACKAGE_NAME_KEY, parseSharedPreferences.context.getPackageName());
+            parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
+            // Find the object to delete
+            parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+                @Override
+                public void done(final List<ParseSavedObject> objects, ParseException e) {
+                    // Found?
+                    if (objects.size() == 1) {
+                        if (deleteCallback == null) {
+                            objects.get(0).deleteInBackground();
+                        } else {
+                            objects.get(0).deleteInBackground(deleteCallback);
+                        }
+                    }
+                }
+            });
+        }
+
         /**
-         * I might solve it with Parse by configurating the object to have two unique keys from 'packageName" + 'key'.
-         * But I wanted to take the challenge
+         * I'm sure there's an efficient way and I might solve it with Parse by configuring the object to have two unique keys from 'packageName" + 'key'.
+         * But I wanted to have the challenge.
+         *
+         * Will check duplications, delete if any, and save.
+         *
          * @param saveCallback The callback that holds the method to run in completion
          */
         protected void saveInBackground(final SaveCallback saveCallback) {
@@ -132,7 +171,7 @@ public class SomeGlobalParseService {
                         // (3) Delete duplications (disallowed) before add new object
                         boolean finished = false;
                         ExecutorService es = Executors.newCachedThreadPool();
-                        for(int i = 0; i < objects.size(); i++) {
+                        for (int i = 0; i < objects.size(); i++) {
                             final int index = i; // must be final because another thread "would like" to use that resource
                             es.execute(new Runnable() {
                                 @Override
@@ -184,5 +223,6 @@ public class SomeGlobalParseService {
                 }
             });
         }
+
     }
 }

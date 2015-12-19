@@ -1,10 +1,14 @@
 package com.perrchick.someapplication;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -31,6 +35,7 @@ public class StorageActivity extends AppCompatActivity {
     private static final String SELECTED_ENUM_PERSISTENCE_KEY = "SELECTED_ENUM_PERSISTENCE_KEY";
     private static final String TAG = StorageActivity.class.getSimpleName();
 
+    private SomeGlobalParseService.ParseSharedPreferences db_parseSharedPreferences;
     private SharedPreferences db_sharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
     private DictionaryOpenHelper db_sqLiteHelper;
@@ -92,16 +97,25 @@ public class StorageActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_storage);
 
+        this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
+        this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
+        this.db_parseSharedPreferences = SomeGlobalParseService.getParseSharedPreferences(this);
+        this.db_sqLiteHelper = new DictionaryOpenHelper(this);
+
+        this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
+        this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
+        this.editTextParse = (EditText) findViewById(R.id.txt_parse);
+
         // Use Parse abilities for A/B Testing:
-        SomeGlobalParseService.getParseSharedPreferences(this).getObject("hide action bar", new SomeGlobalParseService.GetObjectCallback() {
+        db_parseSharedPreferences.getObject("hide action bar", new SomeGlobalParseService.GetObjectCallback() {
             @Override
             public void done(String value, ParseException parseException) {
                 if (value != null) {
-                    if(Boolean.parseBoolean(value.toString()) == true) {
+                    if (Boolean.parseBoolean(value.toString()) == true) {
                         getSupportActionBar().hide();
                     } else {
                         try {
-                            if(Integer.parseInt(value.toString()) == 1) {
+                            if (Integer.parseInt(value.toString()) == 1) {
                                 getSupportActionBar().hide();
                             }
                         } catch (NumberFormatException numberFormatException) {
@@ -115,13 +129,6 @@ public class StorageActivity extends AppCompatActivity {
                 }
             }
         });
-        this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
-        this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
-        this.db_sqLiteHelper = new DictionaryOpenHelper(this);
-
-        this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
-        this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
-        this.editTextParse = (EditText) findViewById(R.id.txt_parse);
 
         this.listOfParseSavedObjects = (ListView)findViewById(R.id.listOfParseSavedObjects);
         this.listOfParseSavedObjects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -136,22 +143,33 @@ public class StorageActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
 
-                PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.Callback() {
-                    @Override
-                    public void callbackCall(Object callbackObject) {
-                        if (callbackObject instanceof Boolean) {
-                            if ((Boolean)callbackObject) {
-                                // Delete
-                            }
-                        }
-                    }
-                });
                 final Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
                 String oldValue = objects.get(pressedKey.toString());
-                PerrFuncs.getTextFromUser(StorageActivity.this, "New string", oldValue, new PerrFuncs.Callback() {
+                getTextFromUser("New string", oldValue, new PerrFuncs.Callback() {
                     @Override
                     public void callbackCall(Object callbackObject) {
-                        if (callbackObject instanceof String) {
+                        if (callbackObject == null) { // Delete
+                            PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.Callback() {
+                                @Override
+                                public void callbackCall(Object callbackObject) {
+                                    if (callbackObject instanceof Boolean) {
+                                        if ((Boolean)callbackObject) {
+                                            db_parseSharedPreferences.remove(pressedKey.toString(), new SomeGlobalParseService.RemoveCallback() {
+                                                @Override
+                                                public void done(ParseException e) {
+                                                    if (e == null) {
+                                                        PerrFuncs.toast("Deleted");
+                                                        refreshParseList();
+                                                    } else {
+                                                        PerrFuncs.toast("Failed to delete, Exception: " + e.toString());
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        } else if (callbackObject instanceof String) {
                             final String key = (String) pressedKey;
                             final String newValue = (String)callbackObject;
                             saveInParseCloud(key, newValue, new SomeGlobalParseService.CommitCallback() {
@@ -199,11 +217,12 @@ public class StorageActivity extends AppCompatActivity {
                             }
 
                             // <key,value> are valid, proceed...
-                            SomeGlobalParseService.getParseSharedPreferences(storageActivity).putObject(key, value).commitInBackground(new SomeGlobalParseService.CommitCallback() {
+                            db_parseSharedPreferences.putObject(key, value).commitInBackground(new SomeGlobalParseService.CommitCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null) {
                                         PerrFuncs.toast("Added!");
+                                        refreshParseList();
                                     } else {
                                         PerrFuncs.toast("Error in adding  <"+","+">" + e.toString());
                                     }
@@ -264,7 +283,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        SomeGlobalParseService.getParseSharedPreferences(getApplicationContext()).getObject(EDIT_TEXT_PERSISTENCE_KEY, new SomeGlobalParseService.GetObjectCallback() {
+        db_parseSharedPreferences.getObject(EDIT_TEXT_PERSISTENCE_KEY, new SomeGlobalParseService.GetObjectCallback() {
             @Override
             public void done(String value, ParseException e) {
                 if (value != null) {
@@ -277,8 +296,12 @@ public class StorageActivity extends AppCompatActivity {
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
         dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId), KeepCalmAnd.values()));
 
+        refreshParseList();
+    }
+
+    private void refreshParseList() {
         // Restore Parse List View
-        SomeGlobalParseService.getParseSharedPreferences(getApplicationContext()).getAllObjects(new SomeGlobalParseService.GetAllObjectsCallback() {
+        db_parseSharedPreferences.getAllObjects(new SomeGlobalParseService.GetAllObjectsCallback() {
             @Override
             public void done(HashMap<String, String> objects, ParseException e) {
                 if (e == null) {
@@ -322,10 +345,50 @@ public class StorageActivity extends AppCompatActivity {
 
     protected void saveInParseCloud(String key, String value, SomeGlobalParseService.CommitCallback saveCallback) {
         // Also 'this' may be passed
-        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commitInBackground(saveCallback);
+        db_parseSharedPreferences.putObject(key, value).commitInBackground(saveCallback);
     }
 
     protected void saveInParseCloud(final String key, final String value) {
-        SomeGlobalParseService.getParseSharedPreferences(this).putObject(key, value).commitInBackground();
+        db_parseSharedPreferences.putObject(key, value).commitInBackground();
+    }
+
+    public void getTextFromUser(String title, String defaultText, final PerrFuncs.Callback callback) {
+        if (callback == null) {
+            return;
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(title);
+
+        // Set up the input control
+        final EditText inputText = new EditText(this);
+
+        // Specify the type of input expected; this, for example, add "| InputType.TYPE_TEXT_VARIATION_PASSWORD" and will mask the text
+        inputText.setInputType(InputType.TYPE_CLASS_TEXT);
+        inputText.setText(defaultText);
+        builder.setView(inputText);
+
+        // Set up the buttons
+        builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String result = inputText.getText().toString();
+                callback.callbackCall(result);
+            }
+        });
+        builder.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                callback.callbackCall(null);
+            }
+        });
+        builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+            }
+        });
+
+        builder.show();
     }
 }
