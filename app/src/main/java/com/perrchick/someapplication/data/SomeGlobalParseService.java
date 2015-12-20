@@ -194,7 +194,7 @@ public class SomeGlobalParseService {
 
                         if (finished) {
                             // (3.1) Save...
-                            innerObject.saveInBackground(new SaveCallback() {
+                            new ParseSavedObject(innerObject.getPackageName(), innerObject.getKey(), innerObject.getValue()).saveInBackground(new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     // (4) Notify for completion with callback
