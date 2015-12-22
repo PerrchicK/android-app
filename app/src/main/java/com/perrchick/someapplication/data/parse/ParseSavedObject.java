@@ -7,7 +7,7 @@ import com.parse.ParseObject;
  * Created by perrchick on 12/18/15.
  */
 @ParseClassName("SavedObject")
-public class ParseSavedObject extends ParseObject{
+public class ParseSavedObject extends ParseObject {
 
     public static final String SAVED_OBJECT_KEY = "key";
     public static final String SAVED_OBJECT_VALUE = "value";

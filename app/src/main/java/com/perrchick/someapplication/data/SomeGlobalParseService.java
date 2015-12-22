@@ -40,11 +40,9 @@ public class SomeGlobalParseService {
     public static class ParseSharedPreferences {
         private final ParseObjectWrapper editedObject;
         public static final String PACKAGE_NAME_KEY = "packageName";
-        private final Context context;
 
         public ParseSharedPreferences(Context context) {
-            this.editedObject = new ParseObjectWrapper(context.getPackageName(), this);
-            this.context = context;
+            this.editedObject = new ParseObjectWrapper(context.getPackageName());
         }
 
         public ParseSharedPreferences putObject(String key, String value) {
@@ -66,9 +64,9 @@ public class SomeGlobalParseService {
 
         public void getObject(String key, final GetObjectCallback callback) {
             ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
-            // Has two keys
-            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, context.getPackageName()); // package name
-            parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key); // key
+            // Has two keys (package name + key)
+            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, editedObject.getPackageName());
+            parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
             parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
                 @Override
                 public void done(List<ParseSavedObject> objects, ParseException e) {
@@ -76,15 +74,17 @@ public class SomeGlobalParseService {
                     if (objects.size() > 0) {
                         value = objects.get(0).getValue();
                     }
-                    // Should be unique
-                    callback.done(value, e);
+                    if (callback != null) {
+                        // Should be unique
+                        callback.done(value, e);
+                    }
                 }
             });
         }
 
         public void getAllObjects(final GetAllObjectsCallback callback) {
             final ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
-            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, context.getPackageName());
+            parseQuery.whereEqualTo(PACKAGE_NAME_KEY, editedObject.getPackageName());
             parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
                 @Override
                 public void done(List<ParseSavedObject> objects, ParseException e) {
@@ -117,12 +117,10 @@ public class SomeGlobalParseService {
     // Adapter pattern (Object Adapter)
     private static class ParseObjectWrapper {
         private final ParseSavedObject innerObject;
-        private final ParseSharedPreferences parseSharedPreferences;
 
-        protected ParseObjectWrapper(String packageName, ParseSharedPreferences parseSharedPreferences) {
+        protected ParseObjectWrapper(String packageName) {
             innerObject = new ParseSavedObject();
             innerObject.put(ParseSharedPreferences.PACKAGE_NAME_KEY, packageName);
-            this.parseSharedPreferences = parseSharedPreferences;
         }
 
         protected void putObject(String key, Object value) {
@@ -130,9 +128,9 @@ public class SomeGlobalParseService {
             innerObject.put(ParseSavedObject.SAVED_OBJECT_VALUE, value);
         }
 
-        public void remove(String key, final DeleteCallback deleteCallback) {
+        protected void remove(String key, final DeleteCallback deleteCallback) {
             ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
-            parseQuery.whereEqualTo(ParseSharedPreferences.PACKAGE_NAME_KEY, parseSharedPreferences.context.getPackageName());
+            parseQuery.whereEqualTo(ParseSharedPreferences.PACKAGE_NAME_KEY, innerObject.getPackageName());
             parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
             // Find the object to delete
             parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
@@ -151,7 +149,8 @@ public class SomeGlobalParseService {
         }
 
         /**
-         * I'm sure there's an efficient way and I might solve it with Parse by configuring the object to have two unique keys from 'packageName" + 'key'.
+         * Saves the shared object
+         * I'm sure there's an efficient way, I might solve it with Parse by configuring the object to have two unique keys from 'packageName" + 'key'.
          * But I wanted to have the challenge.
          *
          * Will check duplications, delete if any, and save.
@@ -160,7 +159,7 @@ public class SomeGlobalParseService {
          */
         protected void saveInBackground(final SaveCallback saveCallback) {
             ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
-            parseQuery.whereEqualTo(ParseSharedPreferences.PACKAGE_NAME_KEY, parseSharedPreferences.context.getPackageName());
+            parseQuery.whereEqualTo(ParseSharedPreferences.PACKAGE_NAME_KEY, innerObject.getPackageName());
             parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, this.innerObject.getKey());
             // (1) Find duplications
             parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
@@ -224,5 +223,8 @@ public class SomeGlobalParseService {
             });
         }
 
+        public String getPackageName() {
+            return innerObject.getPackageName();
+        }
     }
 }

@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Layout;
+import android.transition.Visibility;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,23 +20,29 @@ import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.utilities.PerrFuncs;
+import com.yalantis.starwars.TilesFrameLayout;
+import com.yalantis.starwars.interfaces.TilesFrameLayoutListener;
 
 import java.util.Date;
 
 import javax.xml.transform.Transformer;
 
-public class AnimationsActivity extends AppCompatActivity {
+public class AnimationsActivity extends AppCompatActivity implements TilesFrameLayoutListener {
     ImageView spinnerView;
     private RotateAnimation rotateAnimation;
     private TextView txtScaleValue;
     private SeekBar scaleSeekBar;
     private TextView shrinkingText;
     private ObjectAnimator shrinkingTextAnimator;
+    private TilesFrameLayout mTilesFrameLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animations);
+
+        mTilesFrameLayout = (TilesFrameLayout) findViewById(R.id.tiles_frame_layout);
+        mTilesFrameLayout.setOnAnimationFinishedListener(this);
 
         this.shrinkingText = (TextView) findViewById(R.id.txtShrinking);
 
@@ -78,6 +85,13 @@ public class AnimationsActivity extends AppCompatActivity {
                 PerrFuncs.sayNo(v);
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        //https://github.com/Yalantis/StarWars.Android
+        //https://yalantis.com/blog/star-wars-the-force-awakens-or-how-to-crumble-view-into-tiny-pieces-on-android/
+        mTilesFrameLayout.startAnimation();
     }
 
     private void scaleImage(float scaleSize) {
@@ -127,6 +141,7 @@ public class AnimationsActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
+        mTilesFrameLayout.onResume();
 
         this.shrinkingText.setText("Will shrink...");
         this.shrinkingTextAnimator = ObjectAnimator.ofFloat(this.shrinkingText, "scaleY", 1.0f, 0.0f);
@@ -187,6 +202,13 @@ public class AnimationsActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+
+        mTilesFrameLayout.onPause();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         //getMenuInflater().inflate(R.menu.menu_animations, menu);
@@ -215,5 +237,10 @@ public class AnimationsActivity extends AppCompatActivity {
         rotateAnimation.setFillAfter(true);
 
         return rotateAnimation;
+    }
+
+    @Override
+    public void onAnimationFinished() {
+        finish();
     }
 }
