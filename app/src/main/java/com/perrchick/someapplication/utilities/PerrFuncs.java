@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.view.Display;
@@ -22,7 +23,6 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -73,6 +73,12 @@ public class PerrFuncs {
         }
 
         return true;
+    }
+
+    public static void hideActionBarOfActivity(AppCompatActivity activity) {
+        if (activity.getSupportActionBar() != null) { // Shouldn't have a problem here anyway
+            activity.getSupportActionBar().hide();
+        }
     }
 
     public interface Callback {

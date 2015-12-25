@@ -29,9 +29,7 @@ public class NotificationsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notifications);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().hide();
-        }
+        PerrFuncs.hideActionBarOfActivity(this);
 
         findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
             @Override

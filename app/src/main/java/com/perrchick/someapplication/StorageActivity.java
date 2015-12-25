@@ -112,11 +112,11 @@ public class StorageActivity extends AppCompatActivity {
             public void done(String value, ParseException parseException) {
                 if (value != null) {
                     if (Boolean.parseBoolean(value.toString()) == true) {
-                        getSupportActionBar().hide();
+                        PerrFuncs.hideActionBarOfActivity(StorageActivity.this);
                     } else {
                         try {
                             if (Integer.parseInt(value.toString()) == 1) {
-                                getSupportActionBar().hide();
+                                PerrFuncs.hideActionBarOfActivity(StorageActivity.this);
                             }
                         } catch (NumberFormatException numberFormatException) {
                             Log.e(TAG, "Unknown boolean value (" + value + ") for 'show action bar' test.\nException:" + numberFormatException.toString());

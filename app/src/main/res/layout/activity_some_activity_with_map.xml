@@ -9,10 +9,45 @@
     <TextView android:text="@string/maps_activity_title" android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 
-    <FrameLayout
-        android:id="@+id/mapsPlaceHolder"
-        android:background="#bbffbb"
+    <RelativeLayout
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"/>
+        android:layout_height="fill_parent">
+        <FrameLayout
+            android:id="@+id/mapsPlaceHolder"
+            android:background="#bbffbb"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
 
+            <Button
+                android:id="@+id/btnGotoAfeka"
+                android:layout_weight="3"
+                android:text="@string/btn_goto_afeka"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+        <EditText
+            android:id="@+id/txtAddress"
+            android:maxLines="1"
+            android:background="#ffffff"
+            android:layout_alignBottom="@id/mapsPlaceHolder"
+            android:layout_gravity="bottom"
+            android:hint="@string/search_address_hint"
+            android:layout_width="fill_parent"
+            android:layout_height="40dp" />
+        <TextView
+            android:id="@+id/lblZoomLevel"
+            android:layout_alignLeft="@id/seekBar"
+            android:text="0.0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <SeekBar
+            android:background="#99ffffff"
+            android:layout_above="@id/txtAddress"
+            android:layout_alignRight="@id/mapsPlaceHolder"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/seekBar"
+            android:layout_gravity="center" />
+    </RelativeLayout>
 </RelativeLayout>

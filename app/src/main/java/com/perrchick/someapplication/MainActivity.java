@@ -23,7 +23,6 @@ import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
@@ -91,11 +90,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Programmatically create the buttons layout
         for (int column = 0; column < colsNum; column++) {
             for (int row = 0; row < rowsNum; row++) {
-                int density = 5;
-                int width = PerrFuncs.screenWidthPixels() / density;
+                int fraction = 5;
+                int screenWidth = PerrFuncs.screenWidthPixels();
+                int screenHeight = PerrFuncs.screenHeightPixels();
+                int theSmallerAxis = screenHeight < screenWidth ? screenHeight : screenWidth; // Equals: Math.min(screenHeight, screenWidth);
+
+                int buttonWidth = theSmallerAxis / fraction;
 
                 TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
-                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(width, width));
+                btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
                 mGridLayout.addView(btnTicTacToe);
