@@ -41,5 +41,6 @@
     <string name="txt_values"><![CDATA[<values>]]></string>
     <string name="fragment_title">a fragment that receives broadcasts from the MainActivity\'s bound service</string>
     <string name="title_activity_maps">MapsActivity</string>
+    <string name="title_activity_some_activity_with_map">SomeActivityWithMap</string>
 
 </resources>

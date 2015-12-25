@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -63,6 +64,15 @@ public class PerrFuncs {
         long startTime = calendar.getTimeInMillis();
 
         return startTime;
+    }
+
+    public static boolean hasPermissionForLocationServices(Context context) {
+        if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // The user blocked the location services of THIS app
+            return false;
+        }
+
+        return true;
     }
 
     public interface Callback {
