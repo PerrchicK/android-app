@@ -252,7 +252,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
      */
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
-        googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        //googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Unmark to see the changes...
 
         boolean isAllowedToUseLocation = true; //PerrFuncs.hasPermissionForLocationServices(getApplicationContext())
         if (isAllowedToUseLocation) {
