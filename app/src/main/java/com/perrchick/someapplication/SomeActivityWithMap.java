@@ -26,7 +26,6 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -52,6 +51,8 @@ public class SomeActivityWithMap extends AppCompatActivity {
     private EditText txtAddress;
     private SeekBar zoomSlider;
     private Spinner actionsDropdownList;
+    private OkHttpClient httpClient;
+    private int markerCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,38 +87,6 @@ public class SomeActivityWithMap extends AppCompatActivity {
         final String[] actionValues = new String[]{"Go to Afeka", "Copy current location", "Put marker"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, actionValues);
         actionsDropdownList.setAdapter(adapter);
-        actionsDropdownList.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                PerrFuncs.toast(actionValues[position]);
-                LatLng cameraTarget = googleMap.getCameraPosition().target;
-                String geoLocationString = cameraTarget.latitude + ", " + cameraTarget.longitude;
-                switch (position) {
-                    case 0: // take camera to Afeka
-                        takeCameraToAfeka(null);
-                        break;
-                    case 1: // Copy current target to clipboard
-                    {
-                        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                        ClipData clipData = ClipData.newPlainText("geocode", geoLocationString);
-                        clipboardManager.setPrimaryClip(clipData); //text/plain
-                    }
-                    break;
-                    case 2: // Put marker
-                    {
-                        //Marker marker = Marker
-                    }
-                    googleMap.addMarker(new MarkerOptions().title("marker (" + SensorsFragment.getCounterValue() + ")").draggable(true).position(cameraTarget).snippet(geoLocationString));
-                    break;
-                    default:
-                        break;
-                }
-            }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-                // Do nothing...
-            }
-        });
 
         txtAddress = (EditText) findViewById(R.id.txtAddress);
         lblZoom = (TextView) findViewById(R.id.lblZoomLevel);
@@ -128,50 +97,81 @@ public class SomeActivityWithMap extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 //txtAddress.setText(progress + "");
                 if (progress > 0) {
-                    if (getGoogleMap() != null) {
-                        GoogleMap map = getGoogleMap();
-
-                        LatLng current = map.getCameraPosition().target;
+                    if (googleMap != null) {
+                        LatLng current = googleMap.getCameraPosition().target;
                         float zoom = 18f * (float) progress / 100f;
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(current.latitude, current.longitude), zoom));
+                        googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(current.latitude, current.longitude), zoom));
                         lblZoom.setText(zoom + "");
                     }
                 }
             }
-
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
+            public void onStartTrackingTouch(SeekBar seekBar) {}
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
-        findViewById(R.id.btnSearch).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnGoMapAction).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnSearchPressed();
+                btnMapActionPressed();
+            }
+        });
+        findViewById(R.id.btnAdreessSearch).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                btnAdreessSearchPressed();
             }
         });
     }
 
-    private void btnSearchPressed() {
-        final OkHttpClient client = new OkHttpClient();
-        client.setReadTimeout(20, TimeUnit.SECONDS);
+    private void btnMapActionPressed() {
+        // Guard
+        if (googleMap == null)
+            return;
 
+        LatLng cameraTarget = googleMap.getCameraPosition().target;
+        String geoLocationString = cameraTarget.latitude + ", " + cameraTarget.longitude;
+        switch (actionsDropdownList.getSelectedItemPosition()) {
+            case 0: // take camera to Afeka
+                takeCameraToAfeka(new GoogleMap.CancelableCallback() {
+                    @Override
+                    public void onFinish() {
+                        zoomSlider.setProgress(95);
+                    }
+
+                    @Override
+                    public void onCancel() {
+
+                    }
+                });
+                break;
+            case 1: // Copy current target to clipboard
+            {
+                ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+                ClipData clipData = ClipData.newPlainText("geocode", geoLocationString);
+                clipboardManager.setPrimaryClip(clipData); //text/plain
+                PerrFuncs.toast("copied...");
+            }
+            break;
+            case 2: // Put marker
+            googleMap.addMarker(new MarkerOptions().title("marker (" + (++markerCounter) + ")").draggable(true).position(cameraTarget).snippet(geoLocationString));
+            break;
+            default:
+                break;
+        }
+    }
+
+    private void btnAdreessSearchPressed() {
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, this.txtAddress.getText().toString(), apiKey);
-        final Request request = new Request.Builder()
-                .url(searchAddressUrl)
-                .build();
-
-        new Thread(new Runnable() {
+        performGetRequest(searchAddressUrl, new PerrFuncs.Callback() {
             @Override
-            public void run() {
+            public void callbackCall(Object callbackObject) {
                 try {
-                    final Response response = client.newCall(request).execute();
+                    if (!(callbackObject instanceof Response))
+                        return;
+
+                    Response response = (Response) callbackObject;
                     String jsonData = response.body().string();
                     JSONObject jsonObject = new JSONObject(jsonData);
 
@@ -202,6 +202,32 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     PerrFuncs.toast("Failed to parse the JSON");
                     e.printStackTrace();
                 }
+            }
+        });
+    }
+
+    private void performGetRequest(String getUrl, final PerrFuncs.Callback callback) {
+        if (this.httpClient == null) {
+            this.httpClient = new OkHttpClient();
+            httpClient.setReadTimeout(20, TimeUnit.SECONDS);
+        }
+
+        final Request request = new Request.Builder()
+                .url(getUrl)
+                .build();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Response response = null;
+                try {
+                    response = httpClient.newCall(request).execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if (callback != null)
+                    callback.callbackCall(response);
             }
         }).start();
     }
@@ -252,27 +278,49 @@ public class SomeActivityWithMap extends AppCompatActivity {
     }
 
     private void takeMapToStreet(String address, final GoogleMap.CancelableCallback callback) {
-        if (getGoogleMap() != null) {
-            getGoogleMap().animateCamera(CameraUpdateFactory.newLatLng(new LatLng(32.1165, 34.8176)), new GoogleMap.CancelableCallback() {
-                @Override
-                public void onFinish() {
-                    zoomSlider.setProgress(95);
-                    if (callback != null) {
-                        callback.onFinish();
-                    }
-                }
+        if (googleMap == null)
+            return;
 
-                @Override
-                public void onCancel() {
-                    if (callback != null) {
-                        callback.onCancel();
-                    }
-                }
-            });
-        }
-    }
+        String searchAddressUrl = String.format(formatForGeocodeFromAddress, address, apiKey);
+        performGetRequest(searchAddressUrl, new PerrFuncs.Callback() {
+            @Override
+            public void callbackCall(Object callbackObject) {
+                try {
+                    if (!(callbackObject instanceof Response))
+                        return;
 
-    public GoogleMap getGoogleMap() {
-        return googleMap;
+                    Response response = (Response) callbackObject;
+                    String jsonData = response.body().string();
+                    JSONObject jsonObject = new JSONObject(jsonData);
+
+                    String responseStatus = jsonObject.getString("status");
+                    PerrFuncs.toast(responseStatus); // The status we get in the response from Google
+
+                    if (responseStatus.equals("OK")) {
+                        // All good
+                        Log.v(TAG, jsonObject.toString());
+                        JSONObject locationJson = jsonObject.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location");
+                        final double lat = Double.parseDouble(locationJson.get("lat").toString());
+                        final double lng = Double.parseDouble(locationJson.get("lng").toString());
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)), callback);
+                            }
+                        });
+                    } else {
+                        // Try to show the error message, if any, if not it will jump to the catch clause
+                        PerrFuncs.toast(jsonObject.getString("error_message"));
+                    }
+                    // The image's data is here
+                } catch (IOException e) {
+                    e.printStackTrace(); // Will print the stack trace in the "locgcat"
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error in parsing the JSON");
+                    PerrFuncs.toast("Failed to parse the JSON");
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

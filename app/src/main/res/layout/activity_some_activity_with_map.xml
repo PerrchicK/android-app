@@ -32,7 +32,15 @@
             android:text="10.0"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/btnGoMapAction"
+            android:text="GO!"
+            android:layout_alignRight="@id/mapsPlaceHolder"
+            android:layout_alignTop="@id/mapsPlaceHolder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
         <Spinner
+            android:layout_toLeftOf="@id/btnGoMapAction"
             android:id="@+id/spinner_maps_actions"
             android:prompt="@string/map_spinner_title"
             android:spinnerMode="dropdown"
@@ -57,7 +65,7 @@
                 android:layout_width="fill_parent"
                 android:layout_height="40dp" />
             <Button
-                android:id="@+id/btnSearch"
+                android:id="@+id/btnAdreessSearch"
                 android:layout_weight="10"
                 android:text="@string/search_button_title"
                 android:layout_width="fill_parent"

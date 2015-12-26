@@ -179,8 +179,4 @@ public class SensorsFragment extends Fragment {
 
         this.txtInfo.setText(Arrays.toString(values));
     }
-
-    static public int getCounterValue() {
-        return counter;
-    }
 }
