@@ -18,32 +18,54 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
 
-            <Button
-                android:id="@+id/btnGotoAfeka"
-                android:layout_weight="3"
-                android:text="@string/btn_goto_afeka"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
         </FrameLayout>
-        <EditText
-            android:id="@+id/txtAddress"
-            android:maxLines="1"
-            android:background="#ffffff"
-            android:layout_alignBottom="@id/mapsPlaceHolder"
-            android:layout_gravity="bottom"
-            android:hint="@string/search_address_hint"
-            android:layout_width="fill_parent"
-            android:layout_height="40dp" />
         <TextView
-            android:id="@+id/lblZoomLevel"
-            android:layout_alignLeft="@id/seekBar"
-            android:text="0.0"
+            android:id="@+id/lblZoomTitle"
+            android:layout_alignTop="@id/mapsPlaceHolder"
+            android:text="Zoom:"
+            android:gravity="bottom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+        <TextView
+            android:layout_below="@id/lblZoomTitle"
+            android:id="@+id/lblZoomLevel"
+            android:text="10.0"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <Spinner
+            android:id="@+id/spinner_maps_actions"
+            android:prompt="@string/map_spinner_title"
+            android:spinnerMode="dropdown"
+            android:layout_toRightOf="@id/lblZoomTitle"
+            android:layout_alignTop="@id/mapsPlaceHolder"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <LinearLayout
+            android:layout_alignBottom="@id/mapsPlaceHolder"
+            android:gravity="bottom"
+            android:id="@+id/searchLayout"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <EditText
+                android:layout_weight="4"
+                android:id="@+id/txtAddress"
+                android:maxLines="1"
+                android:background="#ffffff"
+                android:layout_alignBottom="@id/mapsPlaceHolder"
+                android:layout_gravity="bottom"
+                android:hint="@string/search_address_hint"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp" />
+            <Button
+                android:id="@+id/btnSearch"
+                android:layout_weight="10"
+                android:text="@string/search_button_title"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
         <SeekBar
             android:background="#99ffffff"
-            android:layout_above="@id/txtAddress"
+            android:layout_above="@id/searchLayout"
             android:layout_alignRight="@id/mapsPlaceHolder"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
