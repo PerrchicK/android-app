@@ -177,6 +177,6 @@ public class SensorsFragment extends Fragment {
             values[i] = Math.round(sensorAngles[i]);
         }
 
-        this.txtInfo.setText(Arrays.toString(values));
+        this.txtInfo.setText("Accelerometer sensors state: " + Arrays.toString(values));
     }
 }

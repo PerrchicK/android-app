@@ -180,7 +180,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(jsonData);
 
                     String responseStatus = jsonObject.getString("status");
-                    PerrFuncs.toast(responseStatus); // The status we get in the response from Google
+                    PerrFuncs.toast("Google servers response status: " + responseStatus); // The status we get in the response from Google
 
                     if (responseStatus.equals("OK")) {
                         // All good
@@ -304,9 +304,12 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     if (responseStatus.equals("OK")) {
                         // All good
                         Log.v(TAG, jsonObject.toString());
-                        JSONObject locationJson = jsonObject.getJSONArray("results").getJSONObject(0).getJSONObject("geometry").getJSONObject("location");
-                        final double lat = Double.parseDouble(locationJson.get("lat").toString());
-                        final double lng = Double.parseDouble(locationJson.get("lng").toString());
+                        JSONObject locationJson = jsonObject.getJSONArray("results")
+                                .getJSONObject(0) // 1st result in the results array
+                                .getJSONObject("geometry")
+                                .getJSONObject("location");
+                        final double lat = locationJson.getDouble("lat");
+                        final double lng = locationJson.getDouble("lng");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
