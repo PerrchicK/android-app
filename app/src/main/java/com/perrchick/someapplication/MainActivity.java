@@ -284,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.action_go_notification:
                 startActivity(new Intent(this, NotificationsActivity.class));
                 return true;
-            case R.id.action_go_maps:
+            case R.id.action_go_map:
                 startActivity(new Intent(this, SomeActivityWithMap.class));
                 return true;
             case R.id.action_go_storage:

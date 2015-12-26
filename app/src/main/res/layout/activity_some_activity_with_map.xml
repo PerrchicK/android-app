@@ -17,7 +17,6 @@
             android:background="#bbffbb"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
-
         </FrameLayout>
         <TextView
             android:id="@+id/lblZoomTitle"
@@ -33,8 +32,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
         <Button
+            android:layout_marginRight="50dp"
             android:id="@+id/btnGoMapAction"
-            android:text="GO!"
+            android:text="@string/btn_go_map_action"
             android:layout_alignRight="@id/mapsPlaceHolder"
             android:layout_alignTop="@id/mapsPlaceHolder"
             android:layout_width="wrap_content"

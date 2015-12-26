@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -26,6 +25,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -52,7 +52,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
     private SeekBar zoomSlider;
     private Spinner actionsDropdownList;
     private OkHttpClient httpClient;
-    private int markerCounter = 0;
+    private int markersCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +84,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
         }
 
         this.actionsDropdownList = (Spinner)findViewById(R.id.spinner_maps_actions);
-        final String[] actionValues = new String[]{"Go to Afeka", "Copy current location", "Put marker"};
+        final String[] actionValues = new String[]{"Go to Afeka", "Copy target", "Put marker"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, actionValues);
         actionsDropdownList.setAdapter(adapter);
 
@@ -155,7 +155,11 @@ public class SomeActivityWithMap extends AppCompatActivity {
             }
             break;
             case 2: // Put marker
-            googleMap.addMarker(new MarkerOptions().title("marker (" + (++markerCounter) + ")").draggable(true).position(cameraTarget).snippet(geoLocationString));
+            googleMap.addMarker(new MarkerOptions()
+                    .title("marker (" + (++markersCounter) + ")")
+                    .draggable(true)
+                    .position(cameraTarget)) // The 'MarkerOptions' constructor works with Fluent Pattern
+                    .setSnippet(geoLocationString); // The 'addMarker' almost works with Fluent Pattern, it returns the instance of the added marker
             break;
             default:
                 break;
@@ -248,6 +252,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
      */
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
+        googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
         boolean isAllowedToUseLocation = true; //PerrFuncs.hasPermissionForLocationServices(getApplicationContext())
         if (isAllowedToUseLocation) {
