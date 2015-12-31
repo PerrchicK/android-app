@@ -74,6 +74,9 @@ public class SomeActivityWithMap extends AppCompatActivity {
                 }
             });
         } else {
+            // Update UI if needed
+            findViewById(R.id.imageTarget).setVisibility(View.INVISIBLE);
+
             // Notify the user he should install GoogleMaps (after installing Google Play Services)
             FrameLayout mapsPlaceHolder = (FrameLayout) findViewById(R.id.mapsPlaceHolder);
             TextView errorMessageTextView = new TextView(getApplicationContext());
@@ -137,6 +140,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
                 takeCameraToAfeka(new GoogleMap.CancelableCallback() {
                     @Override
                     public void onFinish() {
+                        // Zoom in
                         zoomSlider.setProgress(95);
                     }
 
@@ -259,17 +263,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
             try {
                 // Allow to (try to) set
                 googleMap.setMyLocationEnabled(true);
-                takeCameraToAfeka(new GoogleMap.CancelableCallback() {
-                    @Override
-                    public void onFinish() {
-
-                    }
-
-                    @Override
-                    public void onCancel() {
-
-                    }
-                });
+                takeCameraToAfeka(null);
             } catch (SecurityException exception) {
                 PerrFuncs.toast("Error getting location");
             }
@@ -278,6 +272,11 @@ public class SomeActivityWithMap extends AppCompatActivity {
         }
     }
 
+    /**
+     * Searches the street of the main entrance of Afeka College finds the coordinates and animates the camera to this point on the globe.
+     *
+     * @param callback
+     */
     private void takeCameraToAfeka(GoogleMap.CancelableCallback callback) {
         takeMapToStreet("Bnei Efraim 218, Tel Aviv", callback);
     }
@@ -313,7 +312,12 @@ public class SomeActivityWithMap extends AppCompatActivity {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)), callback);
+                                if (callback != null) {
+                                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)), callback);
+                                } else {
+                                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
+                                }
+
                             }
                         });
                     } else {

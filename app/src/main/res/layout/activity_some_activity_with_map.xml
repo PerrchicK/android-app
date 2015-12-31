@@ -20,6 +20,7 @@
         </FrameLayout>
         <ImageView
             android:tint="#ff0000"
+            android:id="@+id/imageTarget"
             android:src="@mipmap/ic_target"
             android:contentDescription="@string/map_target_description"
             android:layout_width="wrap_content"
@@ -62,7 +63,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
             <EditText
-                android:layout_weight="4"
+                android:layout_weight="0.3"
                 android:id="@+id/txtAddress"
                 android:maxLines="1"
                 android:background="#ffffff"
@@ -73,7 +74,7 @@
                 android:layout_height="40dp" />
             <Button
                 android:id="@+id/btnAdreessSearch"
-                android:layout_weight="10"
+                android:layout_weight="0.7"
                 android:text="@string/search_button_title"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" />
