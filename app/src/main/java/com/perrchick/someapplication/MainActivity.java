@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -33,6 +34,8 @@ import com.perrchick.someapplication.utilities.PerrFuncs;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 
     private static final boolean SHOULD_USE_MOCK = false;
+    private static final int COLS_NUM = 3;
+    private static final int ROWS_NUM = 3;
     private final String TAG = MainActivity.class.getSimpleName();
 
     private TicTacToeButton[] buttons = new TicTacToeButton[9];
@@ -44,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private boolean isServiceBound = false;
     public SensorService.SensorServiceBinder binder;
+    private LinearLayout boardLayout;
+    private GridLayout grid;
 
 
     @Override
@@ -58,8 +63,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         // The main layout (vertical)
-        LinearLayout boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
-        boardLayout.addView(createNewGrid(3, 3), new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
 
         boardLayout.setOnClickListener(this);
 
@@ -76,6 +80,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         // Now, this activity has its own bound service, which broadcasts its own info.
         // In this specific case, a fragment listens to the service's broadcast
+    }
+
+    private void putNewBoard() {
+        if (grid != null) {
+            boardLayout.removeView(grid);
+        }
+        grid = createNewGrid(COLS_NUM, ROWS_NUM);
+        boardLayout.addView(grid, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     private GridLayout createNewGrid(int colsNum, int rowsNum) {
@@ -115,6 +127,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         PerrFuncs.setTopActivity(this);
         PerrFuncs.toast("resumed activity");
+        putNewBoard();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        // What if... we will put an animation inside the onPause event? Suggestions?
+        explodeGrid();
     }
 
     @Override
@@ -253,6 +274,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    private void explodeGrid() {
+        for (int column = 0; column < COLS_NUM; column++) {
+            for (int row = 0; row < ROWS_NUM; row++) {
+                PerrFuncs.animateRandomlyFlyingOut(buttons[row + column * COLS_NUM], 3000);
+            }
+        }
     }
 
     @Override

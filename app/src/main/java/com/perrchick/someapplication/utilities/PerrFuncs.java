@@ -15,6 +15,7 @@ import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TimePicker;
@@ -24,6 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Random;
 
 /**
  * Created by perrchick on 10/23/15.
@@ -79,6 +81,30 @@ public class PerrFuncs {
         if (activity.getSupportActionBar() != null) { // Shouldn't have a problem here anyway
             activity.getSupportActionBar().hide();
         }
+    }
+
+    public static void animateRandomlyFlyingOut(View view, long duration) {
+        Random random = new Random();
+        int otherSide;
+
+        otherSide = random.nextBoolean() ? 1 : -1;
+        ObjectAnimator flyOutX = ObjectAnimator.ofFloat(view, "x", view.getX(), PerrFuncs.screenWidthPixels() * otherSide);
+        flyOutX.setDuration(duration);
+        flyOutX.setInterpolator(new DecelerateInterpolator());
+
+        otherSide = random.nextBoolean() ? 1 : -1;
+        ObjectAnimator flyOutY = ObjectAnimator.ofFloat(view, "y", view.getY(), PerrFuncs.screenWidthPixels() * otherSide);
+        flyOutY.setDuration(duration);
+        flyOutY.setInterpolator(new DecelerateInterpolator());
+
+        otherSide = random.nextBoolean() ? 1 : -1;
+        ObjectAnimator rotate = ObjectAnimator.ofFloat(view, "rotation", otherSide == 1 ? 0f : 360f, otherSide == 1 ? 360f : 0f);
+        rotate.setDuration(duration);
+        rotate.setInterpolator(new DecelerateInterpolator());
+
+        rotate.start();
+        flyOutY.start();
+        flyOutX.start();
     }
 
     public interface Callback {
