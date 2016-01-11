@@ -296,6 +296,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.action_go_to_animations:
                 startActivity(new Intent(this, AnimationsActivity.class));
                 return true;
+            /* An old implementation which is no longer needed, the rotation is demonstrated in the AnimationsActivity class
             case R.id.action_rotate: {
                 // Do animations
 
@@ -310,6 +311,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 this.mGridLayout.startAnimation(rotateAnimation);
             }
                 return true;
+            */
             case R.id.action_go_notification:
                 startActivity(new Intent(this, NotificationsActivity.class));
                 return true;

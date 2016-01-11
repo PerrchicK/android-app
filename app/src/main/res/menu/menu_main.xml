@@ -1,8 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
-    <item android:id="@+id/action_rotate" android:title="@string/action_rotate"
-        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_to_animations" android:title="@string/action_go_to_animations"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_download_image" android:title="@string/action_download_image"

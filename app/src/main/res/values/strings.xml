@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Some Android App</string>
+    <string name="app_name">Android App</string>
     <string name="provider_read_permission_label">ProviderReadPermission</string>
 
     <string name="second_activity_title">This is a different activity</string>
@@ -13,7 +13,6 @@
     <string name="action_make_phone_call">Make a phone call…</string>
     <string name="action_go_map">View Map</string>
     <string name="action_go_storage">Storage</string>
-    <string name="action_rotate">Rotate</string>
     <string name="action_go_to_animations">Animations</string>
     <string name="action_go_notification">Go Notify</string>
 

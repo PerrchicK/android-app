@@ -2,10 +2,14 @@ package com.perrchick.someapplication.uiexercises;
 
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
+import android.content.ClipData;
+import android.content.ClipDescription;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Layout;
 import android.transition.Visibility;
+import android.util.Log;
+import android.view.DragEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,6 +18,7 @@ import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.Transformation;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -27,7 +32,10 @@ import java.util.Date;
 
 import javax.xml.transform.Transformer;
 
-public class AnimationsActivity extends AppCompatActivity implements TilesFrameLayoutListener {
+public class AnimationsActivity extends AppCompatActivity implements TilesFrameLayoutListener, View.OnDragListener {
+    private static final String TAG = AnimationsActivity.class.getSimpleName();
+    private static final String SCALE_VALUE_TEXT_VIEW_TAG = "scale's value text";
+
     ImageView spinnerView;
     private RotateAnimation rotateAnimation;
     private TextView txtScaleValue;
@@ -54,7 +62,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                 progress += 1;
                 scaleImage(progress);
 
-                ObjectAnimator fade = ObjectAnimator.ofFloat(txtScaleValue, "alpha", txtScaleValue.getAlpha(), (float)progress / 10.0f);
+                ObjectAnimator fade = ObjectAnimator.ofFloat(txtScaleValue, "alpha", txtScaleValue.getAlpha(), (float) progress / 10.0f);
                 long duration = 300;
                 fade.setDuration(duration);
                 fade.start();
@@ -79,12 +87,32 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         });
 
         this.txtScaleValue = (TextView) findViewById(R.id.txtScaleValue);
+        this.txtScaleValue.setTag(SCALE_VALUE_TEXT_VIEW_TAG);
         this.txtScaleValue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PerrFuncs.sayNo(v);
             }
         });
+        this.txtScaleValue.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                String viewTag = (String) v.getTag();
+                Log.i(TAG, "viewTag = " + viewTag);
+                ClipData.Item item = new ClipData.Item(viewTag);
+                String[] mimeTypes = {ClipDescription.MIMETYPE_TEXT_PLAIN};
+
+                ClipData dragData = new ClipData(viewTag, mimeTypes, item);
+                //ClipData dragData = ClipData.newPlainText("", "");
+                View.DragShadowBuilder viewShadow = new View.DragShadowBuilder(txtScaleValue);
+
+                v.startDrag(dragData, viewShadow, txtScaleValue, 0);
+                return true;
+            }
+        });
+        //this.txtScaleValue.setOnDragListener(this);
+        findViewById(R.id.mainContainer).setOnDragListener(this);
+        findViewById(R.id.spinnerContainer).setOnDragListener(this);
     }
 
     @Override
@@ -242,5 +270,38 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     @Override
     public void onAnimationFinished() {
         finish();
+    }
+
+    @Override
+    public boolean onDrag(View draggingZone, DragEvent event) {
+        View draggedView = (View) event.getLocalState();
+        if (draggedView.getId() != txtScaleValue.getId()) {
+            // During this DND operation, this View object won't receive anymore events until event ACTION_DRAG_ENDED will be sent.
+            return false;
+        }
+
+        switch (event.getAction()) {
+            case DragEvent.ACTION_DRAG_STARTED:
+                return true;
+            case DragEvent.ACTION_DRAG_ENTERED:
+                draggingZone.setAlpha(0.5f);
+                return true;
+            case DragEvent.ACTION_DRAG_EXITED:
+                draggingZone.setAlpha(1.0f);
+                return true;
+            case DragEvent.ACTION_DROP:
+                draggingZone.setAlpha(1.0f);
+                if (draggingZone.getParent() instanceof LinearLayout) {
+                    // Then it's the spinner container
+                    ((LinearLayout) draggingZone.getParent()).setAlpha(1.0f);
+                }
+                draggedView.setX(event.getX());
+                draggedView.setY(event.getY());
+                return true;
+            case DragEvent.ACTION_DRAG_ENDED:
+                break;
+        }
+
+        return false;
     }
 }

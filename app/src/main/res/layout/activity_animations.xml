@@ -37,6 +37,8 @@
             android:layout_weight="10" />
 
         <LinearLayout android:orientation="vertical"
+            android:gravity="center"
+            android:id="@+id/mainContainer"
             android:layout_width="fill_parent"
             android:layout_below="@id/txtShrinking"
             android:layout_height="fill_parent">
@@ -48,7 +50,7 @@
                 android:paddingBottom="10dp"
                 android:layout_weight="10" />
             <TextView android:id="@+id/txtScaleValue"
-                android:layout_width="fill_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:paddingBottom="10dp"
                 android:gravity="center"
@@ -56,6 +58,7 @@
                 android:textColor="#000000"
                 android:layout_weight="10" />
             <RelativeLayout
+                android:id="@+id/spinnerContainer"
                 android:background="#99cc00"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
