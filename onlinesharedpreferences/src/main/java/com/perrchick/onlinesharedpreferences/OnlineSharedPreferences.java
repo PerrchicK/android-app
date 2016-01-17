@@ -1,6 +1,7 @@
 package com.perrchick.onlinesharedpreferences;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.parse.DeleteCallback;
 import com.parse.FindCallback;
@@ -20,6 +21,8 @@ import java.util.concurrent.TimeUnit;
  * Created by perrchick on 1/17/16.
  */
 public class OnlineSharedPreferences {
+    private static final String TAG = OnlineSharedPreferences.class.getSimpleName();
+
     private static OnlineSharedPreferences _onlineSharedPreferences;
     private static OnlineSharedPreferences getInstance(Context context) {
         synchronized (context) {
@@ -32,9 +35,12 @@ public class OnlineSharedPreferences {
     }
 
     private OnlineSharedPreferences(Context context) {
+        Log.v(TAG, "Initializing integration with Parse");
         // [Optional] Power your app with Local Datastore. For more info, go to
         // https://parse.com/docs/android/guide#local-datastore
         Parse.enableLocalDatastore(context);
+
+        // Replace this if you want the data to be managed in your on account
         Parse.initialize(context, "6uvLKEmnnQtdRpdThttAnDneX1RxyGUjyHwpI462", "TaVVVo6EP2dufExRhznnVSHYl5YHwM9gPhvxwP00");
         ParseSavedObject.registerSubclass(ParseSavedObject.class);
 
@@ -58,8 +64,9 @@ public class OnlineSharedPreferences {
         return getInstance(context);
     }
 
-
+    // This object will contain all the <key,value> combinations
     private final ParseObjectWrapper keyValueObjectContainer;
+    // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
     public static final String PACKAGE_NAME_KEY = "packageName";
 
     public OnlineSharedPreferences putObject(String key, String value) {
@@ -68,22 +75,30 @@ public class OnlineSharedPreferences {
         return this;
     }
 
-    public void remove(String key, final RemoveCallback removeCallback) {
+    public void remove(final String key, final RemoveCallback removeCallback) {
+        Log.v(TAG, "Removing '" + key + "'...");
         keyValueObjectContainer.remove(key, new DeleteCallback() {
             @Override
             public void done(ParseException e) {
                 if (removeCallback != null) {
                     removeCallback.done(e);
                 }
+                if (e == null) {
+                    Log.v(TAG, "... Removed '" + key + "'");
+                } else {
+                    Log.e(TAG, "... Failed to remove '" + key + "'");
+                    e.printStackTrace();
+                }
             }
         });
     }
 
-    public void getObject(String key, final GetObjectCallback callback) {
+    public void getObject(final String key, final GetObjectCallback callback) {
         ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
         // Has two keys (package name + key)
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
         parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
+        Log.v(TAG, "Getting object for key '" + key + "'...");
         parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
             @Override
             public void done(List<ParseSavedObject> objects, ParseException e) {
@@ -95,6 +110,13 @@ public class OnlineSharedPreferences {
                     // Should be unique
                     callback.done(value, e);
                 }
+
+                if (e == null) {
+                    Log.v(TAG, "... Got object for key '" + key + "'");
+                } else {
+                    Log.e(TAG, "... Failed to get object for key '" + key + "'");
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -102,6 +124,7 @@ public class OnlineSharedPreferences {
     public void getAllObjects(final GetAllObjectsCallback callback) {
         final ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
+        Log.v(TAG, "Getting all objects...");
         parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
             @Override
             public void done(List<ParseSavedObject> objects, ParseException e) {
@@ -110,20 +133,35 @@ public class OnlineSharedPreferences {
                     savedObjects.put(savedObject.getKey(), savedObject.getValue());
                 }
                 callback.done(savedObjects, e);
+
+                if (e == null) {
+                    Log.v(TAG, "... Got all (" + objects.size() + ") objects");
+                } else {
+                    Log.e(TAG, "... Failed to get all objects");
+                    e.printStackTrace();
+                }
             }
         });
     }
 
     public void commitInBackground() {
-        keyValueObjectContainer.saveInBackground(null);
+        commitInBackground(null);
     }
 
     public void commitInBackground(final CommitCallback saveCallback) {
+        Log.v(TAG, "Committing in background...");
         keyValueObjectContainer.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
                 if (saveCallback != null) {
                     saveCallback.done(e);
+                }
+
+                if (e == null) {
+                    Log.v(TAG, "... Committed in background");
+                } else {
+                    Log.e(TAG, "... Failed to commit in background");
+                    e.printStackTrace();
                 }
             }
         });
