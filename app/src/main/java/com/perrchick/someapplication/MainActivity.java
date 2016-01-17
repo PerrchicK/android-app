@@ -24,6 +24,7 @@ import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
+
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;

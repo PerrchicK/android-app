@@ -1,4 +1,4 @@
-package com.perrchick.someapplication.data.parse;
+package com.perrchick.onlinesharedpreferences.parse;
 
 import com.parse.ParseClassName;
 import com.parse.ParseObject;

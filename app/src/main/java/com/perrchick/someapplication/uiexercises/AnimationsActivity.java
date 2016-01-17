@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ObjectAnimator;
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Layout;
@@ -110,7 +111,6 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                 return true;
             }
         });
-        //this.txtScaleValue.setOnDragListener(this);
         findViewById(R.id.mainContainer).setOnDragListener(this);
         findViewById(R.id.spinnerContainer).setOnDragListener(this);
     }

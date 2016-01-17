@@ -1,10 +1,7 @@
 package com.perrchick.someapplication;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,10 +17,9 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.parse.ParseException;
-import com.parse.SaveCallback;
-import com.perrchick.someapplication.data.SomeGlobalParseService;
+import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
+import com.perrchick.onlinesharedpreferences.parse.SomeGlobalParseService;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
-import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.util.ArrayList;
@@ -35,7 +31,7 @@ public class StorageActivity extends AppCompatActivity {
     private static final String SELECTED_ENUM_PERSISTENCE_KEY = "SELECTED_ENUM_PERSISTENCE_KEY";
     private static final String TAG = StorageActivity.class.getSimpleName();
 
-    private SomeGlobalParseService.ParseSharedPreferences db_parseSharedPreferences;
+    private OnlineSharedPreferences db_parseSharedPreferences;
     private SharedPreferences db_sharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
     private DictionaryOpenHelper db_sqLiteHelper;
@@ -99,7 +95,7 @@ public class StorageActivity extends AppCompatActivity {
 
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
-        this.db_parseSharedPreferences = SomeGlobalParseService.getParseSharedPreferences(this);
+        this.db_parseSharedPreferences = OnlineSharedPreferences.getParseSharedPreferences(this);
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
@@ -107,7 +103,7 @@ public class StorageActivity extends AppCompatActivity {
         this.editTextParse = (EditText) findViewById(R.id.txt_parse);
 
         // Use Parse abilities for A/B Testing:
-        db_parseSharedPreferences.getObject("hide action bar", new SomeGlobalParseService.GetObjectCallback() {
+        db_parseSharedPreferences.getObject("hide action bar", new OnlineSharedPreferences.GetObjectCallback() {
             @Override
             public void done(String value, ParseException parseException) {
                 if (value != null) {
@@ -154,7 +150,7 @@ public class StorageActivity extends AppCompatActivity {
                                 public void callbackCall(Object callbackObject) {
                                     if (callbackObject instanceof Boolean) {
                                         if ((Boolean)callbackObject) {
-                                            db_parseSharedPreferences.remove(pressedKey.toString(), new SomeGlobalParseService.RemoveCallback() {
+                                            db_parseSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
                                                 @Override
                                                 public void done(ParseException e) {
                                                     if (e == null) {
@@ -172,7 +168,7 @@ public class StorageActivity extends AppCompatActivity {
                         } else if (callbackObject instanceof String) {
                             final String key = (String) pressedKey;
                             final String newValue = (String)callbackObject;
-                            saveInParseCloud(key, newValue, new SomeGlobalParseService.CommitCallback() {
+                            saveInParseCloud(key, newValue, new OnlineSharedPreferences.CommitCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     String completionMessage;
@@ -217,7 +213,7 @@ public class StorageActivity extends AppCompatActivity {
                             }
 
                             // <key,value> are valid, proceed...
-                            db_parseSharedPreferences.putObject(key, value).commitInBackground(new SomeGlobalParseService.CommitCallback() {
+                            db_parseSharedPreferences.putObject(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null) {
@@ -283,7 +279,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        db_parseSharedPreferences.getObject(EDIT_TEXT_PERSISTENCE_KEY, new SomeGlobalParseService.GetObjectCallback() {
+        db_parseSharedPreferences.getObject(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetObjectCallback() {
             @Override
             public void done(String value, ParseException e) {
                 if (value != null) {
@@ -301,7 +297,7 @@ public class StorageActivity extends AppCompatActivity {
 
     private void refreshParseList() {
         // Restore Parse List View
-        db_parseSharedPreferences.getAllObjects(new SomeGlobalParseService.GetAllObjectsCallback() {
+        db_parseSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
             @Override
             public void done(HashMap<String, String> objects, ParseException e) {
                 if (e == null) {
@@ -333,7 +329,7 @@ public class StorageActivity extends AppCompatActivity {
             PerrFuncs.toast("Failed to update SQLite!");
         }
         // Parse Cloud
-        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new SomeGlobalParseService.CommitCallback() {
+        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new OnlineSharedPreferences.CommitCallback() {
             @Override
             public void done(ParseException e) {
                 if (e != null) {
@@ -343,7 +339,7 @@ public class StorageActivity extends AppCompatActivity {
         });
     }
 
-    protected void saveInParseCloud(String key, String value, SomeGlobalParseService.CommitCallback saveCallback) {
+    protected void saveInParseCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {
         // Also 'this' may be passed
         db_parseSharedPreferences.putObject(key, value).commitInBackground(saveCallback);
     }
