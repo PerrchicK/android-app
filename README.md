@@ -8,12 +8,13 @@ It demonstrates different usages in Android development, such as:
 * Storage (Shared Preferences, SQLite, Parse Cloud, custom Content Provider)
 * Parse (for an online-shared-preferences like experience) + example for A/B Testing usage
 * Animations (View animations, Property animations)
+* Drag n' Drop
 * Bound service
-* BroadcastReceiver
+* Broadcast Receiver
 * Fragment
 * Sensors usage + Mock Sensor
 * Local scheduled notifications
-* Embedded GoogleMap in independent FrameLayout, Markers
-* Google Geolocation JavaScript APIs (get LatLong from address)
+* Embedded GoogleMap in FrameLayout + Markers
+* Google APIs usage - Geolocation in JavaScript (get LatLong from address)
 
 ![AndroidApp](https://github.com/PerrchicK/android-app/blob/master/preview.png)
