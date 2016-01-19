@@ -16,4 +16,4 @@ It demonstrates different usages in Android development, such as:
 * Embedded GoogleMap in independent FrameLayout, Markers
 * Google Geolocation JavaScript APIs (get LatLong from address)
 
-![AndroidApp](https://dl.dropboxusercontent.com/u/23741087/MySharedFiles/gitHubPic-AndroidApp.png)
+![AndroidApp](https://github.com/PerrchicK/android-app/blob/master/preview.png)
