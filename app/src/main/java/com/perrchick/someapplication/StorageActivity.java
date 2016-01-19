@@ -18,7 +18,6 @@ import android.widget.Spinner;
 
 import com.parse.ParseException;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
-import com.perrchick.onlinesharedpreferences.parse.SomeGlobalParseService;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 

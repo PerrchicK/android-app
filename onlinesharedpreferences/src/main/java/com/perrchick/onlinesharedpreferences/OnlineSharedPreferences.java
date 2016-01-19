@@ -9,7 +9,7 @@ import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
-import com.perrchick.onlinesharedpreferences.parse.ParseSavedObject;
+import com.perrchick.onlinesharedpreferences.parse.ParseSyncedObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +42,7 @@ public class OnlineSharedPreferences {
 
         // Replace this if you want the data to be managed in your on account
         Parse.initialize(context, "6uvLKEmnnQtdRpdThttAnDneX1RxyGUjyHwpI462", "TaVVVo6EP2dufExRhznnVSHYl5YHwM9gPhvxwP00");
-        ParseSavedObject.registerSubclass(ParseSavedObject.class);
+        ParseSyncedObject.registerSubclass(ParseSyncedObject.class);
 
         this.keyValueObjectContainer = new ParseObjectWrapper(context.getPackageName());
     }
@@ -94,14 +94,14 @@ public class OnlineSharedPreferences {
     }
 
     public void getObject(final String key, final GetObjectCallback callback) {
-        ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+        ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
         // Has two keys (package name + key)
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
-        parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
+        parseQuery.whereEqualTo(ParseSyncedObject.SAVED_OBJECT_KEY, key);
         Log.v(TAG, "Getting object for key '" + key + "'...");
-        parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+        parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
             @Override
-            public void done(List<ParseSavedObject> objects, ParseException e) {
+            public void done(List<ParseSyncedObject> objects, ParseException e) {
                 String value = null;
                 if (objects.size() > 0) {
                     value = objects.get(0).getValue();
@@ -122,15 +122,15 @@ public class OnlineSharedPreferences {
     }
 
     public void getAllObjects(final GetAllObjectsCallback callback) {
-        final ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+        final ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
         Log.v(TAG, "Getting all objects...");
-        parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+        parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
             @Override
-            public void done(List<ParseSavedObject> objects, ParseException e) {
+            public void done(List<ParseSyncedObject> objects, ParseException e) {
                 HashMap<String, String> savedObjects = new HashMap<String, String>(objects.size());
-                for (ParseSavedObject savedObject : objects) {
-                    savedObjects.put(savedObject.getKey(), savedObject.getValue());
+                for (ParseSyncedObject syncedObject : objects) {
+                    savedObjects.put(syncedObject.getKey(), syncedObject.getValue());
                 }
                 callback.done(savedObjects, e);
 
@@ -148,13 +148,13 @@ public class OnlineSharedPreferences {
         commitInBackground(null);
     }
 
-    public void commitInBackground(final CommitCallback saveCallback) {
+    public void commitInBackground(final CommitCallback commitCallback) {
         Log.v(TAG, "Committing in background...");
         keyValueObjectContainer.saveInBackground(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                if (saveCallback != null) {
-                    saveCallback.done(e);
+                if (commitCallback != null) {
+                    commitCallback.done(e);
                 }
 
                 if (e == null) {
@@ -169,26 +169,26 @@ public class OnlineSharedPreferences {
 
     // Adapter pattern (Object Adapter)
     private static class ParseObjectWrapper {
-        private final ParseSavedObject innerObject;
+        private final ParseSyncedObject innerObject;
 
         protected ParseObjectWrapper(String packageName) {
-            innerObject = new ParseSavedObject();
+            innerObject = new ParseSyncedObject();
             innerObject.put(OnlineSharedPreferences.PACKAGE_NAME_KEY, packageName);
         }
 
         protected void putObject(String key, Object value) {
-            innerObject.put(ParseSavedObject.SAVED_OBJECT_KEY, key);
-            innerObject.put(ParseSavedObject.SAVED_OBJECT_VALUE, value);
+            innerObject.put(ParseSyncedObject.SAVED_OBJECT_KEY, key);
+            innerObject.put(ParseSyncedObject.SAVED_OBJECT_VALUE, value);
         }
 
         protected void remove(String key, final DeleteCallback deleteCallback) {
-            ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+            ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
             parseQuery.whereEqualTo(OnlineSharedPreferences.PACKAGE_NAME_KEY, innerObject.getPackageName());
-            parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, key);
+            parseQuery.whereEqualTo(ParseSyncedObject.SAVED_OBJECT_KEY, key);
             // Find the object to delete
-            parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+            parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
                 @Override
-                public void done(final List<ParseSavedObject> objects, ParseException e) {
+                public void done(final List<ParseSyncedObject> objects, ParseException e) {
                     // Found?
                     if (objects.size() == 1) {
                         if (deleteCallback == null) {
@@ -211,13 +211,13 @@ public class OnlineSharedPreferences {
          * @param saveCallback The callback that holds the method to run in completion
          */
         protected void saveInBackground(final SaveCallback saveCallback) {
-            ParseQuery<ParseSavedObject> parseQuery = ParseQuery.getQuery(ParseSavedObject.class);
+            ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
             parseQuery.whereEqualTo(OnlineSharedPreferences.PACKAGE_NAME_KEY, innerObject.getPackageName());
-            parseQuery.whereEqualTo(ParseSavedObject.SAVED_OBJECT_KEY, this.innerObject.getKey());
+            parseQuery.whereEqualTo(ParseSyncedObject.SAVED_OBJECT_KEY, this.innerObject.getKey());
             // (1) Find duplications
-            parseQuery.findInBackground(new FindCallback<ParseSavedObject>() {
+            parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
                 @Override
-                public void done(final List<ParseSavedObject> objects, ParseException e) {
+                public void done(final List<ParseSyncedObject> objects, ParseException e) {
                     // (2) Duplications found?
                     if (objects.size() > 0) {
                         // (3) Delete duplications (disallowed) before add new object
@@ -246,7 +246,7 @@ public class OnlineSharedPreferences {
 
                         if (finished) {
                             // (3.1) Save...
-                            new ParseSavedObject(innerObject.getPackageName(), innerObject.getKey(), innerObject.getValue()).saveInBackground(new SaveCallback() {
+                            new ParseSyncedObject(innerObject.getPackageName(), innerObject.getKey(), innerObject.getValue()).saveInBackground(new SaveCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     // (4) Notify for completion with callback

@@ -7,18 +7,18 @@ import com.parse.ParseObject;
  * Created by perrchick on 12/18/15.
  */
 @ParseClassName("SavedObject")
-public class ParseSavedObject extends ParseObject {
+public class ParseSyncedObject extends ParseObject {
 
     public static final String SAVED_OBJECT_KEY = "key";
     public static final String SAVED_OBJECT_VALUE = "value";
     public static final String SAVED_OBJECT_PACKAGE_NAME = "packageName";
 
     // Required
-    public ParseSavedObject() {
+    public ParseSyncedObject() {
         super();
     }
 
-    public ParseSavedObject(String packageName, String key, String value) {
+    public ParseSyncedObject(String packageName, String key, String value) {
         super();
         setPackageName(packageName);
         setKey(key);
