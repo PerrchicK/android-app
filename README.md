@@ -6,7 +6,7 @@ It demonstrates different usages in Android development, such as:
 * Intent + Activities (intent's extra, other apps' activities, phone call etc.)
 * Threads (with UI changes)
 * Storage (Shared Preferences, SQLite, Parse Cloud, custom Content Provider)
-* Parse (for an online-shared-preferences-like experience) + example for A/B Testing usage
+* Parse (for an online-shared-preferences like experience) + example for A/B Testing usage
 * Animations (View animations, Property animations)
 * Bound service
 * BroadcastReceiver
