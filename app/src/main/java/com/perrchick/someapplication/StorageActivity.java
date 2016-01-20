@@ -94,7 +94,7 @@ public class StorageActivity extends AppCompatActivity {
 
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
-        this.db_parseSharedPreferences = OnlineSharedPreferences.getParseSharedPreferences(this);
+        this.db_parseSharedPreferences = OnlineSharedPreferences.getOnlineSharedPreferences(this);
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);

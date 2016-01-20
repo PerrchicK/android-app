@@ -1,7 +1,6 @@
 apply plugin: 'com.android.library'
 //implementation-class=org.gradle.GreetingPlugin
 
-
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.2"
@@ -18,6 +17,33 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+}
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'OnlineSharedPreferences'
+
+    publishedGroupId = 'com.github.perrchick'
+    libraryName = 'OnlineSharedPreferences'
+    artifact = 'onlinesharedpreferences'
+
+    libraryDescription = 'Acts the same as the known SharedPreferences, but the data will be saved online, on Parse cloud'
+
+    siteUrl = 'https://github.com/PerrchicK/android-app/tree/master/onlinesharedpreferences'
+    gitUrl = 'https://github.com/PerrchicK/android-app.git'
+
+    libraryVersion = '0.1.0'
+
+    developerId = 'perrchick'
+    developerName = 'Perry Shalom'
+    developerEmail = 'perrchick@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+    apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
 }
 
 dependencies {

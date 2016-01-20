@@ -1,6 +1,7 @@
 package com.perrchick.onlinesharedpreferences;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import com.parse.DeleteCallback;
@@ -23,25 +24,35 @@ import java.util.concurrent.TimeUnit;
 public class OnlineSharedPreferences {
     private static final String TAG = OnlineSharedPreferences.class.getSimpleName();
 
-    private static OnlineSharedPreferences _onlineSharedPreferences;
-    private static OnlineSharedPreferences getInstance(Context context) {
-        synchronized (context) {
-            if (_onlineSharedPreferences == null) {
-                _onlineSharedPreferences = new OnlineSharedPreferences(context);
-            }
-        }
-
-        return _onlineSharedPreferences;
+    /**
+     * Gets a new instance of OnlineSharedPreferences, managed by Parse
+     * @param context The application's context
+     * @return OnlineSharedPreferences new instance
+     */
+    public static OnlineSharedPreferences getOnlineSharedPreferences(Context context) {
+        return new OnlineSharedPreferences(context, "6uvLKEmnnQtdRpdThttAnDneX1RxyGUjyHwpI462", "TaVVVo6EP2dufExRhznnVSHYl5YHwM9gPhvxwP00");
     }
 
-    private OnlineSharedPreferences(Context context) {
+    /**
+     *
+     * Gets a new instance of OnlineSharedPreferences, managed by Parse
+     * @param context The application's context
+     * @param appId The application ID on your Parse project, if any
+     * @param clientKey The client key on your Parse project, if any
+     * @return OnlineSharedPreferences new instance
+     */
+    public static OnlineSharedPreferences getOnlineSharedPreferences(Context context, String appId, String clientKey) {
+        return new OnlineSharedPreferences(context, appId, clientKey);
+    }
+
+    private OnlineSharedPreferences(Context context, String appId, String clientKey) {
         Log.v(TAG, "Initializing integration with Parse");
         // [Optional] Power your app with Local Datastore. For more info, go to
         // https://parse.com/docs/android/guide#local-datastore
         Parse.enableLocalDatastore(context);
 
         // Replace this if you want the data to be managed in your on account
-        Parse.initialize(context, "6uvLKEmnnQtdRpdThttAnDneX1RxyGUjyHwpI462", "TaVVVo6EP2dufExRhznnVSHYl5YHwM9gPhvxwP00");
+        Parse.initialize(context, appId, clientKey);
         ParseSyncedObject.registerSubclass(ParseSyncedObject.class);
 
         this.keyValueObjectContainer = new ParseObjectWrapper(context.getPackageName());
@@ -60,14 +71,10 @@ public class OnlineSharedPreferences {
         void done(ParseException e);
     }
 
-    public static OnlineSharedPreferences getParseSharedPreferences(Context context) {
-        return getInstance(context);
-    }
-
     // This object will contain all the <key,value> combinations
     private final ParseObjectWrapper keyValueObjectContainer;
     // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
-    public static final String PACKAGE_NAME_KEY = "packageName";
+    private static final String PACKAGE_NAME_KEY = "packageName";
 
     public OnlineSharedPreferences putObject(String key, String value) {
         keyValueObjectContainer.putObject(key, value);
