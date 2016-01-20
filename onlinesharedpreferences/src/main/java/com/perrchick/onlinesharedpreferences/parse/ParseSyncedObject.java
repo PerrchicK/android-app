@@ -1,7 +1,11 @@
 package com.perrchick.onlinesharedpreferences.parse;
 
+import android.util.Log;
+
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
+
+import org.json.JSONException;
 
 /**
  * Created by perrchick on 12/18/15.
@@ -12,13 +16,14 @@ public class ParseSyncedObject extends ParseObject {
     public static final String SAVED_OBJECT_KEY = "key";
     public static final String SAVED_OBJECT_VALUE = "value";
     public static final String SAVED_OBJECT_PACKAGE_NAME = "packageName";
+    private static final String TAG = ParseSyncedObject.class.getSimpleName();
 
     // Required
     public ParseSyncedObject() {
         super();
     }
 
-    public ParseSyncedObject(String packageName, String key, String value) {
+    public ParseSyncedObject(String packageName, String key, Object value) {
         super();
         setPackageName(packageName);
         setKey(key);
@@ -42,12 +47,25 @@ public class ParseSyncedObject extends ParseObject {
         return getString(SAVED_OBJECT_KEY);
     }
 
-    public void setValue(String value) {
+    public void setValue(Object value) {
         put(SAVED_OBJECT_VALUE, value);
     }
 
-    public String getValue() {
+    public Object getValue() {
         return getString(SAVED_OBJECT_VALUE);
+
+        /*
+        Object value = null;
+
+        try {
+            value = getJSONObject(SAVED_OBJECT_VALUE).get("parsed");
+        } catch (JSONException e) {
+            Log.e(TAG, "Parsing object from key '" + getKey() + "' failed!");
+            e.printStackTrace();
+        }
+
+        return value;
+        */
     }
 
     @Override

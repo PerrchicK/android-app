@@ -22,6 +22,8 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
+import com.parse.ParseException;
+import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
@@ -134,6 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // What if... we will put an animation inside the onPause event? Suggestions?
         explodeGrid();
+//        OnlineSharedPreferences.getOnlineSharedPreferences(this).putObject("tempFloat",new Float(4)).commitInBackground();
     }
 
     @Override

@@ -11,6 +11,7 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 import com.perrchick.onlinesharedpreferences.parse.ParseSyncedObject;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class OnlineSharedPreferences {
     private static final String TAG = OnlineSharedPreferences.class.getSimpleName();
+    private static boolean isInitialized = false;
 
     /**
      * Gets a new instance of OnlineSharedPreferences, managed by Parse
@@ -46,21 +48,28 @@ public class OnlineSharedPreferences {
 
     private OnlineSharedPreferences(Context context, String appId, String clientKey) {
         Log.v(TAG, "Initializing integration with Parse");
-        // [Optional] Power your app with Local Datastore. For more info, go to
-        // https://parse.com/docs/android/guide#local-datastore
-        Parse.enableLocalDatastore(context);
+        if (!isInitialized) {
+            // [Optional] Power your app with Local Datastore. For more info, go to
+            // https://parse.com/docs/android/guide#local-datastore
+            Parse.enableLocalDatastore(context);
 
-        // Replace this if you want the data to be managed in your on account
-        Parse.initialize(context, appId, clientKey);
-        ParseSyncedObject.registerSubclass(ParseSyncedObject.class);
+            // Replace this if you want the data to be managed in your on account
+            Parse.initialize(context, appId, clientKey);
+            ParseSyncedObject.registerSubclass(ParseSyncedObject.class);
+
+            isInitialized = true;
+        }
 
         this.keyValueObjectContainer = new ParseObjectWrapper(context.getPackageName());
     }
 
     public interface GetAllObjectsCallback {
-        void done(HashMap<String, String> objects, ParseException e);
+        void done(HashMap<String, Object> objects, ParseException e);
     }
     public interface GetObjectCallback {
+        void done(Object value, ParseException e);
+    }
+    public interface GetStringCallback {
         void done(String value, ParseException e);
     }
     public interface CommitCallback {
@@ -75,12 +84,38 @@ public class OnlineSharedPreferences {
     // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
     private static final String PACKAGE_NAME_KEY = "packageName";
 
-    public OnlineSharedPreferences putObject(String key, String value) {
+    /*
+    public OnlineSharedPreferences putObject(String key, Object value) {
         keyValueObjectContainer.putObject(key, value);
 
         return this;
     }
+    */
 
+    /**
+     * Puts a string in the shared preferences, but it doesn't upload the value yet, until {@link #commitInBackground(CommitCallback)} is being called.
+     * @param key      The key that identifies the value
+     * @param value    The String value that should persist online
+     */
+    public OnlineSharedPreferences putString(String key, String value) {
+        keyValueObjectContainer.putString(key, value);
+
+        return this;
+    }
+
+    /**
+     * Asynchronously removes the value and the key from the online shared preferences, without invoking a callback
+     * @param key               The key that identifies the value
+     */
+    public void remove(final String key) {
+        this.remove(key, null);
+    }
+
+    /**
+     * Asynchronously removes the value and the key from the online shared preferences
+     * @param key               The key that identifies the value
+     * @param removeCallback    The callback object that will be called after the remove is done
+     */
     public void remove(final String key, final RemoveCallback removeCallback) {
         Log.v(TAG, "Removing '" + key + "'...");
         keyValueObjectContainer.remove(key, new DeleteCallback() {
@@ -99,7 +134,54 @@ public class OnlineSharedPreferences {
         });
     }
 
+    /**
+     * Gets a string from the cloud
+     * @param key         The key that identifies the value
+     * @param callback    The callback that should be called after the value is fetched
+     */
+    public void getString(final String key, final GetStringCallback callback) {
+        // Guard
+        if (callback == null){
+            return;
+        }
+
+        ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
+        // Has two keys (package name + key)
+        parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
+        parseQuery.whereEqualTo(ParseSyncedObject.SAVED_OBJECT_KEY, key);
+        Log.v(TAG, "Getting string for key '" + key + "'...");
+        parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
+            @Override
+            public void done(List<ParseSyncedObject> objects, ParseException e) {
+                String value = null;
+                if (objects.size() > 0) {
+                    if (objects.get(0).getValue() instanceof String) {
+                        value = (String) objects.get(0).getValue();
+                    }
+                }
+
+                if (callback != null) {
+                    // Should be unique
+                    callback.done(value, e);
+                }
+
+                if (e == null) {
+                    Log.v(TAG, "... Got object for key '" + key + "'");
+                } else {
+                    Log.e(TAG, "... Failed to get object for key '" + key + "'");
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /*
     public void getObject(final String key, final GetObjectCallback callback) {
+        // Guard
+        if (callback == null){
+            return;
+        }
+
         ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
         // Has two keys (package name + key)
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
@@ -108,7 +190,7 @@ public class OnlineSharedPreferences {
         parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
             @Override
             public void done(List<ParseSyncedObject> objects, ParseException e) {
-                String value = null;
+                Object value = null;
                 if (objects.size() > 0) {
                     value = objects.get(0).getValue();
                 }
@@ -126,7 +208,12 @@ public class OnlineSharedPreferences {
             }
         });
     }
+    */
 
+    /**
+     * Gets all objects in the online shared preferences
+     * @param callback
+     */
     public void getAllObjects(final GetAllObjectsCallback callback) {
         final ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
@@ -134,7 +221,7 @@ public class OnlineSharedPreferences {
         parseQuery.findInBackground(new FindCallback<ParseSyncedObject>() {
             @Override
             public void done(List<ParseSyncedObject> objects, ParseException e) {
-                HashMap<String, String> savedObjects = new HashMap<String, String>(objects.size());
+                HashMap<String, Object> savedObjects = new HashMap<String, Object>(objects.size());
                 for (ParseSyncedObject syncedObject : objects) {
                     savedObjects.put(syncedObject.getKey(), syncedObject.getValue());
                 }
@@ -150,10 +237,17 @@ public class OnlineSharedPreferences {
         });
     }
 
+    /**
+     * Commits the changes to the cloud asynchronously without a callback
+     */
     public void commitInBackground() {
         commitInBackground(null);
     }
 
+    /**
+     * Commits the changes to the cloud asynchronously
+     * @param commitCallback    The callback object that will be called when the commit is done
+     */
     public void commitInBackground(final CommitCallback commitCallback) {
         Log.v(TAG, "Committing in background...");
         keyValueObjectContainer.saveInBackground(new SaveCallback() {
@@ -182,10 +276,17 @@ public class OnlineSharedPreferences {
             innerObject.put(OnlineSharedPreferences.PACKAGE_NAME_KEY, packageName);
         }
 
+        protected void putString(String key, String value) {
+            innerObject.put(ParseSyncedObject.SAVED_OBJECT_KEY, key);
+            innerObject.put(ParseSyncedObject.SAVED_OBJECT_VALUE, value);
+        }
+
+        /*
         protected void putObject(String key, Object value) {
             innerObject.put(ParseSyncedObject.SAVED_OBJECT_KEY, key);
             innerObject.put(ParseSyncedObject.SAVED_OBJECT_VALUE, value);
         }
+        */
 
         protected void remove(String key, final DeleteCallback deleteCallback) {
             ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);

@@ -41,7 +41,7 @@ public class StorageActivity extends AppCompatActivity {
 
     private Spinner dropdownList;
     private ListView listOfParseSavedObjects;
-    private HashMap<String, String> objects;
+    private HashMap<String, Object> objects;
 
     private enum KeepCalmAnd {
         Relax(-1),
@@ -102,7 +102,7 @@ public class StorageActivity extends AppCompatActivity {
         this.editTextParse = (EditText) findViewById(R.id.txt_parse);
 
         // Use Parse abilities for A/B Testing:
-        db_parseSharedPreferences.getObject("hide action bar", new OnlineSharedPreferences.GetObjectCallback() {
+        db_parseSharedPreferences.getString("hide action bar", new OnlineSharedPreferences.GetStringCallback() {
             @Override
             public void done(String value, ParseException parseException) {
                 if (value != null) {
@@ -130,8 +130,8 @@ public class StorageActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
-                String value = objects.get(pressedKey.toString());
-                PerrFuncs.toast(value);
+                Object value = objects.get(pressedKey.toString());
+                PerrFuncs.toast(value.toString());
             }
         });
         this.listOfParseSavedObjects.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -139,8 +139,8 @@ public class StorageActivity extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
 
                 final Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
-                String oldValue = objects.get(pressedKey.toString());
-                getTextFromUser("New string", oldValue, new PerrFuncs.Callback() {
+                Object oldValue = objects.get(pressedKey.toString());
+                getTextFromUser("New string", oldValue.toString(), new PerrFuncs.Callback() {
                     @Override
                     public void callbackCall(Object callbackObject) {
                         if (callbackObject == null) { // Delete
@@ -212,7 +212,7 @@ public class StorageActivity extends AppCompatActivity {
                             }
 
                             // <key,value> are valid, proceed...
-                            db_parseSharedPreferences.putObject(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
+                            db_parseSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
                                 @Override
                                 public void done(ParseException e) {
                                     if (e == null) {
@@ -278,11 +278,11 @@ public class StorageActivity extends AppCompatActivity {
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        db_parseSharedPreferences.getObject(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetObjectCallback() {
+        db_parseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
             @Override
             public void done(String value, ParseException e) {
                 if (value != null) {
-                    editTextParse.setText(value);
+                    editTextParse.setText(value.toString());
                 }
             }
         });
@@ -298,7 +298,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore Parse List View
         db_parseSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
             @Override
-            public void done(HashMap<String, String> objects, ParseException e) {
+            public void done(HashMap<String, Object> objects, ParseException e) {
                 if (e == null) {
                     StorageActivity.this.objects = objects;
                     ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
@@ -340,11 +340,11 @@ public class StorageActivity extends AppCompatActivity {
 
     protected void saveInParseCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {
         // Also 'this' may be passed
-        db_parseSharedPreferences.putObject(key, value).commitInBackground(saveCallback);
+        db_parseSharedPreferences.putString(key, value).commitInBackground(saveCallback);
     }
 
     protected void saveInParseCloud(final String key, final String value) {
-        db_parseSharedPreferences.putObject(key, value).commitInBackground();
+        db_parseSharedPreferences.putString(key, value).commitInBackground();
     }
 
     public void getTextFromUser(String title, String defaultText, final PerrFuncs.Callback callback) {
