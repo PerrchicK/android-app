@@ -40,7 +40,7 @@ public class StorageActivity extends AppCompatActivity {
 
     private Spinner dropdownList;
     private ListView listOfParseSavedObjects;
-    private HashMap<String, Object> objects;
+    private HashMap<String, String> objects;
 
     private enum KeepCalmAnd {
         Relax(-1),
@@ -172,9 +172,9 @@ public class StorageActivity extends AppCompatActivity {
                                     String completionMessage;
                                     if (e == null) {
                                         objects.put(key, newValue);
-                                        completionMessage = "Saved successfully in Firebase cloud";
+                                        completionMessage = "Saved successfully in Parse cloud";
                                     } else {
-                                        completionMessage = "Failed to save in Firebase cloud, Exception: " + e.getMessage();
+                                        completionMessage = "Failed to save in Parse cloud, Exception: " + e.getMessage();
                                     }
 
                                     PerrFuncs.toast(completionMessage);
@@ -297,7 +297,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore Parse List View
         db_parseSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
             @Override
-            public void done(HashMap<String, Object> objects, Exception e) {
+            public void done(HashMap<String, String> objects, Exception e) {
                 if (e == null) {
                     StorageActivity.this.objects = objects;
                     ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());

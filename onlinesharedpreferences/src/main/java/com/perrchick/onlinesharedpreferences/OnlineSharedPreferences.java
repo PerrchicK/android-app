@@ -1,31 +1,33 @@
 package com.perrchick.onlinesharedpreferences;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.perrchick.onlinesharedpreferences.parse.ParseSyncedObject;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by perrchick on 1/17/16.
  */
 public class OnlineSharedPreferences {
 
-    private static final String SAVED_OBJECT_KEY = "key";
-    private static final String SAVED_OBJECT_VALUE = "value";
-    private static final String SAVED_OBJECT_PACKAGE_NAME = "packageName";
-
     private static final String TAG = OnlineSharedPreferences.class.getSimpleName();
+    private static final long TIME_OUT_MILLIS = 10000;
     private static boolean shouldInitializeFireBase = true;
-    private final Firebase firebaseRef;
+    // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
+    private final String packageName;
+    public static final String FIREBASE = "https://boiling-inferno-8318.firebaseio.com/";
+    private final Firebase packageFirebaseRef;
     private final Context context;
+    private HashMap<String, String> keysAndValues;
+    private Object lock = new Object();
 
     /**
      * Gets a new instance of OnlineSharedPreferences, managed by Parse
@@ -34,7 +36,7 @@ public class OnlineSharedPreferences {
      */
     public static OnlineSharedPreferences getOnlineSharedPreferences(Context context) {
 //        return new OnlineSharedPreferences(context, "6uvLKEmnnQtdRpdThttAnDneX1RxyGUjyHwpI462", "TaVVVo6EP2dufExRhznnVSHYl5YHwM9gPhvxwP00");
-        return getOnlineSharedPreferences(context, "https://boiling-inferno-8318.firebaseio.com/");
+        return getOnlineSharedPreferences(context, FIREBASE);
     }
 
     /**
@@ -50,22 +52,47 @@ public class OnlineSharedPreferences {
 
     private OnlineSharedPreferences(Context context, String firebaseAppUrl) {
         this.context = context;
+        packageName = context.getPackageName().replace(".", "-");
+
         Log.v(TAG, "Initializing integration with Firebase");
 
         if (shouldInitializeFireBase) {
             Firebase.setAndroidContext(context);
             shouldInitializeFireBase = false;
         }
-        firebaseRef = new Firebase(firebaseAppUrl);
-        firebaseRef.keepSynced(true);
+        packageFirebaseRef = new Firebase(firebaseAppUrl).child(packageName);
+        packageFirebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterable<DataSnapshot> children = dataSnapshot.getChildren();
+                if (keysAndValues == null) {
+                    keysAndValues = new HashMap<>();
+                    for (DataSnapshot data:children) {//getValue
+                        keysAndValues.put(data.getKey(), data.getValue().toString());
+                    }
 
-        this.keyValueObjectContainer = new SyncedObjectWrapper(context.getPackageName());
+                    synchronized (lock) {
+                        lock.notify();
+                    }
+                }
+                Log.v(TAG, dataSnapshot.toString());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+                Log.e(TAG, firebaseError.toString());
+            }
+        });
+//        firebaseRef.keepSynced(true);
+
+//        this.keyValueObjectContainer = new SyncedObjectWrapper(packageName);
+        keysAndValues = null;
     }
 
     public interface GetAllObjectsCallback {
-        void done(HashMap<String, Object> objects, Exception e);
+        void done(HashMap<String, String> objects, Exception e);
     }
-    public interface GetObjectCallback {
+    private interface GetObjectCallback {
         void done(Object value, Exception e);
     }
     public interface GetStringCallback {
@@ -79,10 +106,7 @@ public class OnlineSharedPreferences {
     }
 
     // This object will contain all the <key,value> combinations
-    private final SyncedObjectWrapper keyValueObjectContainer;
-
-    // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
-    private static final String PACKAGE_NAME_KEY = "packageName";
+//    private final SyncedObjectWrapper keyValueObjectContainer;
 
     /*
     public OnlineSharedPreferences putObject(String key, Object value) {
@@ -98,7 +122,9 @@ public class OnlineSharedPreferences {
      * @param value    The String value that should persist online
      */
     public OnlineSharedPreferences putString(String key, String value) {
-        keyValueObjectContainer.putString(key, value);
+        packageFirebaseRef.child(key).setValue(value);
+//        packageFirebaseRef.child(SAVED_OBJECT_VALUE).setValue(value);
+//        keyValueObjectContainer.putString(key, value);
 
         return this;
     }
@@ -118,6 +144,8 @@ public class OnlineSharedPreferences {
      */
     public void remove(final String key, final RemoveCallback removeCallback) {
         Log.v(TAG, "Removing '" + key + "'...");
+        packageFirebaseRef.child(key).removeValue();
+        /*
         keyValueObjectContainer.remove(key, new RemoveCallback() {
             @Override
             public void done(Exception e) {
@@ -132,6 +160,7 @@ public class OnlineSharedPreferences {
                 }
             }
         });
+        */
     }
 
     /**
@@ -144,6 +173,30 @@ public class OnlineSharedPreferences {
         if (callback == null){
             return;
         }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (lock) {
+                    if (keysAndValues == null) {
+                        try {
+                            lock.wait(TIME_OUT_MILLIS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Handler mainHandler = new Handler(context.getMainLooper());
+                    Runnable myRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.done(keysAndValues == null ? null : keysAndValues.get(key), keysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
+                        }
+                    };
+                    mainHandler.post(myRunnable);
+                }
+            }
+        }).start();
 
         /*
         ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
@@ -217,8 +270,29 @@ public class OnlineSharedPreferences {
      * @param callback
      */
     public void getAllObjects(final GetAllObjectsCallback callback) {
-        Firebase temp = firebaseRef.child(this.keyValueObjectContainer.getPackageName());
-        Toast.makeText(context, temp.toString(), Toast.LENGTH_SHORT).show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (lock) {
+                    if (keysAndValues == null) {
+                        try {
+                            lock.wait(TIME_OUT_MILLIS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Handler mainHandler = new Handler(context.getMainLooper());
+                    Runnable myRunnable = new Runnable() {
+                        @Override
+                        public void run() {
+                            callback.done(keysAndValues == null ? null : new HashMap<>(keysAndValues), keysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
+                        }
+                    };
+                    mainHandler.post(myRunnable);
+                }
+            }
+        }).start();
         /*
         final ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
         parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
@@ -256,8 +330,8 @@ public class OnlineSharedPreferences {
      */
     public void commitInBackground(final CommitCallback commitCallback) {
         Log.v(TAG, "Committing in background...");
-//        firebaseRef.child(keyValueObjectContainer.innerObject.getPackageName()).child(keyValueObjectContainer.innerObject.getKey()).setValue();
-        //firebaseRef.keepSynced(true);
+//        packageFirebaseRef.getApp()
+        /*
         keyValueObjectContainer.saveInBackground(new CommitCallback() {
             @Override
             public void done(Exception e) {
@@ -273,20 +347,20 @@ public class OnlineSharedPreferences {
                 }
             }
         });
+        */
     }
 
     // Adapter pattern (Object Adapter)
-    private static class SyncedObjectWrapper {
-        private final ParseSyncedObject innerObject;
+    private static class SyncedObject {
+        String key;
+        String value;
 
-        protected SyncedObjectWrapper(String packageName) {
-            innerObject = new ParseSyncedObject();
-            innerObject.put(OnlineSharedPreferences.PACKAGE_NAME_KEY, packageName);
+        protected SyncedObject() {
         }
 
         protected void putString(String key, String value) {
-            innerObject.put(ParseSyncedObject.SAVED_OBJECT_KEY, key);
-            innerObject.put(ParseSyncedObject.SAVED_OBJECT_VALUE, value);
+            this.key = key;
+            this.value = value;
         }
 
         /*
@@ -297,6 +371,7 @@ public class OnlineSharedPreferences {
         */
 
         protected void remove(String key, final RemoveCallback deleteCallback) {
+
             /*
             ParseQuery<ParseSyncedObject> parseQuery = ParseQuery.getQuery(ParseSyncedObject.class);
             parseQuery.whereEqualTo(OnlineSharedPreferences.PACKAGE_NAME_KEY, innerObject.getPackageName());
@@ -392,10 +467,6 @@ public class OnlineSharedPreferences {
                 }
             });
             */
-        }
-
-        public String getPackageName() {
-            return innerObject.getPackageName();
         }
     }
 }
