@@ -1,14 +1,15 @@
 apply plugin: 'com.android.application'
 
-repositories {
-    maven {
-        url 'https://dl.bintray.com/perrchick/maven/'
-    }
-}
-
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.0"
+
+    // To prevent 'duplicate' compilation errors in firebase integration
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+    }
 
     defaultConfig {
         applicationId "com.perrchick.someapplication"
@@ -32,5 +33,5 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile project(':onlinesharedpreferences')
-//    compile 'com.github.perrchick:onlinesharedpreferences:0.1.0'
+//    compile 'com.github.perrchick:onlinesharedpreferences:1.0.0'
 }

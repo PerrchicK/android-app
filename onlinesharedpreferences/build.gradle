@@ -32,7 +32,7 @@ ext {
     siteUrl = 'https://github.com/PerrchicK/android-app/tree/master/onlinesharedpreferences'
     gitUrl = 'https://github.com/PerrchicK/android-app.git'
 
-    libraryVersion = '0.1.0'
+    libraryVersion = '1.0.0'
 
     developerId = 'perrchick'
     developerName = 'Perry Shalom'
@@ -50,6 +50,7 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.parse.bolts:bolts-android:1.+'
-    compile 'com.parse:parse-android:1.+'
+    compile 'com.firebase:firebase-client-android:2.5.0+'
+//    compile 'com.parse.bolts:bolts-android:1.+'
+//    compile 'com.parse:parse-android:1.+'
 }

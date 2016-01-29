@@ -22,7 +22,6 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
-import com.parse.ParseException;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;

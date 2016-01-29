@@ -16,7 +16,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
-import com.parse.ParseException;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.utilities.PerrFuncs;
@@ -104,7 +103,7 @@ public class StorageActivity extends AppCompatActivity {
         // Use Parse abilities for A/B Testing:
         db_parseSharedPreferences.getString("hide action bar", new OnlineSharedPreferences.GetStringCallback() {
             @Override
-            public void done(String value, ParseException parseException) {
+            public void done(String value, Exception parseException) {
                 if (value != null) {
                     if (Boolean.parseBoolean(value.toString()) == true) {
                         PerrFuncs.hideActionBarOfActivity(StorageActivity.this);
@@ -151,7 +150,7 @@ public class StorageActivity extends AppCompatActivity {
                                         if ((Boolean)callbackObject) {
                                             db_parseSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
                                                 @Override
-                                                public void done(ParseException e) {
+                                                public void done(Exception e) {
                                                     if (e == null) {
                                                         PerrFuncs.toast("Deleted");
                                                         refreshParseList();
@@ -169,13 +168,13 @@ public class StorageActivity extends AppCompatActivity {
                             final String newValue = (String)callbackObject;
                             saveInParseCloud(key, newValue, new OnlineSharedPreferences.CommitCallback() {
                                 @Override
-                                public void done(ParseException e) {
+                                public void done(Exception e) {
                                     String completionMessage;
                                     if (e == null) {
                                         objects.put(key, newValue);
-                                        completionMessage = "Saved successfully in Parse cloud";
+                                        completionMessage = "Saved successfully in Firebase cloud";
                                     } else {
-                                        completionMessage = "Failed to save in Parse cloud, Exception: " + e.toString();
+                                        completionMessage = "Failed to save in Firebase cloud, Exception: " + e.getMessage();
                                     }
 
                                     PerrFuncs.toast(completionMessage);
@@ -214,7 +213,7 @@ public class StorageActivity extends AppCompatActivity {
                             // <key,value> are valid, proceed...
                             db_parseSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
                                 @Override
-                                public void done(ParseException e) {
+                                public void done(Exception e) {
                                     if (e == null) {
                                         PerrFuncs.toast("Added!");
                                         refreshParseList();
@@ -280,7 +279,7 @@ public class StorageActivity extends AppCompatActivity {
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
         db_parseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
             @Override
-            public void done(String value, ParseException e) {
+            public void done(String value, Exception e) {
                 if (value != null) {
                     editTextParse.setText(value.toString());
                 }
@@ -298,7 +297,7 @@ public class StorageActivity extends AppCompatActivity {
         // Restore Parse List View
         db_parseSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
             @Override
-            public void done(HashMap<String, Object> objects, ParseException e) {
+            public void done(HashMap<String, Object> objects, Exception e) {
                 if (e == null) {
                     StorageActivity.this.objects = objects;
                     ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
@@ -330,7 +329,7 @@ public class StorageActivity extends AppCompatActivity {
         // Parse Cloud
         this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new OnlineSharedPreferences.CommitCallback() {
             @Override
-            public void done(ParseException e) {
+            public void done(Exception e) {
                 if (e != null) {
                     PerrFuncs.toast("Failed to update Parse! Exception:\n" + e);
                 }

@@ -1,33 +1,25 @@
 package com.perrchick.onlinesharedpreferences.parse;
 
-import android.util.Log;
-
-import com.parse.ParseClassName;
-import com.parse.ParseObject;
-
-import org.json.JSONException;
+import java.util.HashMap;
 
 /**
  * Created by perrchick on 12/18/15.
  */
-@ParseClassName("SavedObject")
-public class ParseSyncedObject extends ParseObject {
+public class ParseSyncedObject {
 
     public static final String SAVED_OBJECT_KEY = "key";
     public static final String SAVED_OBJECT_VALUE = "value";
     public static final String SAVED_OBJECT_PACKAGE_NAME = "packageName";
     private static final String TAG = ParseSyncedObject.class.getSimpleName();
+    private final HashMap<String, String> keysAndValues;
 
-    // Required
     public ParseSyncedObject() {
-        super();
+        keysAndValues = new HashMap<>();
     }
 
     public ParseSyncedObject(String packageName, String key, Object value) {
-        super();
+        this();
         setPackageName(packageName);
-        setKey(key);
-        setValue(value);
     }
 
     public void setPackageName(String packageName) {
@@ -47,11 +39,12 @@ public class ParseSyncedObject extends ParseObject {
         return getString(SAVED_OBJECT_KEY);
     }
 
-    public void setValue(Object value) {
+    public void setValue(String value) {
         put(SAVED_OBJECT_VALUE, value);
     }
 
     public Object getValue() {
+
         return getString(SAVED_OBJECT_VALUE);
 
         /*
@@ -68,8 +61,16 @@ public class ParseSyncedObject extends ParseObject {
         */
     }
 
+    private String getString(String key) {
+        return this.keysAndValues.get(key);
+    }
+
     @Override
     public String toString() {
         return "<" + getKey() + ", " + getValue() + ">";
+    }
+
+    public void put(String key, String value) {
+        keysAndValues.put(key, value);
     }
 }
