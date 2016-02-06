@@ -1,8 +1,8 @@
 package com.perrchick.onlinesharedpreferences;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Handler;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.firebase.client.DataSnapshot;
@@ -10,7 +10,8 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -19,7 +20,13 @@ import java.util.concurrent.TimeoutException;
 public class SyncedSharedPreferences {
 
     public interface SyncedSharedPreferencesListener {
-        void onSyncedSharedPreferencesChanged(String key, String value);
+        enum SyncedSharedPreferencesChangeType {
+            NoChange,
+            Added,
+            Modified,
+            Removed
+        }
+        void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType,String key, String value);
     }
 
     private static final String TAG = SyncedSharedPreferences.class.getSimpleName();
@@ -32,7 +39,7 @@ public class SyncedSharedPreferences {
     public static final String FIREBASE_APP_URL = "https://boiling-inferno-8318.firebaseio.com/";
     private final Firebase packageFirebaseRef;
     private final Context context;
-    private HashMap<String, String> keysAndValues;
+    SharedPreferences localKeysAndValues;
     private Object keysAndValuesLocker = new Object();
 
     /**
@@ -62,7 +69,7 @@ public class SyncedSharedPreferences {
      * @param listener The listener for added keys or changed values, may be null
      * @return SyncedSharedPreferences new instance
      */
-    public static SyncedSharedPreferences getSyncedSharedPreferences(Context context, @Nullable String firebaseAppUrl, @Nullable SyncedSharedPreferencesListener listener) {
+    public static SyncedSharedPreferences getSyncedSharedPreferences(Context context, String firebaseAppUrl, SyncedSharedPreferencesListener listener) {
         if (firebaseAppUrl == null) {
             // Use default
             firebaseAppUrl = FIREBASE_APP_URL;
@@ -70,7 +77,7 @@ public class SyncedSharedPreferences {
         return new SyncedSharedPreferences(context, firebaseAppUrl, listener);
     }
 
-    private SyncedSharedPreferences(Context context, String firebaseAppUrl, SyncedSharedPreferencesListener syncedSharedPreferencesListener) {
+    private SyncedSharedPreferences(final Context context, String firebaseAppUrl, SyncedSharedPreferencesListener syncedSharedPreferencesListener) {
         this.listener = syncedSharedPreferencesListener;
         this.context = context;
         packageName = context.getPackageName().replace(".", "-");
@@ -81,38 +88,64 @@ public class SyncedSharedPreferences {
             Firebase.setAndroidContext(context);
             shouldInitializeFireBase = false;
         }
+
         packageFirebaseRef = new Firebase(firebaseAppUrl).child(packageName);
         packageFirebaseRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                synchronized (SyncedSharedPreferences.this) {
-                    if (keysAndValues == null) {
-                        keysAndValues = new HashMap<>();
+                synchronized (keysAndValuesLocker) {
+                    if (localKeysAndValues == null) {
+                        localKeysAndValues = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
                     }
                 }
 
                 String deltaKey = "";
                 String deltaValue = "";
+                SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType changeType;
+                Set<String> oldKeys = localKeysAndValues.getAll().keySet();
 
                 // Find the delta between the server's snapshot and the local hash map
                 for (DataSnapshot data:children) {
+                    changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.NoChange;
+
                     // New key? or modified value?
-                    if ( (keysAndValues.get(data.getKey()) == null) || (keysAndValues.get(data.getKey())) != data.getValue()) {
+                    if ((localKeysAndValues.getString(data.getKey(), null) == null)) {
+                        changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Added;
+                    } else if ((localKeysAndValues.getString(data.getKey(), "").compareTo(data.getValue().toString()) != 0)) {
+                        changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified;
+                    }
+
+                    if (SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Added.compareTo(changeType) == 0 ||
+                            SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified.compareTo(changeType) == 0) {
                         deltaKey = data.getKey();
                         deltaValue = data.getValue().toString();
-                        keysAndValues.put(deltaKey, deltaValue);
+                        localKeysAndValues.edit().putString(deltaKey, deltaValue).apply();
+
+                        Log.v(TAG, "some value changed: " + "<" + deltaKey + "," + deltaValue + ">");
+                        if (listener != null) {
+                            listener.onSyncedSharedPreferencesChanged(changeType, deltaKey, deltaValue);
+                        }
+                    }
+
+                    oldKeys.remove(data.getKey());
+                }
+
+                if (oldKeys.size() == 1) {
+                    changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Removed;
+                    deltaKey = oldKeys.toArray()[0].toString();
+                    deltaValue = localKeysAndValues.getString(deltaKey, "");
+                    localKeysAndValues.edit().remove(deltaKey).commit();
+
+                    Log.v(TAG, "some value changed: " + "<" + deltaKey + "," + deltaValue + ">");
+                    if (listener != null) {
+                        listener.onSyncedSharedPreferencesChanged(changeType, deltaKey, deltaValue);
                     }
                 }
 
                 synchronized (keysAndValuesLocker) {
                     // Tell anyone who waited and used this lock object
                     keysAndValuesLocker.notify();
-                }
-
-                Log.v(TAG, "some value changed: " + "<" + deltaKey + "," + deltaValue + ">");
-                if (listener != null) {
-                    listener.onSyncedSharedPreferencesChanged(deltaKey, deltaValue);
                 }
             }
 
@@ -121,26 +154,15 @@ public class SyncedSharedPreferences {
                 Log.e(TAG, firebaseError.toString());
             }
         });
-//        firebaseRef.keepSynced(true);
 
-//        this.keyValueObjectContainer = new SyncedObjectWrapper(packageName);
-        keysAndValues = null;
+        localKeysAndValues = null;
     }
 
     public interface GetAllObjectsCallback {
-        void done(HashMap<String, String> objects, Exception e);
-    }
-    private interface GetObjectCallback {
-        void done(Object value, Exception e);
+        void done(Map<String, ?> objects, Exception e);
     }
     public interface GetStringCallback {
         void done(String value, Exception e);
-    }
-    public interface CommitCallback {
-        void done(Exception e);
-    }
-    public interface RemoveCallback {
-        void done(Exception e);
     }
 
     /**
@@ -150,9 +172,6 @@ public class SyncedSharedPreferences {
      */
     public SyncedSharedPreferences putString(String key, String value) {
         packageFirebaseRef.child(key).setValue(value);
-//        packageFirebaseRef.child(SAVED_OBJECT_VALUE).setValue(value);
-//        keyValueObjectContainer.putString(key, value);
-
         return this;
     }
 
@@ -161,15 +180,6 @@ public class SyncedSharedPreferences {
      * @param key               The key that identifies the value
      */
     public void remove(final String key) {
-        this.remove(key, null);
-    }
-
-    /**
-     * Asynchronously removes the value and the key from the online shared preferences
-     * @param key               The key that identifies the value
-     * @param removeCallback    The callback object that will be called after the remove is done
-     */
-    public void remove(final String key, final RemoveCallback removeCallback) {
         Log.v(TAG, "Removing '" + key + "'...");
         packageFirebaseRef.child(key).removeValue();
     }
@@ -189,7 +199,7 @@ public class SyncedSharedPreferences {
             @Override
             public void run() {
                 synchronized (keysAndValuesLocker) {
-                    if (keysAndValues == null) {
+                    if (localKeysAndValues == null) {
                         try {
                             keysAndValuesLocker.wait(TIME_OUT_MILLIS);
                         } catch (InterruptedException e) {
@@ -201,7 +211,7 @@ public class SyncedSharedPreferences {
                     Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            callback.done(keysAndValues == null ? null : keysAndValues.get(key), keysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
+                            callback.done(localKeysAndValues == null ? null : localKeysAndValues.getString(key, ""), localKeysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
                         }
                     };
                     mainHandler.post(myRunnable);
@@ -219,7 +229,7 @@ public class SyncedSharedPreferences {
             @Override
             public void run() {
                 synchronized (keysAndValuesLocker) {
-                    if (keysAndValues == null) {
+                    if (localKeysAndValues == null) {
                         try {
                             keysAndValuesLocker.wait(TIME_OUT_MILLIS);
                         } catch (InterruptedException e) {
@@ -231,7 +241,7 @@ public class SyncedSharedPreferences {
                     Runnable myRunnable = new Runnable() {
                         @Override
                         public void run() {
-                            callback.done(keysAndValues == null ? null : new HashMap<>(keysAndValues), keysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
+                            callback.done(localKeysAndValues == null ? null : localKeysAndValues.getAll(), localKeysAndValues == null ? new TimeoutException("Firebase connection took too long") : null);
                         }
                     };
                     mainHandler.post(myRunnable);

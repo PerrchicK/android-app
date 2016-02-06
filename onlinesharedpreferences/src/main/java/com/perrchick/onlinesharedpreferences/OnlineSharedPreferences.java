@@ -67,9 +67,6 @@ public class OnlineSharedPreferences {
     public interface GetAllObjectsCallback {
         void done(HashMap<String, String> objects, BackendlessException e);
     }
-    public interface GetObjectCallback {
-        void done(Object value, BackendlessException e);
-    }
     public interface GetStringCallback {
         void done(String value, BackendlessException e);
     }
@@ -79,14 +76,6 @@ public class OnlineSharedPreferences {
     public interface RemoveCallback {
         void done(BackendlessException e);
     }
-
-    /*
-    public OnlineSharedPreferences putObject(String key, Object value) {
-        keyValueObjectContainer.putObject(key, value);
-
-        return this;
-    }
-    */
 
     /**
      * Puts a string in the shared preferences, but it doesn't upload the value yet, until {@link #commitInBackground(CommitCallback)} is being called.
@@ -203,41 +192,6 @@ public class OnlineSharedPreferences {
             }
         });
     }
-
-    /*
-    public void getObject(final String key, final GetObjectCallback callback) {
-        // Guard
-        if (callback == null){
-            return;
-        }
-
-        ParseQuery<BackendlessSyncedObject> parseQuery = ParseQuery.getQuery(BackendlessSyncedObject.class);
-        // Has two keys (package name + key)
-        parseQuery.whereEqualTo(PACKAGE_NAME_KEY, keyValueObjectContainer.getPackageName());
-        parseQuery.whereEqualTo(BackendlessSyncedObject.SAVED_OBJECT_KEY, key);
-        Log.v(TAG, "Getting object for key '" + key + "'...");
-        parseQuery.findInBackground(new FindCallback<BackendlessSyncedObject>() {
-            @Override
-            public void done(List<BackendlessSyncedObject> objects, BackendlessException e) {
-                Object value = null;
-                if (objects.size() > 0) {
-                    value = objects.get(0).getValue();
-                }
-                if (callback != null) {
-                    // Should be unique
-                    callback.done(value, e);
-                }
-
-                if (e == null) {
-                    Log.v(TAG, "... Got object for key '" + key + "'");
-                } else {
-                    Log.e(TAG, "... Failed to get object for key '" + key + "'");
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-    */
 
     /**
      * Gets all objects in the online shared preferences

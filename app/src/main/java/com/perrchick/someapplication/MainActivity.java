@@ -125,7 +125,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
 
         PerrFuncs.setTopActivity(this);
-        PerrFuncs.toast("resumed activity");
         putNewBoard();
     }
 
