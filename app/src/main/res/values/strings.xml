@@ -22,7 +22,7 @@
     <string name="storage_activity_title">Storage activity</string>
     <string name="storage_activity_txt_shared_prefs">this text is saved in the shared-prefs</string>
     <string name="storage_activity_txt_sqlite">this text is saved in SQL Lite</string>
-    <string name="storage_activity_txt_parse">this text will be saved in Firebase</string>
+    <string name="storage_activity_txt_backendless">this text will be saved in Backendless</string>
 
     <string name="spinner_title">Keep Calm And …</string>
     <string name="title_activity_notifications">NotificationsActivity</string>

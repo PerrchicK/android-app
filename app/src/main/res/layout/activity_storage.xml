@@ -32,8 +32,8 @@
         android:layout_height="wrap_content" />
 
     <EditText
-        android:id="@+id/txt_parse"
-        android:hint="@string/storage_activity_txt_parse"
+        android:id="@+id/txt_backendless"
+        android:hint="@string/storage_activity_txt_backendless"
         android:text=""
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
@@ -52,13 +52,13 @@
         android:layout_height="fill_parent">
         <ListView
             android:layout_weight="10"
-            android:id="@+id/listOfParseSavedObjects"
+            android:id="@+id/listOfBackendlessSavedObjects"
             android:background="#d1d1df"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent">
         </ListView>
         <Button
-            android:id="@+id/btnAddParseSavedObject"
+            android:id="@+id/btnAddBackendlessSavedObject"
             android:layout_weight="30"
             android:text="+"
             android:layout_width="fill_parent"

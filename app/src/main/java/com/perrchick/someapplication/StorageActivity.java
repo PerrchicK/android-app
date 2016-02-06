@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.backendless.exceptions.BackendlessException;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.utilities.PerrFuncs;
@@ -29,17 +30,17 @@ public class StorageActivity extends AppCompatActivity {
     private static final String SELECTED_ENUM_PERSISTENCE_KEY = "SELECTED_ENUM_PERSISTENCE_KEY";
     private static final String TAG = StorageActivity.class.getSimpleName();
 
-    private OnlineSharedPreferences db_parseSharedPreferences;
+    private OnlineSharedPreferences db_backendlessSharedPreferences;
     private SharedPreferences db_sharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
     private DictionaryOpenHelper db_sqLiteHelper;
 
     private EditText editTextSharedPrefs;
     private EditText editTextSQLite;
-    private EditText editTextParse;
+    private EditText editTextBackendless;
 
     private Spinner dropdownList;
-    private ListView listOfParseSavedObjects;
+    private ListView listOfBackendlessSavedObjects;
     private HashMap<String, String> objects;
 
     private enum KeepCalmAnd {
@@ -93,17 +94,17 @@ public class StorageActivity extends AppCompatActivity {
 
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
-        this.db_parseSharedPreferences = OnlineSharedPreferences.getOnlineSharedPreferences(this);
+        this.db_backendlessSharedPreferences = OnlineSharedPreferences.getOnlineSharedPreferences(this);
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
         this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
-        this.editTextParse = (EditText) findViewById(R.id.txt_parse);
+        this.editTextBackendless = (EditText) findViewById(R.id.txt_backendless);
 
-        // Use Parse abilities for A/B Testing:
-        db_parseSharedPreferences.getString("hide action bar", new OnlineSharedPreferences.GetStringCallback() {
+        // Use Backendless abilities for A/B Testing:
+        db_backendlessSharedPreferences.getString("hide action bar", new OnlineSharedPreferences.GetStringCallback() {
             @Override
-            public void done(String value, Exception parseException) {
+            public void done(String value, BackendlessException exception) {
                 if (value != null) {
                     if (Boolean.parseBoolean(value.toString()) == true) {
                         PerrFuncs.hideActionBarOfActivity(StorageActivity.this);
@@ -117,27 +118,27 @@ public class StorageActivity extends AppCompatActivity {
                         }
                     }
                 } else {
-                    if (parseException != null) {
-                        parseException.printStackTrace();
+                    if (exception != null) {
+                        exception.printStackTrace();
                     }
                 }
             }
         });
 
-        this.listOfParseSavedObjects = (ListView)findViewById(R.id.listOfParseSavedObjects);
-        this.listOfParseSavedObjects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        this.listOfBackendlessSavedObjects = (ListView)findViewById(R.id.listOfBackendlessSavedObjects);
+        this.listOfBackendlessSavedObjects.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
+                Object pressedKey = StorageActivity.this.listOfBackendlessSavedObjects.getAdapter().getItem(position);
                 Object value = objects.get(pressedKey.toString());
                 PerrFuncs.toast(value.toString());
             }
         });
-        this.listOfParseSavedObjects.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        this.listOfBackendlessSavedObjects.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
 
-                final Object pressedKey = StorageActivity.this.listOfParseSavedObjects.getAdapter().getItem(position);
+                final Object pressedKey = StorageActivity.this.listOfBackendlessSavedObjects.getAdapter().getItem(position);
                 Object oldValue = objects.get(pressedKey.toString());
                 getTextFromUser("New string", oldValue.toString(), new PerrFuncs.Callback() {
                     @Override
@@ -147,13 +148,13 @@ public class StorageActivity extends AppCompatActivity {
                                 @Override
                                 public void callbackCall(Object callbackObject) {
                                     if (callbackObject instanceof Boolean) {
-                                        if ((Boolean)callbackObject) {
-                                            db_parseSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
+                                        if ((Boolean) callbackObject) {
+                                            db_backendlessSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
                                                 @Override
-                                                public void done(Exception e) {
+                                                public void done(BackendlessException e) {
                                                     if (e == null) {
                                                         PerrFuncs.toast("Deleted");
-                                                        refreshParseList();
+                                                        refreshBackendlessList();
                                                     } else {
                                                         PerrFuncs.toast("Failed to delete, Exception: " + e.toString());
                                                     }
@@ -165,16 +166,16 @@ public class StorageActivity extends AppCompatActivity {
                             });
                         } else if (callbackObject instanceof String) {
                             final String key = (String) pressedKey;
-                            final String newValue = (String)callbackObject;
-                            saveInParseCloud(key, newValue, new OnlineSharedPreferences.CommitCallback() {
+                            final String newValue = (String) callbackObject;
+                            saveInBackendlessCloud(key, newValue, new OnlineSharedPreferences.CommitCallback() {
                                 @Override
-                                public void done(Exception e) {
+                                public void done(BackendlessException e) {
                                     String completionMessage;
                                     if (e == null) {
                                         objects.put(key, newValue);
-                                        completionMessage = "Saved successfully in Parse cloud";
+                                        completionMessage = "Saved successfully in Backendless cloud";
                                     } else {
-                                        completionMessage = "Failed to save in Parse cloud, Exception: " + e.getMessage();
+                                        completionMessage = "Failed to save in Backendless cloud, Exception: " + e.getMessage();
                                     }
 
                                     PerrFuncs.toast(completionMessage);
@@ -187,7 +188,7 @@ public class StorageActivity extends AppCompatActivity {
             }
         });
 
-        findViewById(R.id.btnAddParseSavedObject).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.btnAddBackendlessSavedObject).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 final StorageActivity storageActivity = StorageActivity.this;
@@ -211,12 +212,12 @@ public class StorageActivity extends AppCompatActivity {
                             }
 
                             // <key,value> are valid, proceed...
-                            db_parseSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
+                            db_backendlessSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
                                 @Override
-                                public void done(Exception e) {
+                                public void done(BackendlessException e) {
                                     if (e == null) {
                                         PerrFuncs.toast("Added!");
-                                        refreshParseList();
+                                        refreshBackendlessList();
                                     } else {
                                         PerrFuncs.toast("Error in adding  <"+","+">" + e.toString());
                                     }
@@ -226,7 +227,7 @@ public class StorageActivity extends AppCompatActivity {
                         }
                     }
                 });
-                //saveInParseCloud(key, value);
+                //saveInBackendlessCloud(key, value);
             }
         });
 
@@ -277,11 +278,11 @@ public class StorageActivity extends AppCompatActivity {
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
-        db_parseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
+        db_backendlessSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
             @Override
-            public void done(String value, Exception e) {
+            public void done(String value, BackendlessException e) {
                 if (value != null) {
-                    editTextParse.setText(value.toString());
+                    editTextBackendless.setText(value.toString());
                 }
             }
         });
@@ -290,20 +291,20 @@ public class StorageActivity extends AppCompatActivity {
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
         dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId), KeepCalmAnd.values()));
 
-        refreshParseList();
+        refreshBackendlessList();
     }
 
-    private void refreshParseList() {
-        // Restore Parse List View
-        db_parseSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
+    private void refreshBackendlessList() {
+        // Restore Backendless List View
+        db_backendlessSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
             @Override
-            public void done(HashMap<String, String> objects, Exception e) {
+            public void done(HashMap<String, String> objects, BackendlessException e) {
                 if (e == null) {
                     StorageActivity.this.objects = objects;
                     ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
-                    listOfParseSavedObjects.setAdapter(adapter);
+                    listOfBackendlessSavedObjects.setAdapter(adapter);
                 } else {
-                    PerrFuncs.toast("Error! Exception:\n" + e);
+                    PerrFuncs.toast("Error! Exception:\n" + e, false);
                 }
             }
         });
@@ -316,7 +317,7 @@ public class StorageActivity extends AppCompatActivity {
         // Using different kinds of persistence:
         String editTextSharedPrefsString = this.editTextSharedPrefs.getText().toString();
         String editTextSQLiteString = this.editTextSQLite.getText().toString();
-        String editTextParseString = this.editTextParse.getText().toString();
+        String editTextBackendlessString = this.editTextBackendless.getText().toString();
 
         // Shared Preferences
         if (!this.db_sharedPreferencesEditor.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit()) {
@@ -326,24 +327,24 @@ public class StorageActivity extends AppCompatActivity {
         if (this.db_sqLiteHelper.put(EDIT_TEXT_PERSISTENCE_KEY, editTextSQLiteString) == -1) {
             PerrFuncs.toast("Failed to update SQLite!");
         }
-        // Parse Cloud
-        this.saveInParseCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextParseString, new OnlineSharedPreferences.CommitCallback() {
+        // Backendless Cloud
+        this.saveInBackendlessCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextBackendlessString, new OnlineSharedPreferences.CommitCallback() {
             @Override
-            public void done(Exception e) {
+            public void done(BackendlessException e) {
                 if (e != null) {
-                    PerrFuncs.toast("Failed to update Parse! Exception:\n" + e);
+                    PerrFuncs.toast("Failed to update Backendless! Exception:\n" + e);
                 }
             }
         });
     }
 
-    protected void saveInParseCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {
+    protected void saveInBackendlessCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {
         // Also 'this' may be passed
-        db_parseSharedPreferences.putString(key, value).commitInBackground(saveCallback);
+        db_backendlessSharedPreferences.putString(key, value).commitInBackground(saveCallback);
     }
 
-    protected void saveInParseCloud(final String key, final String value) {
-        db_parseSharedPreferences.putString(key, value).commitInBackground();
+    protected void saveInBackendlessCloud(final String key, final String value) {
+        db_backendlessSharedPreferences.putString(key, value).commitInBackground();
     }
 
     public void getTextFromUser(String title, String defaultText, final PerrFuncs.Callback callback) {
