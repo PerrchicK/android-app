@@ -46,11 +46,11 @@ public class OnlineSharedPreferences {
      * Gets a new instance of OnlineSharedPreferences, managed by Backendless
      * @param context The application's context
      * @param appId The application ID on your Backendless project, if any
-     * @param clientKey The client key on your Backendless project, if any
+     * @param secretKey The secret key of your Backendless project, if any
      * @return OnlineSharedPreferences new instance
      */
-    public static OnlineSharedPreferences getOnlineSharedPreferences(Context context, String appId, String clientKey) {
-        return new OnlineSharedPreferences(context, appId, clientKey);
+    public static OnlineSharedPreferences getOnlineSharedPreferences(Context context, String appId, String secretKey) {
+        return new OnlineSharedPreferences(context, appId, secretKey);
     }
 
     private OnlineSharedPreferences(Context context, String appId, String secretKey) {

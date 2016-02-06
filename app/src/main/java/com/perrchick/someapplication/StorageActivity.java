@@ -18,19 +18,21 @@ import android.widget.Spinner;
 
 import com.backendless.exceptions.BackendlessException;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
+import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class StorageActivity extends AppCompatActivity {
+public class StorageActivity extends AppCompatActivity implements SyncedSharedPreferences.SyncedSharedPreferencesListener {
 
     private static final String EDIT_TEXT_PERSISTENCE_KEY = "EDIT_TEXT_PERSISTENCE_KEY";
     private static final String SELECTED_ENUM_PERSISTENCE_KEY = "SELECTED_ENUM_PERSISTENCE_KEY";
     private static final String TAG = StorageActivity.class.getSimpleName();
 
     private OnlineSharedPreferences db_backendlessSharedPreferences;
+    private SyncedSharedPreferences db_firebaseSharedPreferences;
     private SharedPreferences db_sharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
     private DictionaryOpenHelper db_sqLiteHelper;
@@ -38,6 +40,7 @@ public class StorageActivity extends AppCompatActivity {
     private EditText editTextSharedPrefs;
     private EditText editTextSQLite;
     private EditText editTextBackendless;
+    private EditText editTextFirebase;
 
     private Spinner dropdownList;
     private ListView listOfBackendlessSavedObjects;
@@ -94,12 +97,15 @@ public class StorageActivity extends AppCompatActivity {
 
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
+        // Also 'this' may be passed as context
         this.db_backendlessSharedPreferences = OnlineSharedPreferences.getOnlineSharedPreferences(this);
+        this.db_firebaseSharedPreferences = SyncedSharedPreferences.getSyncedSharedPreferences(this, this);
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
         this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
         this.editTextBackendless = (EditText) findViewById(R.id.txt_backendless);
+        this.editTextFirebase = (EditText) findViewById(R.id.txt_firebase);
 
         // Use Backendless abilities for A/B Testing:
         db_backendlessSharedPreferences.getString("hide action bar", new OnlineSharedPreferences.GetStringCallback() {
@@ -281,9 +287,17 @@ public class StorageActivity extends AppCompatActivity {
         db_backendlessSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
             @Override
             public void done(String value, BackendlessException e) {
-                if (value != null) {
-                    editTextBackendless.setText(value.toString());
+                if (value != null && e == null) {
+                    editTextBackendless.setText(value);
+                } else {
+                    Log.e(TAG, "Error fetching edit text value from Backendless");
                 }
+            }
+        });
+        db_firebaseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new SyncedSharedPreferences.GetStringCallback() {
+            @Override
+            public void done(String value, Exception e) {
+                editTextFirebase.setText(value);
             }
         });
 
@@ -318,6 +332,7 @@ public class StorageActivity extends AppCompatActivity {
         String editTextSharedPrefsString = this.editTextSharedPrefs.getText().toString();
         String editTextSQLiteString = this.editTextSQLite.getText().toString();
         String editTextBackendlessString = this.editTextBackendless.getText().toString();
+        String editTextFirebase = this.editTextFirebase.getText().toString();
 
         // Shared Preferences
         if (!this.db_sharedPreferencesEditor.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit()) {
@@ -327,8 +342,8 @@ public class StorageActivity extends AppCompatActivity {
         if (this.db_sqLiteHelper.put(EDIT_TEXT_PERSISTENCE_KEY, editTextSQLiteString) == -1) {
             PerrFuncs.toast("Failed to update SQLite!");
         }
-        // Backendless Cloud
-        this.saveInBackendlessCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextBackendlessString, new OnlineSharedPreferences.CommitCallback() {
+        // Backendless cloud
+        saveInBackendlessCloud(EDIT_TEXT_PERSISTENCE_KEY, editTextBackendlessString, new OnlineSharedPreferences.CommitCallback() {
             @Override
             public void done(BackendlessException e) {
                 if (e != null) {
@@ -336,15 +351,24 @@ public class StorageActivity extends AppCompatActivity {
                 }
             }
         });
+        // firebase cloud
+        this.db_firebaseSharedPreferences.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextFirebase);
+    }
+
+    public void onSyncedSharedPreferencesChanged(String key, String value) {
+        PerrFuncs.toast("Firebase key value changed: <" + key + "," + value + ">");
     }
 
     protected void saveInBackendlessCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {
-        // Also 'this' may be passed
-        db_backendlessSharedPreferences.putString(key, value).commitInBackground(saveCallback);
+        if (saveCallback == null) {
+            db_backendlessSharedPreferences.putString(key, value).commitInBackground();
+        } else {
+            db_backendlessSharedPreferences.putString(key, value).commitInBackground(saveCallback);
+        }
     }
 
     protected void saveInBackendlessCloud(final String key, final String value) {
-        db_backendlessSharedPreferences.putString(key, value).commitInBackground();
+        saveInBackendlessCloud(key, value, null);
     }
 
     public void getTextFromUser(String title, String defaultText, final PerrFuncs.Callback callback) {

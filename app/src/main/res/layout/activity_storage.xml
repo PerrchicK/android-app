@@ -38,6 +38,13 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
 
+    <EditText
+        android:id="@+id/txt_firebase"
+        android:hint="@string/storage_activity_txt_firebase"
+        android:text=""
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
     <Spinner
         android:id="@+id/enums_spinner"
         android:prompt="@string/spinner_title"
