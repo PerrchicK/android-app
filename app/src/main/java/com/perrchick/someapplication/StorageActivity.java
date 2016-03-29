@@ -16,19 +16,15 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
-import com.backendless.DataPermission;
 import com.backendless.exceptions.BackendlessException;
+import com.firebase.client.FirebaseError;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 
 public class StorageActivity extends AppCompatActivity implements SyncedSharedPreferences.SyncedSharedPreferencesListener {
 
@@ -299,6 +295,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
                 }
             }
         });
+
         db_firebaseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new SyncedSharedPreferences.GetStringCallback() {
             @Override
             public void done(String value, Exception e) {
@@ -371,6 +368,11 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         }
 
         PerrFuncs.toast("Firebase key value " + changeType + ": <" + key + "," + value + ">");
+    }
+
+    @Override
+    public void onSyncedSharedPreferencesError(FirebaseError error) {
+        // Reconnect?
     }
 
     protected void saveInBackendlessCloud(String key, String value, OnlineSharedPreferences.CommitCallback saveCallback) {

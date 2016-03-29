@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 
+import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -27,13 +28,14 @@ public class SyncedSharedPreferences {
             Removed
         }
         void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType,String key, String value);
+        void onSyncedSharedPreferencesError(FirebaseError error);
     }
 
     private static final String TAG = SyncedSharedPreferences.class.getSimpleName();
     private static final long TIME_OUT_MILLIS = 10000;
     private static boolean shouldInitializeFireBase = true;
 
-    private final SyncedSharedPreferencesListener listener;
+    private final SyncedSharedPreferencesListener syncedSharedPreferencesListener;
     // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
     private final String packageName;
     public static final String FIREBASE_APP_URL = "https://boiling-inferno-8318.firebaseio.com/";
@@ -77,8 +79,8 @@ public class SyncedSharedPreferences {
         return new SyncedSharedPreferences(context, firebaseAppUrl, listener);
     }
 
-    private SyncedSharedPreferences(final Context context, String firebaseAppUrl, SyncedSharedPreferencesListener syncedSharedPreferencesListener) {
-        this.listener = syncedSharedPreferencesListener;
+    private SyncedSharedPreferences(final Context context, String firebaseAppUrl, final SyncedSharedPreferencesListener listener) {
+        this.syncedSharedPreferencesListener = listener;
         this.context = context;
         packageName = context.getPackageName().replace(".", "-");
 
@@ -90,68 +92,39 @@ public class SyncedSharedPreferences {
         }
 
         packageFirebaseRef = new Firebase(firebaseAppUrl).child(packageName);
-        packageFirebaseRef.addValueEventListener(new ValueEventListener() {
+        packageFirebaseRef.addChildEventListener(new ChildEventListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Iterable<DataSnapshot> children = dataSnapshot.getChildren();
-                synchronized (keysAndValuesLocker) {
-                    if (localKeysAndValues == null) {
-                        localKeysAndValues = context.getSharedPreferences(TAG, Context.MODE_PRIVATE);
-                    }
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                if (syncedSharedPreferencesListener != null) {
+                    syncedSharedPreferencesListener.onSyncedSharedPreferencesChanged(SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Added, dataSnapshot.getKey(), dataSnapshot.getValue().toString());
                 }
+            }
 
-                String deltaKey = "";
-                String deltaValue = "";
-                SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType changeType;
-                Set<String> oldKeys = localKeysAndValues.getAll().keySet();
-
-                // Find the delta between the server's snapshot and the local hash map
-                for (DataSnapshot data:children) {
-                    changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.NoChange;
-
-                    // New key? or modified value?
-                    if ((localKeysAndValues.getString(data.getKey(), null) == null)) {
-                        changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Added;
-                    } else if ((localKeysAndValues.getString(data.getKey(), "").compareTo(data.getValue().toString()) != 0)) {
-                        changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified;
-                    }
-
-                    if (SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Added.compareTo(changeType) == 0 ||
-                            SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified.compareTo(changeType) == 0) {
-                        deltaKey = data.getKey();
-                        deltaValue = data.getValue().toString();
-                        localKeysAndValues.edit().putString(deltaKey, deltaValue).apply();
-
-                        Log.v(TAG, "some value changed: " + "<" + deltaKey + "," + deltaValue + ">");
-                        if (listener != null) {
-                            listener.onSyncedSharedPreferencesChanged(changeType, deltaKey, deltaValue);
-                        }
-                    }
-
-                    oldKeys.remove(data.getKey());
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                if (syncedSharedPreferencesListener != null) {
+                    syncedSharedPreferencesListener.onSyncedSharedPreferencesChanged(SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified, dataSnapshot.getKey(), dataSnapshot.getValue().toString());
                 }
+            }
 
-                if (oldKeys.size() == 1) {
-                    changeType = SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Removed;
-                    deltaKey = oldKeys.toArray()[0].toString();
-                    deltaValue = localKeysAndValues.getString(deltaKey, "");
-                    localKeysAndValues.edit().remove(deltaKey).commit();
-
-                    Log.v(TAG, "some value changed: " + "<" + deltaKey + "," + deltaValue + ">");
-                    if (listener != null) {
-                        listener.onSyncedSharedPreferencesChanged(changeType, deltaKey, deltaValue);
-                    }
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                if (syncedSharedPreferencesListener != null) {
+                    syncedSharedPreferencesListener.onSyncedSharedPreferencesChanged(SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Removed, dataSnapshot.getKey(), dataSnapshot.getValue().toString());
                 }
+            }
 
-                synchronized (keysAndValuesLocker) {
-                    // Tell anyone who waited and used this lock object
-                    keysAndValuesLocker.notify();
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                if (syncedSharedPreferencesListener != null) {
+                    syncedSharedPreferencesListener.onSyncedSharedPreferencesChanged(SyncedSharedPreferencesListener.SyncedSharedPreferencesChangeType.Modified, dataSnapshot.getKey(), dataSnapshot.getValue().toString());
                 }
             }
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
                 Log.e(TAG, firebaseError.toString());
+                syncedSharedPreferencesListener.onSyncedSharedPreferencesError(firebaseError);
             }
         });
 
