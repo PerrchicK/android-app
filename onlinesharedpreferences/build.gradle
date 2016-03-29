@@ -32,7 +32,7 @@ ext {
     siteUrl = 'https://github.com/PerrchicK/android-app/tree/master/onlinesharedpreferences'
     gitUrl = 'https://github.com/PerrchicK/android-app.git'
 
-    libraryVersion = '1.1.0'
+    libraryVersion = '2.0.0'
 
     developerId = 'perrchick'
     developerName = 'Perry Shalom'
