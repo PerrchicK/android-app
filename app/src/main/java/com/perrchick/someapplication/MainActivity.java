@@ -197,56 +197,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkWinner() {
-        TicTacToeButtonPlayer winningPlayer = TicTacToeButtonPlayer.None;
-        // Upper row
-        if (buttons[0].getButtonPlayer() == buttons[1].getButtonPlayer() &&
-                buttons[0].getButtonPlayer() == buttons[2].getButtonPlayer() &&
-                buttons[0].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[0].getButtonPlayer();
-        }
-        // Middle row
-        else if (buttons[3].getButtonPlayer() == buttons[4].getButtonPlayer() &&
-                buttons[3].getButtonPlayer() == buttons[5].getButtonPlayer() &&
-                buttons[3].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[3].getButtonPlayer();
-        }
-        // Bottom row
-        else if (buttons[6].getButtonPlayer() == buttons[7].getButtonPlayer() &&
-                buttons[6].getButtonPlayer() == buttons[8].getButtonPlayer() &&
-                buttons[6].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[6].getButtonPlayer();
-        }
-        // Left column
-        else if (buttons[0].getButtonPlayer() == buttons[3].getButtonPlayer() &&
-                buttons[0].getButtonPlayer() == buttons[6].getButtonPlayer() &&
-                buttons[0].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[0].getButtonPlayer();
-        }
-        // Middle column
-        else if (buttons[1].getButtonPlayer() == buttons[4].getButtonPlayer() &&
-                buttons[1].getButtonPlayer() == buttons[7].getButtonPlayer() &&
-                buttons[1].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[1].getButtonPlayer();
-        }
-        // Right column
-        else if (buttons[2].getButtonPlayer() == buttons[5].getButtonPlayer() &&
-                buttons[2].getButtonPlayer() == buttons[8].getButtonPlayer() &&
-                buttons[2].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[2].getButtonPlayer();
-        }
-        // Diagonal column
-        else if (buttons[0].getButtonPlayer() == buttons[4].getButtonPlayer() &&
-                buttons[0].getButtonPlayer() == buttons[8].getButtonPlayer() &&
-                buttons[0].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[0].getButtonPlayer();
-        }
-
-        // Reversed diagonal column
-        else if (buttons[2].getButtonPlayer() == buttons[4].getButtonPlayer() &&
-                buttons[2].getButtonPlayer() == buttons[6].getButtonPlayer() &&
-                buttons[2].getButtonPlayer()!= TicTacToeButtonPlayer.None) {
-            winningPlayer = buttons[2].getButtonPlayer();
-        }
+        TicTacToeButtonPlayer winningPlayer = findWinningPlayer();
 
         if (winningPlayer != TicTacToeButtonPlayer.None) {
             String winningPlayerStr = winningPlayer == TicTacToeButtonPlayer.xPlayer ? "'X' Player" : "'O' Player";
@@ -264,8 +215,73 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             for (TicTacToeButton button: buttons) {
                 button.setEnabled(false);
+                mXTurn = true;
             }
         }
+    }
+
+    private TicTacToeButtonPlayer findWinningPlayer() {
+        int sum = 0;
+
+        // Diagonal check
+        TicTacToeButtonPlayer checkedPlayer = buttons[0].getButtonPlayer();
+        for (int index = 0; index < buttons.length; index += 4) {
+            if (buttons[index].getButtonPlayer() != TicTacToeButtonPlayer.None && checkedPlayer == buttons[index].getButtonPlayer()) {
+                sum++;
+            }
+        }
+
+        if (sum == 3) {
+            return checkedPlayer;
+        } else {
+            sum = 0;
+        }
+
+        // Reversed diagonal check
+        checkedPlayer = buttons[2].getButtonPlayer();
+        for (int index = 2; index < buttons.length; index += 2) {
+            if (buttons[index].getButtonPlayer() != TicTacToeButtonPlayer.None && checkedPlayer == buttons[index].getButtonPlayer()) {
+                sum++;
+            }
+        }
+
+        if (sum == 3) {
+            return checkedPlayer;
+        } else {
+            sum = 0;
+        }
+
+        // All columns
+        for (int col = 0; col <= 2; col++) {
+            checkedPlayer = buttons[col].getButtonPlayer();
+            for (int index = col; index < buttons.length; index += 3) {
+                if (buttons[index].getButtonPlayer() != TicTacToeButtonPlayer.None && checkedPlayer == buttons[index].getButtonPlayer()) {
+                    sum++;
+                }
+            }
+            if (sum == 3) {
+                return checkedPlayer;
+            } else {
+                sum = 0;
+            }
+        }
+
+        // All rows
+        for (int col = 0; col < buttons.length; col += 3) {
+            checkedPlayer = buttons[col].getButtonPlayer();
+            for (int index = col; index < col + 3; index++) {
+                if (buttons[index].getButtonPlayer() != TicTacToeButtonPlayer.None && checkedPlayer == buttons[index].getButtonPlayer()) {
+                    sum++;
+                }
+            }
+            if (sum == 3) {
+                return checkedPlayer;
+            } else {
+                sum = 0;
+            }
+        }
+
+        return TicTacToeButtonPlayer.None;
     }
 
     @Override
