@@ -158,7 +158,7 @@ public class PerrFuncs {
     }
 
     public static void callNumber(String phoneNumber, Activity activity) {
-        // Let's make an implicit intent (the Android OS will choose the handler)
+        // Example for implicit intent (the Android OS will choose the handler)
         Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
         phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {

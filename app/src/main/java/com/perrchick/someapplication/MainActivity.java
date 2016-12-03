@@ -299,6 +299,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_go_to_animations:
+                // Example for explicit intent (the developer chooses the handler, not Android OS)
                 startActivity(new Intent(this, AnimationsActivity.class));
                 return true;
             /* An old implementation which is no longer needed, the rotation is demonstrated in the AnimationsActivity class
