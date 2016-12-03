@@ -48,7 +48,6 @@ public class PerrFuncs {
         return System.currentTimeMillis();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static long getMillisFrom1970(TimePicker timePicker) {
 
         // Solves exception: java.lang.NoSuchMethodError
@@ -68,13 +67,16 @@ public class PerrFuncs {
         Calendar calendar = Calendar.getInstance();
         calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH),
                 hour, minutes, 0);
-        long startTime = calendar.getTimeInMillis();
 
-        return startTime;
+        return calendar.getTimeInMillis();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean hasPermissionForLocationServices(Context context) {
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // Because the user's permissions started only from Android M and on...
+            return true;
+        }
+
         if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // The user blocked the location services of THIS app
             return false;
@@ -156,6 +158,7 @@ public class PerrFuncs {
     }
 
     public static void callNumber(String phoneNumber, Activity activity) {
+        // Let's make an implicit intent (the Android OS will choose the handler)
         Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
         phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
