@@ -152,9 +152,12 @@ public class PerrFuncs {
     }
 
     public static void callNumber(String phoneNumber) {
-        Intent intent = new Intent(Intent.ACTION_CALL);
+        callNumber(phoneNumber, getInstance().getTopActivity());
+    }
 
-        intent.setData(Uri.parse("tel:" + phoneNumber));
+    public static void callNumber(String phoneNumber, Activity activity) {
+        Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
+        phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -167,12 +170,13 @@ public class PerrFuncs {
         }
 
         // Permission granted, making the call.
-        getInstance().getTopActivity().startActivity(intent);
+        activity.startActivity(phoneCallIntent);
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage) {
         showDialog(dialogTitle, dialogMessage, PerrFuncs.getInstance().getTopActivity());
     }
+
     public static void showDialog(final String dialogTitle, final String dialogMessage, Activity activity) {
         activity.runOnUiThread(new Runnable() {
             @Override

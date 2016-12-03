@@ -22,7 +22,6 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
-import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
@@ -202,16 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (winningPlayer != TicTacToeButtonPlayer.None) {
             String winningPlayerStr = winningPlayer == TicTacToeButtonPlayer.xPlayer ? "'X' Player" : "'O' Player";
 
-            new AlertDialog.Builder(this)
-                    .setTitle("We Have a Winner")
-                    .setMessage("The " + winningPlayerStr + " is the winner")
-                    .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // do nothing
-                        }
-                    })
-                    .setIcon(android.R.drawable.ic_dialog_alert)
-                    .show();
+            PerrFuncs.showDialog("We Have a Winner", "The " + winningPlayerStr + " is the winner");
 
             for (TicTacToeButton button: buttons) {
                 button.setEnabled(false);
@@ -337,9 +327,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, StorageActivity.class));
                 return true;
             case R.id.action_download_image:
-                PerrFuncs.getTextFromUser(this, "Put a string for intent's extra data", new PerrFuncs.Callback() {
+                PerrFuncs.getTextFromUser(this, "Put a string for intent's extra data", new PerrFuncs.CallbacksHandler() {
                     @Override
-                    public void callbackCall(Object callbackObject) {
+                    public void callbackWithObject(Object callbackObject) {
                         Intent otherActivityIntent = new Intent();
                         otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownload.class));
                         otherActivityIntent.putExtra("data", (String) callbackObject);
@@ -348,13 +338,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 return true;
             case R.id.action_make_phone_call:
-                PerrFuncs.getTextFromUser(this, "What number should we call?", new PerrFuncs.Callback() {
+                PerrFuncs.getTextFromUser(this, "What number should we call?", new PerrFuncs.CallbacksHandler() {
                     @Override
-                    public void callbackCall(Object callbackObject) {
-                        Intent phoneIntent = new Intent(Intent.ACTION_CALL);
-
-                        phoneIntent.setData(Uri.parse("tel:" + callbackObject));
-                        startActivity(phoneIntent);
+                    public void callbackWithObject(Object callbackObject) {
+                        PerrFuncs.callNumber(callbackObject + "", MainActivity.this);
                     }
                 });
                 return true;
