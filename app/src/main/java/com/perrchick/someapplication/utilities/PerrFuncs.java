@@ -1,5 +1,6 @@
 package com.perrchick.someapplication.utilities;
 
+import android.Manifest;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -9,6 +10,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
@@ -44,6 +48,7 @@ public class PerrFuncs {
         return System.currentTimeMillis();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public static long getMillisFrom1970(TimePicker timePicker) {
 
         // Solves exception: java.lang.NoSuchMethodError
@@ -68,6 +73,7 @@ public class PerrFuncs {
         return startTime;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     public static boolean hasPermissionForLocationServices(Context context) {
         if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // The user blocked the location services of THIS app
@@ -107,8 +113,8 @@ public class PerrFuncs {
         flyOutX.start();
     }
 
-    public interface Callback {
-        void callbackCall(Object callbackObject);
+    public interface CallbacksHandler {
+        void callbackWithObject(Object callbackObject);
     }
 
     private static PerrFuncs getInstance() {
@@ -141,19 +147,34 @@ public class PerrFuncs {
         return getInstance()._applicationContext;
     }
 
-    public static void setApplicationContext(Context applicationContext){
-        getInstance()._applicationContext= applicationContext;
+    public static void setApplicationContext(Context applicationContext) {
+        getInstance()._applicationContext = applicationContext;
     }
 
     public static void callNumber(String phoneNumber) {
         Intent intent = new Intent(Intent.ACTION_CALL);
 
         intent.setData(Uri.parse("tel:" + phoneNumber));
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+        // Permission granted, making the call.
         getInstance().getTopActivity().startActivity(intent);
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage) {
-        PerrFuncs.getInstance().getTopActivity().runOnUiThread(new Runnable() {
+        showDialog(dialogTitle, dialogMessage, PerrFuncs.getInstance().getTopActivity());
+    }
+    public static void showDialog(final String dialogTitle, final String dialogMessage, Activity activity) {
+        activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 new AlertDialog.Builder(PerrFuncs.getInstance().getTopActivity())
@@ -166,7 +187,7 @@ public class PerrFuncs {
                     }
                 })
                 */
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
                                 // do nothing
                             }
@@ -181,8 +202,8 @@ public class PerrFuncs {
         PerrFuncs.getInstance()._topActivity = topActivity;
     }
 
-    public static void askUser(Activity inActivity, String title, final Callback callback) {
-        if (callback == null) {
+    public static void askUser(Activity inActivity, String title, final CallbacksHandler callbacksHandler) {
+        if (callbacksHandler == null) {
             return;
         }
 
@@ -193,25 +214,25 @@ public class PerrFuncs {
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.callbackCall(new Boolean(true));
+                callbacksHandler.callbackWithObject(new Boolean(true));
             }
         });
         builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.callbackCall(new Boolean(false));
+                callbacksHandler.callbackWithObject(new Boolean(false));
             }
         });
 
         builder.show();
     }
 
-    public static void getTextFromUser(Activity inActivity, String title, final Callback callback) {
-        PerrFuncs.getTextFromUser(inActivity, title, "", callback);
+    public static void getTextFromUser(Activity inActivity, String title, final CallbacksHandler callbacksHandler) {
+        PerrFuncs.getTextFromUser(inActivity, title, "", callbacksHandler);
     }
 
-    public static void getTextFromUser(Activity inActivity, String title, String defaultText, final Callback callback) {
-        if (callback == null) {
+    public static void getTextFromUser(Activity inActivity, String title, String defaultText, final CallbacksHandler callbacksHandler) {
+        if (callbacksHandler == null) {
             return;
         }
 
@@ -231,7 +252,7 @@ public class PerrFuncs {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String result = inputText.getText().toString();
-                callback.callbackCall(result);
+                callbacksHandler.callbackWithObject(result);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
@@ -244,8 +265,8 @@ public class PerrFuncs {
         builder.show();
     }
 
-    public static void getTextsFromUser(Activity inActivity, String title, final EditText[] textInputs, final Callback callback) {
-        if (callback == null) {
+    public static void getTextsFromUser(Activity inActivity, String title, final EditText[] textInputs, final CallbacksHandler callbacksHandler) {
+        if (callbacksHandler == null) {
             return;
         }
 
@@ -270,7 +291,7 @@ public class PerrFuncs {
                 for (EditText inputText:textInputs) {
                     texts.add(inputText.getText().toString());
                 }
-                callback.callbackCall(texts);
+                callbacksHandler.callbackWithObject(texts);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
