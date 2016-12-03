@@ -70,6 +70,10 @@ public class SensorService extends Service implements SensorEventListener {
         return values;
     }
 
+    /**
+     * Used to specify the tag of the actual running class (sometimes I chose to work with a mock)
+     * @return A String of the acting class's tag
+     */
     public String getTag() {
         return _TAG;
     }
