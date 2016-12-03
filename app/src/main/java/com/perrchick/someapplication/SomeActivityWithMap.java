@@ -25,7 +25,6 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PolylineOptions;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -81,7 +80,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
             FrameLayout mapsPlaceHolder = (FrameLayout) findViewById(R.id.mapsPlaceHolder);
             TextView errorMessageTextView = new TextView(getApplicationContext());
             errorMessageTextView.setLayoutParams(new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
-            errorMessageTextView.setText("No GoogleMaps installed on this device");
+            errorMessageTextView.setText(R.string.missing_google_maps_error_message);
             errorMessageTextView.setTextColor(Color.RED);
             mapsPlaceHolder.addView(errorMessageTextView);
         }
@@ -172,9 +171,9 @@ public class SomeActivityWithMap extends AppCompatActivity {
 
     private void btnAdreessSearchPressed() {
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, this.txtAddress.getText().toString(), apiKey);
-        performGetRequest(searchAddressUrl, new PerrFuncs.Callback() {
+        performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
-            public void callbackCall(Object callbackObject) {
+            public void callbackWithObject(Object callbackObject) {
                 try {
                     if (!(callbackObject instanceof Response))
                         return;
@@ -214,7 +213,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
         });
     }
 
-    private void performGetRequest(String getUrl, final PerrFuncs.Callback callback) {
+    private void performGetRequest(String getUrl, final PerrFuncs.CallbacksHandler callbacksHandler) {
         if (this.httpClient == null) {
             this.httpClient = new OkHttpClient();
             httpClient.setReadTimeout(20, TimeUnit.SECONDS);
@@ -234,8 +233,8 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-                if (callback != null)
-                    callback.callbackCall(response);
+                if (callbacksHandler != null)
+                    callbacksHandler.callbackWithObject(response);
             }
         }).start();
     }
@@ -252,13 +251,13 @@ public class SomeActivityWithMap extends AppCompatActivity {
 
     /**
      * Sets and configures the map
-     * @param googleMap
+     * @param googleMap    The map
      */
     public void setGoogleMap(GoogleMap googleMap) {
         this.googleMap = googleMap;
         //googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Unmark to see the changes...
 
-        boolean isAllowedToUseLocation = true; //PerrFuncs.hasPermissionForLocationServices(getApplicationContext())
+        boolean isAllowedToUseLocation = PerrFuncs.hasPermissionForLocationServices(getApplicationContext());
         if (isAllowedToUseLocation) {
             try {
                 // Allow to (try to) set
@@ -286,9 +285,9 @@ public class SomeActivityWithMap extends AppCompatActivity {
             return;
 
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, address, apiKey);
-        performGetRequest(searchAddressUrl, new PerrFuncs.Callback() {
+        performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
-            public void callbackCall(Object callbackObject) {
+            public void callbackWithObject(Object callbackObject) {
                 try {
                     if (!(callbackObject instanceof Response))
                         return;

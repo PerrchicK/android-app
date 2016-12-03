@@ -43,10 +43,11 @@
     <string name="title_activity_maps">MapsActivity</string>
     <string name="title_activity_some_activity_with_map">SomeActivityWithMap</string>
     <string name="btn_goto_afeka">Go To Afeka</string>
-    <string name="search_address_hint">enter address...</string>
+    <string name="search_address_hint">enter address…</string>
     <string name="search_button_title">search!</string>
     <string name="map_spinner_title">choose an action</string>
     <string name="btn_go_map_action">GO!</string>
     <string name="map_target_description">map target</string>
+    <string name="missing_google_maps_error_message">No GoogleMaps installed on this device</string>
 
 </resources>
