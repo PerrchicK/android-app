@@ -147,13 +147,13 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
 
                 final Object pressedKey = StorageActivity.this.listOfBackendlessSavedObjects.getAdapter().getItem(position);
                 Object oldValue = objects.get(pressedKey.toString());
-                getTextFromUser("New string", oldValue.toString(), new PerrFuncs.Callback() {
+                getTextFromUser("New string", oldValue.toString(), new PerrFuncs.CallbacksHandler() {
                     @Override
-                    public void callbackCall(Object callbackObject) {
+                    public void callbackWithObject(Object callbackObject) {
                         if (callbackObject == null) { // Delete
-                            PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.Callback() {
+                            PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.CallbacksHandler() {
                                 @Override
-                                public void callbackCall(Object callbackObject) {
+                                public void callbackWithObject(Object callbackObject) {
                                     if (callbackObject instanceof Boolean) {
                                         if ((Boolean) callbackObject) {
                                             db_backendlessSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
@@ -205,9 +205,9 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
                 valueTextInput.setHint("value");
                 EditText[] textInputs = new EditText[]{keyTextInput, valueTextInput};
 
-                PerrFuncs.getTextsFromUser(storageActivity, "Add new <key,value>", textInputs , new PerrFuncs.Callback() {
+                PerrFuncs.getTextsFromUser(storageActivity, "Add new <key,value>", textInputs , new PerrFuncs.CallbacksHandler() {
                     @Override
-                    public void callbackCall(Object callbackObject) {
+                    public void callbackWithObject(Object callbackObject) {
                         if (callbackObject instanceof ArrayList) {
                             ArrayList<String> texts = (ArrayList<String>) callbackObject;
                             String key = texts.get(0);
@@ -358,9 +358,9 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         db_firebaseSharedPreferences.remove("temp");
     }
 
-    public void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType,String key, String value) {
-        if (key == EDIT_TEXT_PERSISTENCE_KEY) {
-            if (changeType.compareTo(SyncedSharedPreferencesChangeType.Removed) == 0){
+    public void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType, String key, String value) {
+        if (EDIT_TEXT_PERSISTENCE_KEY == key) {
+            if (changeType.compareTo(SyncedSharedPreferencesChangeType.Removed) == 0) {
                 editTextFirebase.setText("");
             } else {
                 editTextFirebase.setText(value);
@@ -387,8 +387,8 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         saveInBackendlessCloud(key, value, null);
     }
 
-    public void getTextFromUser(String title, String defaultText, final PerrFuncs.Callback callback) {
-        if (callback == null) {
+    public void getTextFromUser(String title, String defaultText, final PerrFuncs.CallbacksHandler callbacksHandler) {
+        if (callbacksHandler == null) {
             return;
         }
 
@@ -408,13 +408,13 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String result = inputText.getText().toString();
-                callback.callbackCall(result);
+                callbacksHandler.callbackWithObject(result);
             }
         });
         builder.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callback.callbackCall(null);
+                callbacksHandler.callbackWithObject(null);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
