@@ -423,7 +423,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void handlerGotMessage(Handler handler, Message message) {
+    public void handlerDidGetMessage(Handler handler, Message message) {
         if (message.obj instanceof Runnable) {
             Runnable runnable = (Runnable) message.obj;
             runnable.run();

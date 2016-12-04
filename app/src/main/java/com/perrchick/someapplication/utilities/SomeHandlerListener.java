@@ -8,5 +8,5 @@ import android.os.Message;
  */
 
 public interface SomeHandlerListener {
-    void handlerGotMessage(Handler handler, Message message);
+    void handlerDidGetMessage(Handler handler, Message message);
 }
