@@ -1,14 +1,14 @@
 package com.perrchick.someapplication;
 
-import android.app.AlertDialog;
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.net.Uri;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Bundle;
+import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -28,13 +28,17 @@ import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownload;
 import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.utilities.PerrFuncs;
+import com.perrchick.someapplication.utilities.SomeHandler;
+import com.perrchick.someapplication.utilities.SomeHandlerListener;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener, SomeHandlerListener {
+
+    static final int NOTIFICATION_REQUEST_CODE = 1000;
+    private final String TAG = MainActivity.class.getSimpleName();
 
     private static final boolean SHOULD_USE_MOCK = false;
     private static final int COLS_NUM = 3;
     private static final int ROWS_NUM = 3;
-    private final String TAG = MainActivity.class.getSimpleName();
 
     private TicTacToeButton[] buttons = new TicTacToeButton[9];
     private GridLayout mGridLayout;
@@ -47,7 +51,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public SensorService.SensorServiceBinder binder;
     private LinearLayout boardLayout;
     private GridLayout grid;
-
+    private int threadCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +59,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         PerrFuncs.setApplicationContext(getApplicationContext());
 
         if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("data")) {
-            PerrFuncs.toast("Got data from notification: " + getIntent().getExtras().getString("data"));
+            String data = getIntent().getExtras().getString("data");
+            if (data != null && data.length() > 0) {
+                PerrFuncs.toast("Got data from notification: " + getIntent().getExtras().getString("data"));
+            }
         }
+
+        tickForever(false);
 
         setContentView(R.layout.activity_main);
 
@@ -79,6 +88,52 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Now, this activity has its own bound service, which broadcasts its own info.
         // In this specific case, a fragment listens to the service's broadcast
     }
+
+    private void tickForever(boolean shouldTickOnMainThread) {
+        if (shouldTickOnMainThread) {
+            tickOnMainThreadForever();
+        } else {
+            tickOnAnonymousThreadForever();
+        }
+    }
+
+    private void tickOnAnonymousThreadForever() {
+        // Will count forever (unless... ideas?)
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                        tick();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+    }
+
+    void tickOnMainThreadForever() {
+        // Will count forever (unless... ideas?)
+        SomeHandler someHandler = new SomeHandler(this);
+        Message msg = new Message();
+        msg.obj = new Runnable() {
+            @Override
+            public void run() {
+                tick();
+                tickOnMainThreadForever();
+            }
+        };
+        someHandler.sendMessageDelayed(msg, 1000);
+    }
+
+    private void tick() {
+        threadCounter += 1;
+        Log.v(TAG, "ticked (threadCounter = " + threadCounter + ") on thread '" + Thread.currentThread().getName() + "'");
+    }
+
+
 
     private void putNewBoard() {
         if (grid != null) {
@@ -139,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "onDestroy: activity destroyed");
         unbindService(sensorsBoundServiceConnection);
     }
 
@@ -290,6 +346,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (Activity.RESULT_OK != resultCode) {
+            return;
+        }
+
+        switch (requestCode) {
+            case NOTIFICATION_REQUEST_CODE:
+                String notificationTitle = data.getCharSequenceExtra(NotificationsActivity.EXTRA_NOTIFICATION_TITLE_KEY).toString();
+                PerrFuncs.toast("Scheduled notification: '" + notificationTitle + "'");
+        }
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
@@ -319,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             */
             case R.id.action_go_notification:
-                startActivity(new Intent(this, NotificationsActivity.class));
+                startActivityForResult(new Intent(this, NotificationsActivity.class), NOTIFICATION_REQUEST_CODE);
                 return true;
             case R.id.action_go_map:
                 startActivity(new Intent(this, SomeActivityWithMap.class));
@@ -348,6 +419,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void handlerGotMessage(Handler handler, Message message) {
+        if (message.obj instanceof Runnable) {
+            Runnable runnable = (Runnable) message.obj;
+            runnable.run();
         }
     }
 

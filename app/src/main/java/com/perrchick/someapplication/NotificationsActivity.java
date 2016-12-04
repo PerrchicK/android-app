@@ -1,5 +1,6 @@
 package com.perrchick.someapplication;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -10,8 +11,6 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.app.NotificationCompat;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TimePicker;
@@ -19,9 +18,9 @@ import android.widget.TimePicker;
 import com.perrchick.someapplication.utilities.NotificationPublisher;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-import java.util.Date;
-
 public class NotificationsActivity extends AppCompatActivity {
+
+    public static final String EXTRA_NOTIFICATION_TITLE_KEY = "notification_title";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +41,7 @@ public class NotificationsActivity extends AppCompatActivity {
                 mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
                 int notificationId = (int) (System.currentTimeMillis() & 0xfffffff); // Convert long to int
-                PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, MODE_PRIVATE);
+                PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
                 NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon,
                         "Open this app's landing screen", mainActivityPendingIntent);
 
@@ -60,6 +59,12 @@ public class NotificationsActivity extends AppCompatActivity {
                 // Dispatch now by calling: NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notification);
                 int delay = (int) (timeFromNow - System.currentTimeMillis());
                 PerrFuncs.toast("Will notify in " + delay / 1000 + " seconds...");
+
+                // Respond to the "starting activity" with result
+                Intent returnIntent = new Intent();
+                returnIntent.putExtra(EXTRA_NOTIFICATION_TITLE_KEY, notificationTitle);
+                setResult(Activity.RESULT_OK,returnIntent);
+
                 scheduleNotification(notification, delay);
             }
         });
@@ -74,27 +79,5 @@ public class NotificationsActivity extends AppCompatActivity {
         long futureInMillis = SystemClock.elapsedRealtime() + delay;
         AlarmManager alarmManager = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, broadcastPendingIntent);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_notifications, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 }

@@ -25,6 +25,7 @@ import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -113,6 +114,17 @@ public class PerrFuncs {
         rotate.start();
         flyOutY.start();
         flyOutX.start();
+    }
+
+    public static Object getObjectProperty(Object object, String propertyName) {
+        try {
+            Field f = object.getClass().getDeclaredField(propertyName);
+            f.setAccessible(true);
+            return f.get(object);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public interface CallbacksHandler {
