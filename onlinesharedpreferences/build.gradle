@@ -50,5 +50,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.firebase:firebase-client-android:2.5.0+'
+    compile 'com.firebase:firebase-client-android:2.5.0'
 }
