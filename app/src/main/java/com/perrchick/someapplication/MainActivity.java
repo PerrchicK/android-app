@@ -65,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.activity_main);
 
-        tickForever(true);
+//        tickForever(true);
 
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
