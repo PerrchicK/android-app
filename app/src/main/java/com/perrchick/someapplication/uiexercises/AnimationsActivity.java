@@ -9,9 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.DragEvent;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
@@ -27,6 +26,7 @@ import com.yalantis.starwars.TilesFrameLayout;
 import com.yalantis.starwars.interfaces.TilesFrameLayoutListener;
 
 import java.util.Locale;
+import java.util.StringTokenizer;
 
 public class AnimationsActivity extends AppCompatActivity implements TilesFrameLayoutListener, View.OnDragListener {
     private static final String TAG = AnimationsActivity.class.getSimpleName();
@@ -104,8 +104,20 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                 return true;
             }
         });
-        findViewById(R.id.mainContainer).setOnDragListener(this);
-        findViewById(R.id.spinnerContainer).setOnDragListener(this);
+
+//        findViewById(R.id.mainContainer).setOnDragListener(this);
+//        findViewById(R.id.spinnerContainer).setOnDragListener(this);
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
+        valueAnimator.setDuration(10000);
+        valueAnimator.setInterpolator(new AccelerateInterpolator());
+        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                String animatorCounterString = String.format(Locale.ENGLISH, "%.4f", (Float)valueAnimator.getAnimatedValue());
+                Log.d(TAG, "counter: " + animatorCounterString);
+            }
+        });
+        valueAnimator.start();
     }
 
     @Override
@@ -173,7 +185,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                Log.d(TAG, "onAnimationUpdate: valueAnimator.getAnimatedValue() = " + valueAnimator.getAnimatedValue());
+//                Log.d(TAG, "shrinkingText.textScaleX = " + valueAnimator.getAnimatedValue());
                 AnimationsActivity.this.shrinkingText.setTextScaleX((Float)valueAnimator.getAnimatedValue());
 //                AnimationsActivity.this.shrinkingText.setTextScaleY(Float.parseFloat(valueAnimator.getValues()[0].toString()));
             }
@@ -264,28 +276,6 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         super.onPause();
 
         mTilesFrameLayout.onPause();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_animations, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     public RotateAnimation getRotateAnimation(View viewToRotate) {
