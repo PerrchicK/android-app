@@ -23,10 +23,10 @@
         android:visibility="gone"
         android:layout_below="@id/theTextView"
         android:layout_width="wrap_content"
-        android:text="@string/btn_from_xml"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_listener_from_xml"
         android:onClick="clicked"
-        android:id="@+id/btnClick"
-        android:layout_height="wrap_content" />
+        android:id="@+id/btnClick" />
 
     <LinearLayout
         android:background="@color/activity_background"

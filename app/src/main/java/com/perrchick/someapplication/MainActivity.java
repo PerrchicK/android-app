@@ -25,13 +25,11 @@ import android.widget.LinearLayout;
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
-import com.perrchick.someapplication.uiexercises.ImageDownload;
+import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
 import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.utilities.PerrFuncs;
-import com.perrchick.someapplication.utilities.SomeHandler;
-import com.perrchick.someapplication.utilities.SomeHandlerListener;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener, SomeHandlerListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 
     static final int NOTIFICATION_REQUEST_CODE = 1000;
     private final String TAG = MainActivity.class.getSimpleName();
@@ -65,9 +63,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        tickForever(false);
-
         setContentView(R.layout.activity_main);
+
+        tickForever(true);
 
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
@@ -116,24 +114,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void tickOnMainThreadForever() {
         // Will count forever (unless... ideas?)
-        SomeHandler someHandler = new SomeHandler(this);
-        Message msg = new Message();
-        msg.obj = new Runnable() {
+        final Handler handler= new Handler();
+        Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 tick();
-                tickOnMainThreadForever();
+                // this => that's the runnable that keeps running all the time...
+                handler.postDelayed(this, 1000);
             }
         };
-        someHandler.sendMessageDelayed(msg, 1000);
+
+        runnable.run();
     }
 
     private void tick() {
         threadCounter += 1;
         Log.v(TAG, "ticked (threadCounter = " + threadCounter + ") on thread '" + Thread.currentThread().getName() + "'");
     }
-
-
 
     private void putNewBoard() {
         if (grid != null) {
@@ -145,7 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private GridLayout createNewGrid(int colsNum, int rowsNum) {
         ViewGroup.LayoutParams gridLayoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mGridLayout = new GridLayout(MainActivity.this);
+        mGridLayout = new GridLayout(this);
         mGridLayout.setLayoutParams(gridLayoutParams);
         mGridLayout.setOrientation(GridLayout.HORIZONTAL);
         mGridLayout.setColumnCount(colsNum);
@@ -403,7 +400,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void callbackWithObject(Object callbackObject) {
                         Intent otherActivityIntent = new Intent();
-                        otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownload.class));
+                        otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownloadActivity.class));
                         otherActivityIntent.putExtra("data", (String) callbackObject);
                         startActivity(otherActivityIntent);
                     }
@@ -422,15 +419,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public void handlerDidGetMessage(Handler handler, Message message) {
-        if (message.obj instanceof Runnable) {
-            Runnable runnable = (Runnable) message.obj;
-            runnable.run();
-        }
-    }
-
-    enum TicTacToeButtonPlayer {
+    private enum TicTacToeButtonPlayer {
         None,
         xPlayer,
         oPlayer,

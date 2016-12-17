@@ -1,6 +1,7 @@
 package com.perrchick.someapplication.utilities;
 
 import android.Manifest;
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -16,30 +17,54 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
+
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by perrchick on 10/23/15.
  */
 public class PerrFuncs {
+    private static String TAG = PerrFuncs.class.getSimpleName();
     private static PerrFuncs _perrFuncsInstance;
+    private final OkHttpClient httpClient;
     private Activity _topActivity;
     private DisplayMetrics _metrics;
     private Context _applicationContext;
+
+    private static PerrFuncs getInstance() {
+        if (_perrFuncsInstance == null) {
+            _perrFuncsInstance = new PerrFuncs();
+        }
+
+        return _perrFuncsInstance;
+    }
+
+    private PerrFuncs() {
+        // Initialize OkHttpClient
+        httpClient = new OkHttpClient();
+        httpClient.setReadTimeout(20, TimeUnit.SECONDS);
+    }
 
     /**
      * Returns the number of milliseconds since the Unix epoch (1.1.1970)
@@ -86,6 +111,23 @@ public class PerrFuncs {
         return true;
     }
 
+    /**
+     * For Android Marshmallow SDK, version 6.0 (API 23) and above. Checks the permissions in runtime.
+     * @return Boolean that determines whether it is allowed to access the given permission
+     */
+    private boolean checkPermissionFor(String permission) {
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            // More details on:
+            // http://developer.android.com/training/permissions/best-practices.html
+            // And on:
+            // http://inthecheesefactory.com/blog/things-you-need-to-know-about-android-m-permission-developer-edition/en
+        } else {
+            // Pre-Marshmallow - not interesting...
+        }
+
+        return true;
+    }
+
     public static void hideActionBarOfActivity(AppCompatActivity activity) {
         if (activity.getSupportActionBar() != null) { // Shouldn't have a problem here anyway
             activity.getSupportActionBar().hide();
@@ -127,16 +169,79 @@ public class PerrFuncs {
         return null;
     }
 
-    public interface CallbacksHandler {
-        void callbackWithObject(Object callbackObject);
+    /**
+     * Makes a network request and fetches an image from the specified URL.
+     *
+     * @param getUrl The URL path to the web GET request.
+     * @return A response object if the request succeeded, otherwise it returns null.
+     */
+    public static void performGetRequest(String getUrl, final PerrFuncs.CallbacksHandler callbacksHandler) {
+        getInstance()._performGetRequest(getUrl, callbacksHandler);
     }
 
-    private static PerrFuncs getInstance() {
-        if (_perrFuncsInstance == null) {
-            _perrFuncsInstance = new PerrFuncs();
-        }
+    private void _performGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
+        // An open source project, downloaded from gradle
+        try {
+            final Request request = new Request.Builder()
+                    .url(urlString)
+                    .build();
 
-        return _perrFuncsInstance;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Response response = null;
+                    try {
+                        response = httpClient.newCall(request).execute();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Log.e(TAG, "performGetRequest: Failed to perform request url from string '" + urlString + "', exception: " + e.toString());
+                        if (callbacksHandler != null)
+                            callbacksHandler.callbackWithObject(response);
+                    }
+
+                    if (callbacksHandler != null)
+                        callbacksHandler.callbackWithObject(response);
+                }
+            }).start();
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "performGetRequest: Failed to create request url from string '" + urlString + "'");
+            if (callbacksHandler != null)
+                callbacksHandler.callbackWithObject(null);
+        }
+    }
+
+    public static void animateProperty(String whatProperty, Object ofWho, float from, float to, long millis, final CallbacksHandler onDoneHandler) {
+        ObjectAnimator fadeOut = ObjectAnimator.ofFloat(ofWho, whatProperty, from, to);
+        fadeOut.setDuration(millis);
+        fadeOut.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                if (onDoneHandler != null){
+                    onDoneHandler.callbackWithObject(animator);
+                }
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animator) {
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animator) {
+            }
+        });
+        fadeOut.start();
+    }
+
+    public static void animateProperty(String whatProperty, Object ofWho, float from, float to, long millis) {
+        animateProperty(whatProperty, ofWho, from, to, millis, null);
+    }
+
+    public interface CallbacksHandler {
+        void callbackWithObject(Object callbackObject);
     }
 
     public static String getCurrentTime() {
@@ -359,18 +464,20 @@ public class PerrFuncs {
         return index;
     }
 
-    public static void sayNo(final View view) {
+    // View says "no"
+    public static void animateNo(final View view) {
+        final long duration = 50;
         ObjectAnimator animator1 = ObjectAnimator.ofFloat(view, "translationX", 20f);
         animator1.setRepeatCount(0);
-        animator1.setDuration(50);
+        animator1.setDuration(duration / 2);
 
         ObjectAnimator animator2 = ObjectAnimator.ofFloat(view, "translationX", -20f);
         animator2.setRepeatCount(0);
-        animator2.setDuration(50);
+        animator2.setDuration(duration);
 
         ObjectAnimator animator3 = ObjectAnimator.ofFloat(view, "translationX", 5f);
         animator3.setRepeatCount(0);
-        animator3.setDuration(50);
+        animator3.setDuration(duration / 2);
 
         AnimatorSet set = new AnimatorSet();
         set.playSequentially(animator1, animator2, animator3);

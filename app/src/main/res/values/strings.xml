@@ -4,9 +4,9 @@
 
     <string name="second_activity_title">This is a different activity</string>
 
-    <string name="btn_from_xml">Button click from XML</string>
+    <string name="btn_listener_from_xml">This button\'s listener was assigned from XML</string>
 
-    <string name="instructions">Start by clicking the buttons:</string>
+    <string name="instructions">Start playing by tapping any tile button:</string>
 
     <string name="action_settings">Settings</string>
     <string name="action_download_image">Download image…</string>
@@ -49,5 +49,7 @@
     <string name="btn_go_map_action">GO!</string>
     <string name="map_target_description">map target</string>
     <string name="missing_google_maps_error_message">No GoogleMaps installed on this device</string>
+    <string name="shrink_text_action">Will shrink…</string>
+    <string name="shrinking_title">… shrinking…</string>
 
 </resources>
