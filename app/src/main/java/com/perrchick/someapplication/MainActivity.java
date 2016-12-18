@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PerrFuncs.setApplicationContext(getApplicationContext());
 
         if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("data")) {
             String data = getIntent().getExtras().getString("data");
