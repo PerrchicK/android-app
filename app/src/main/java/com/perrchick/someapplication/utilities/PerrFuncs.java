@@ -12,7 +12,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
@@ -24,10 +23,10 @@ import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.perrchick.someapplication.Application;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -50,7 +49,6 @@ public class PerrFuncs {
     private final OkHttpClient httpClient;
     private Activity _topActivity;
     private DisplayMetrics _metrics;
-    private Context _applicationContext;
 
     private static PerrFuncs getInstance() {
         if (_perrFuncsInstance == null) {
@@ -263,11 +261,7 @@ public class PerrFuncs {
     }
 
     private static Context getApplicationContext() {
-        return getInstance()._applicationContext;
-    }
-
-    public static void setApplicationContext(Context applicationContext) {
-        getInstance()._applicationContext = applicationContext;
+        return Application.getApplicationInstance().getApplicationContext();
     }
 
     public static void callNumber(String phoneNumber) {
@@ -464,7 +458,10 @@ public class PerrFuncs {
         return index;
     }
 
-    // View says "no"
+    /**
+     * View says "no" using AnimatorSet
+     * @param view    The view that will say "no"
+     * */
     public static void animateNo(final View view) {
         final long duration = 50;
         ObjectAnimator animator1 = ObjectAnimator.ofFloat(view, "translationX", 20f);
@@ -479,8 +476,15 @@ public class PerrFuncs {
         animator3.setRepeatCount(0);
         animator3.setDuration(duration / 2);
 
-        AnimatorSet set = new AnimatorSet();
-        set.playSequentially(animator1, animator2, animator3);
-        set.start();
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(animator2).after(animator1).before(animator3);
+        animatorSet.start();
+
+        // Confused? ... So we are... http://img.youtube.com/vi/OSWOhGi_G90/mqdefault.jpg
+
+        // This is a much simpler way:
+//        AnimatorSet set = new AnimatorSet();
+//        set.playSequentially(animator1, animator2, animator3);
+//        set.start();
     }
 }
