@@ -279,7 +279,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     }
 
     public RotateAnimation getRotateAnimation(View viewToRotate) {
-        RotateAnimation rotateAnimation = new RotateAnimation(0f, 360f,viewToRotate.getWidth() / 2.0f,viewToRotate.getHeight() / 2.0f);
+        RotateAnimation rotateAnimation = new RotateAnimation(0f, 360f, viewToRotate.getWidth() / 2.0f, viewToRotate.getHeight() / 2.0f);
         rotateAnimation.setInterpolator(new LinearInterpolator());
         rotateAnimation.setDuration(500);
         rotateAnimation.setFillAfter(true);
