@@ -22,6 +22,7 @@ import com.firebase.client.FirebaseError;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
+import com.perrchick.someapplication.data.SomePojo;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.util.ArrayList;
@@ -302,6 +303,14 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
                 }
             }
         });
+
+        // example:
+        SomePojo somePojo = new SomePojo();
+        somePojo.setLatitude(30);
+        somePojo.setLongitude(30);
+        somePojo.setName("me");
+        somePojo.setPhoneNumber("+1234567890");
+        db_firebaseSharedPreferences.putString("somePojo-1", somePojo.toJson());
 
         // Restore Spinner selected option
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
