@@ -3,7 +3,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.0"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
         minSdkVersion 15
@@ -49,6 +49,6 @@ ext {
 dependencies {
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile fileTree(dir: 'libs', include: ['*.jar'])
-
+    compile 'com.backendless:backendless:3.0.8.1'
     compile 'com.firebase:firebase-client-android:2.5.0'
 }
