@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.2'
 
     // To prevent 'duplicate' compilation errors in firebase integration
     packagingOptions {
@@ -33,6 +33,9 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.google.code.gson:gson:2.2.4'
-    compile project(':onlinesharedpreferences')
-//    compile 'com.github.perrchick:onlinesharedpreferences:1.0.0'
+    compile 'com.facebook.stetho:stetho:1.5.0'
+
+    //compile 'com.backendless:backendless:3.0.8.1'
+    //compile project(':onlinesharedpreferences')
+    compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
 }
