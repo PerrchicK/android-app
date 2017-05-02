@@ -49,13 +49,11 @@ public class SensorsFragment extends Fragment {
         super.onAttach(context);
 
         Activity activity;
-        if (context instanceof Activity){
+        if (context instanceof Activity) {
             activity = (Activity) getContext();
-
-            try {
+            if (activity instanceof SensorsFragmentListener) {
                 _fragmentListener = (SensorsFragmentListener) activity;
-            } catch (ClassCastException e) {
-                //throw new ClassCastException(activity.toString() + " must implement " + SensorsFragmentListener.class.getSimpleName());
+            } else {
                 Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
             }
         }
