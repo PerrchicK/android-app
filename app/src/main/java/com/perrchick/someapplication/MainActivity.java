@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +22,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
@@ -65,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        tickForever(false);
+//        tickForever(false);
 
         setContentView(R.layout.activity_main);
 
@@ -77,16 +79,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentManager = getSupportFragmentManager();
         sensorsFragment = fragmentManager.findFragmentByTag(SensorsFragment.class.getSimpleName());
 
-        // Q: Should I bind it to the main activity or to the app?
-        // A: It doesn't matter as long as you remenber to shut the service down / destroy the Application
-        // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
-        if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
-            bindService(new Intent(this, SensorServiceMock.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
-        } else {
-            bindService(new Intent(this, SensorService.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+        if (!isServiceBound) {
+            // Q: Should I bind it to the main activity or to the app?
+            // A: It doesn't matter as long as you remember to shut the service down / destroy the Application
+            // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
+            if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
+                bindService(new Intent(this, SensorServiceMock.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+            } else {
+                bindService(new Intent(this, SensorService.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+            }
+            // Now, this activity has its own bound service, which broadcasts its own info.
+            // In this specific case, a fragment listens to the service's broadcast
         }
-        // Now, this activity has its own bound service, which broadcasts its own info.
-        // In this specific case, a fragment listens to the service's broadcast
     }
 
     private void tickForever(boolean shouldTickOnMainThread) {
@@ -133,8 +137,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.v(TAG, "ticked (threadCounter = " + threadCounter + ") on thread '" + Thread.currentThread().getName() + "'");
     }
 
-
-
     private void putNewBoard() {
         if (grid != null) {
             boardLayout.removeView(grid);
@@ -162,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 int buttonWidth = theSmallerAxis / fraction;
 
-                TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
+                TicTacToeButton btnTicTacToe = new TicTacToeButton(this, column, row);
                 btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
@@ -180,6 +182,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         PerrFuncs.setTopActivity(this);
         putNewBoard();
+
+        printAllViews();
+    }
+
+    private void printAllViews() {
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        printSubviews(0, mainLayout);
+    }
+
+    /**
+     * A recursive method that presents the composite pattern by iterating all Android's ViewGroup
+     */
+    private void printSubviews(int level, View viewToPrint) {
+        StringBuilder tabsBuilder = new StringBuilder();
+        for (int t = 0; t < level; t++) {
+            tabsBuilder.append("\t");
+        }
+        String tabs = tabsBuilder.toString();
+        Log.d(TAG, tabs + "<" + viewToPrint.getClass().getSimpleName() + ">");
+        if (viewToPrint instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) viewToPrint;
+            int childCount = viewGroup.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View child = viewGroup.getChildAt(i);
+                printSubviews(level + 1, child);
+            }
+        }
+        Log.d(TAG, tabs + "</" + viewToPrint.getClass().getSimpleName() + ">");
     }
 
     @Override
@@ -207,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         //Toast.makeText(getApplicationContext(), "clicked", Toast.LENGTH_SHORT).show();
         if (v instanceof TicTacToeButton) {
-            TicTacToeButton clickedButton = (TicTacToeButton)v;
+            TicTacToeButton clickedButton = (TicTacToeButton) v;
             if (clickedButton.getButtonPlayer() == TicTacToeButtonPlayer.None) {
                 if (mXTurn) {
                     clickedButton.setText("X");
@@ -229,13 +259,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
                     String sensorsFragmentTag = sensorsFragment.getTag();
 
-                    if(sensorsFragment instanceof SensorsFragmentBlue) {
+                    if (sensorsFragment instanceof SensorsFragmentBlue) {
                         if (fragmentManager.findFragmentByTag(SensorsFragmentRed.class.getSimpleName()) == null) {
                             fragmentTransaction.hide(sensorsFragment);
                             sensorsFragment = new SensorsFragmentRed();
                             fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
                         }
-                    }else {
+                    } else {
                         if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.class.getSimpleName()) == null) {
                             fragmentTransaction.hide(sensorsFragment);
                             sensorsFragment = new SensorsFragmentBlue();
@@ -259,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             PerrFuncs.showDialog("We Have a Winner", "The " + winningPlayerStr + " is the winner");
 
-            for (TicTacToeButton button: buttons) {
+            for (TicTacToeButton button : buttons) {
                 button.setEnabled(false);
                 mXTurn = true;
             }
@@ -436,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         oPlayer,
     }
 
-    private class TicTacToeButton extends Button {
+    private class TicTacToeButton extends AppCompatButton {
         private final int x;
         private final int y;
         private TicTacToeButtonPlayer buttonPlayer = TicTacToeButtonPlayer.None;
@@ -456,13 +486,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    /** Defines callbacks for service binding, passed to bindService() */
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
     private ServiceConnection sensorsBoundServiceConnection = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             binder = (SensorService.SensorServiceBinder) service;
             isServiceBound = true;
+            notifyBoundService(SensorService.SensorServiceBinder.START_LISTENING);
         }
 
         @Override
