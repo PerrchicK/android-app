@@ -17,10 +17,12 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.backendless.exceptions.BackendlessException;
+import com.facebook.stetho.Stetho;
 import com.firebase.client.FirebaseError;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
+import com.perrchick.someapplication.data.SomePojo;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.util.ArrayList;
@@ -94,6 +96,12 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Stetho.initialize(Stetho.newInitializerBuilder(this)
+                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
+                .build());
+
         setContentView(R.layout.activity_storage);
 
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
@@ -296,12 +304,13 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
             }
         });
 
-        db_firebaseSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new SyncedSharedPreferences.GetStringCallback() {
-            @Override
-            public void done(String value, Exception e) {
-                editTextFirebase.setText(value);
-            }
-        });
+        // example:
+        SomePojo somePojo = new SomePojo();
+        somePojo.setLatitude(30);
+        somePojo.setLongitude(30);
+        somePojo.setName("me");
+        somePojo.setPhoneNumber("+1234567890");
+        db_firebaseSharedPreferences.putString("somePojo-1", somePojo.toJson());
 
         // Restore Spinner selected option
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
@@ -355,11 +364,11 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         });
         // firebase cloud
         db_firebaseSharedPreferences.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextFirebase);
-        db_firebaseSharedPreferences.remove("temp");
     }
 
     public void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType, String key, String value) {
-        if (EDIT_TEXT_PERSISTENCE_KEY == key) {
+        // Because 'db_firebaseSharedPreferences.getString(..)' doesn't work properly at the moment
+        if (EDIT_TEXT_PERSISTENCE_KEY.equals(key)) {
             if (changeType.compareTo(SyncedSharedPreferencesChangeType.Removed) == 0) {
                 editTextFirebase.setText("");
             } else {

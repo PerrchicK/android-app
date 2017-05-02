@@ -13,7 +13,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,7 +21,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
@@ -67,9 +65,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-//        tickForever(false);
-
         setContentView(R.layout.activity_main);
+
+//        tickForever(true);
 
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
@@ -120,16 +118,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void tickOnMainThreadForever() {
         // Will count forever (unless... ideas?)
-        SomeHandler someHandler = new SomeHandler(this);
-        Message msg = new Message();
-        msg.obj = new Runnable() {
+        final Handler handler= new Handler();
+        Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 tick();
-                tickOnMainThreadForever();
+                // this => that's the runnable that keeps running all the time...
+                handler.postDelayed(this, 1000);
             }
         };
-        someHandler.sendMessageDelayed(msg, 1000);
+
+        runnable.run();
     }
 
     private void tick() {
@@ -147,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private GridLayout createNewGrid(int colsNum, int rowsNum) {
         ViewGroup.LayoutParams gridLayoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mGridLayout = new GridLayout(MainActivity.this);
+        mGridLayout = new GridLayout(this);
         mGridLayout.setLayoutParams(gridLayoutParams);
         mGridLayout.setOrientation(GridLayout.HORIZONTAL);
         mGridLayout.setColumnCount(colsNum);
@@ -164,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 int buttonWidth = theSmallerAxis / fraction;
 
-                TicTacToeButton btnTicTacToe = new TicTacToeButton(this, column, row);
+                TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
                 btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
@@ -289,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             PerrFuncs.showDialog("We Have a Winner", "The " + winningPlayerStr + " is the winner");
 
-            for (TicTacToeButton button : buttons) {
+            for (TicTacToeButton button: buttons) {
                 button.setEnabled(false);
                 mXTurn = true;
             }
@@ -433,7 +432,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void callbackWithObject(Object callbackObject) {
                         Intent otherActivityIntent = new Intent();
-                        otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownload.class));
+                        otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownloadActivity.class));
                         otherActivityIntent.putExtra("data", (String) callbackObject);
                         startActivity(otherActivityIntent);
                     }
@@ -452,15 +451,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    @Override
-    public void handlerDidGetMessage(Handler handler, Message message) {
-        if (message.obj instanceof Runnable) {
-            Runnable runnable = (Runnable) message.obj;
-            runnable.run();
-        }
-    }
-
-    enum TicTacToeButtonPlayer {
+    private enum TicTacToeButtonPlayer {
         None,
         xPlayer,
         oPlayer,

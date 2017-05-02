@@ -2,5 +2,5 @@
 <resources>
     <color name="activity_background">#ffcc0000</color>
     <color name="data_text_color">#ffccaa00</color>
-    <color name="image_from_web_bg_color">#ff112200</color>
+    <color name="image_from_web_bg_color">#001122FF</color>
 </resources>
