@@ -97,6 +97,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Not working? try 'Stetho.initializeWithDefaults(this);' in MainActivity.onCreate()
         Stetho.initialize(Stetho.newInitializerBuilder(this)
                 .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
                 .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
