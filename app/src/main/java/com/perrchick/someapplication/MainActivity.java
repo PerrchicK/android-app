@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,17 +22,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 
 import com.perrchick.someapplication.ui.SensorsFragmentBlue;
 import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
-import com.perrchick.someapplication.uiexercises.ImageDownload;
+import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
 import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.utilities.PerrFuncs;
-import com.perrchick.someapplication.utilities.SomeHandler;
-import com.perrchick.someapplication.utilities.SomeHandlerListener;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener, SomeHandlerListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
 
     static final int NOTIFICATION_REQUEST_CODE = 1000;
     private final String TAG = MainActivity.class.getSimpleName();
@@ -56,7 +56,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        PerrFuncs.setApplicationContext(getApplicationContext());
 
         if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("data")) {
             String data = getIntent().getExtras().getString("data");
@@ -185,32 +184,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         printAllViews();
     }
 
-    private void printAllViews() {
-        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
-        printSubviews(0, mainLayout);
-    }
-
-    /**
-     * A recursive method that presents the composite pattern by iterating all Android's ViewGroup
-     */
-    private void printSubviews(int level, View viewToPrint) {
-        StringBuilder tabsBuilder = new StringBuilder();
-        for (int t = 0; t < level; t++) {
-            tabsBuilder.append("\t");
-        }
-        String tabs = tabsBuilder.toString();
-        Log.d(TAG, tabs + "<" + viewToPrint.getClass().getSimpleName() + ">");
-        if (viewToPrint instanceof ViewGroup) {
-            ViewGroup viewGroup = (ViewGroup) viewToPrint;
-            int childCount = viewGroup.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                View child = viewGroup.getChildAt(i);
-                printSubviews(level + 1, child);
-            }
-        }
-        Log.d(TAG, tabs + "</" + viewToPrint.getClass().getSimpleName() + ">");
-    }
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -278,6 +251,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             }
         }
+    }
+
+    private void printAllViews() {
+        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+        printSubviews(0, mainLayout);
+    }
+
+    /**
+     * A recursive method that presents the composite pattern by iterating all Android's ViewGroup
+     */
+    private void printSubviews(int level, View viewToPrint) {
+        StringBuilder tabsBuilder = new StringBuilder();
+        for (int t = 0; t < level; t++) {
+            tabsBuilder.append("\t");
+        }
+        String tabs = tabsBuilder.toString();
+        Log.d(TAG, tabs + "<" + viewToPrint.getClass().getSimpleName() + ">");
+        if (viewToPrint instanceof ViewGroup) {
+            ViewGroup viewGroup = (ViewGroup) viewToPrint;
+            int childCount = viewGroup.getChildCount();
+            for (int i = 0; i < childCount; i++) {
+                View child = viewGroup.getChildAt(i);
+                printSubviews(level + 1, child);
+            }
+        }
+        Log.d(TAG, tabs + "</" + viewToPrint.getClass().getSimpleName() + ">");
     }
 
     private void checkWinner() {
