@@ -24,21 +24,18 @@ public class SensorService extends Service implements SensorEventListener {
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
 
     private static final String _TAG = SensorService.class.getSimpleName();
-    protected final IBinder sensorServiceBinder = new SensorServiceBinder();
+    IBinder sensorServiceBinder = new SensorServiceBinder();
     protected float values;
     private SensorManager sensorManager;
+    boolean isListening = false;
 
-    /** A client is binding to the service with bindService() */
+    /**
+     * A client is binding to the service with bindService()
+     */
     @Override
     public IBinder onBind(Intent intent) {
-        sensorManager = (SensorManager)getSystemService(Context.SENSOR_SERVICE);
-        List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
-        Log.v(getTag(), "Available sensors: " + sensorList);
-        Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // null in Genymotion free edition of course
-        if (sensor == null && sensorList.size() > 0) {
-            sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
-        }
-        sensorManager.registerListener(this, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        ((SensorServiceBinder) sensorServiceBinder).setSensorService(this);
 
         // A.D: "You must always implement this method, but if you don't want to allow binding, then you should return null."
         return sensorServiceBinder;
@@ -83,13 +80,18 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     @Override
-    public void onSensorChanged(SensorEvent event) {
-        float[] values = new float[event.values.length];
-        for (int i =0; i < event.values.length; i++) {
-            values[i] = event.values[i];// * 1000000.0f;
-        }
+    public void onSensorChanged(final SensorEvent event) {
+        final float[] values = new float[event.values.length];
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i =0; i < event.values.length; i++) {
+                    values[i] = event.values[i];// * 1000000.0f;
+                }
 
-        notifyEvaluation(values);
+                notifyEvaluation(values);
+            }
+        }).start();
     }
 
     @Override
@@ -97,14 +99,32 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     class SensorServiceBinder extends Binder {
+        public static final String START_LISTENING = "Start";
+        SensorService sensorService;
+
         SensorService getService() {
-            return SensorService.this.getSelf();
+            return sensorService;
         }
 
         void notifyService(String msg) {
             // A.D: "you must provide an interface that clients use to communicate with the service, by returning an IBinder."
             Log.v(getTag(), SensorService.class.getSimpleName() +
                     " has got a message from its binding activity. Message: " + msg);
+
+            if (msg == SensorServiceBinder.START_LISTENING && !isListening) {
+                List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
+                Log.v(getTag(), "Available sensors: " + sensorList);
+                Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // null in Genymotion free edition of course
+                if (sensor == null && sensorList.size() > 0) {
+                    sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
+                }
+                sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI);
+                isListening = true;
+            }
+        }
+
+        public void setSensorService(SensorService sensorService) {
+            this.sensorService = sensorService;
         }
     }
 }
