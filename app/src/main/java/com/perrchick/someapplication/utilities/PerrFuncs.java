@@ -170,14 +170,10 @@ public class PerrFuncs {
     /**
      * Makes a network request and fetches an image from the specified URL.
      *
-     * @param getUrl The URL path to the web GET request.
+     * @param urlString The URL path to the web GET request.
      * @return A response object if the request succeeded, otherwise it returns null.
      */
-    public static void performGetRequest(String getUrl, final PerrFuncs.CallbacksHandler callbacksHandler) {
-        getInstance()._performGetRequest(getUrl, callbacksHandler);
-    }
-
-    private void _performGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
+    public static void performGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
         // An open source project, downloaded from gradle
         try {
             final Request request = new Request.Builder()
@@ -189,7 +185,7 @@ public class PerrFuncs {
                 public void run() {
                     Response response = null;
                     try {
-                        response = httpClient.newCall(request).execute();
+                        response = getInstance().httpClient.newCall(request).execute();
                     } catch (IOException e) {
                         e.printStackTrace();
                         Log.e(TAG, "performGetRequest: Failed to perform request url from string '" + urlString + "', exception: " + e.toString());

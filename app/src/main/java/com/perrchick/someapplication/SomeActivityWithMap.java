@@ -6,7 +6,10 @@ import android.content.ClipboardManager;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -34,13 +37,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Locale;
 
 public class SomeActivityWithMap extends AppCompatActivity {
     private static final String TAG = SomeActivityWithMap.class.getSimpleName();
-
+    private static final int REQUEST_CODE_FOR_LOCATION_PERMISSIONS = -100;
 
     final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
-    final String formatForAddressFromGeocode = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
+    final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
     final String formatForAutocompletePlacesSearch = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&types=address&language=iw&key=%s";
     final String apiKey = "AIzaSyDC5LC2DDP6Vi11nVw53q7uAyxyVhOfbxw"; // Different from the Maps API key
 
@@ -100,6 +105,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     if (googleMap != null) {
                         LatLng current = googleMap.getCameraPosition().target;
                         float zoom = 18f * (float) progress / 100f;
+                        Log.d(TAG, "progress = " + progress + ", zoom = " + zoom);
                         googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(current.latitude, current.longitude), zoom));
                         lblZoom.setText(zoom + "");
                     }
@@ -235,11 +241,76 @@ public class SomeActivityWithMap extends AppCompatActivity {
                 // Allow to (try to) set
                 googleMap.setMyLocationEnabled(true);
                 takeCameraToAfeka(null);
+                getCurrentLocation();
             } catch (SecurityException exception) {
                 PerrFuncs.toast("Error getting location");
             }
         } else {
             PerrFuncs.toast("Location is blocked in this app");
+        }
+    }
+
+    private void getCurrentLocation() {
+        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
+        Location location = null;
+
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            // Because the user's permissions started only from Android M and on...
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        } else if (getApplicationContext().checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                getApplicationContext().checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // The user blocked the location services of THIS app
+            String[] permissionsToAsk = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
+            requestPermissions(permissionsToAsk, REQUEST_CODE_FOR_LOCATION_PERMISSIONS);
+        } else {
+            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        }
+        //PerrFuncs.performGetRequest(formatForReverseGeocoding);
+        Log.d(TAG, "getCurrentLocation: " + location);
+
+        String searchAddressUrl = String.format(Locale.US, formatForReverseGeocoding, 32.1226496f, 34.8240027f, apiKey);
+        PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+            @Override
+            public void callbackWithObject(Object callbackObject) {
+                try {
+                    if (!(callbackObject instanceof Response))
+                        return;
+
+                    Response response = (Response) callbackObject;
+                    String jsonData = response.body().string();
+                    JSONObject jsonObject = new JSONObject(jsonData);
+
+                    // Extract the status we get in the response from Google
+                    String responseStatus = jsonObject.getString("status");
+
+                    if (responseStatus.equals("OK")) {
+                        String streetName = jsonObject.getJSONArray("results")
+                                .getJSONObject(0)
+                                .getJSONArray("address_components")
+                                .getJSONObject(1)
+                                .getString("long_name");
+                        // All good
+                        String currentLocationMessage = "You are currently at (street name): '" + streetName + "'";
+                        PerrFuncs.toast(currentLocationMessage);
+                        Log.v(TAG, currentLocationMessage);
+
+                    }
+                } catch (JSONException jsonException) {
+                    // Failed to parse
+                    Log.e(TAG, "getCurrentLocation - Failed to parse: " + jsonException);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (REQUEST_CODE_FOR_LOCATION_PERMISSIONS == requestCode) {
+            Log.d(TAG, "onRequestPermissionsResult: user granted location permissions " + Arrays.toString(grantResults));
         }
     }
 
@@ -256,7 +327,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
         if (googleMap == null)
             return;
 
-        String searchAddressUrl = String.format(formatForGeocodeFromAddress, address, apiKey);
+        String searchAddressUrl = String.format(Locale.US, formatForGeocodeFromAddress, address, apiKey);
         PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
             public void callbackWithObject(Object callbackObject) {
