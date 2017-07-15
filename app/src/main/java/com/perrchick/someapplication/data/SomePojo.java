@@ -5,9 +5,9 @@ import com.google.gson.GsonBuilder;
 import java.util.Date;
 
 /**
+ * POJO stands for "Some Plain Java Object"
  * Created by perrchick on 29/03/2016.
  */
-
 public class SomePojo {
     String name;
     String phoneNumber;

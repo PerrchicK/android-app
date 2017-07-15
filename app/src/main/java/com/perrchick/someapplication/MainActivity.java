@@ -29,6 +29,7 @@ import com.perrchick.someapplication.ui.SensorsFragmentRed;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
 import com.perrchick.someapplication.uiexercises.SensorsFragment;
+import com.perrchick.someapplication.uiexercises.list.ListActivity;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
@@ -425,6 +426,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             case R.id.action_go_storage:
                 startActivity(new Intent(this, StorageActivity.class));
+                return true;
+            case R.id.action_go_list:
+                startActivity(new Intent(this, ListActivity.class));
                 return true;
             case R.id.action_download_image:
                 PerrFuncs.getTextFromUser(this, "Put a string for intent's extra data", new PerrFuncs.CallbacksHandler() {

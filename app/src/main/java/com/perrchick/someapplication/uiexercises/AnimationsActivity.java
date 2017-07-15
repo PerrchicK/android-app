@@ -1,6 +1,7 @@
 package com.perrchick.someapplication.uiexercises;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ClipData;
@@ -12,6 +13,7 @@ import android.view.DragEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
+import android.view.animation.BounceInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
@@ -175,8 +177,8 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     @Override
     public void onResume() {
         super.onResume();
-        mTilesFrameLayout.onResume();
 
+        mTilesFrameLayout.onResume();
         this.shrinkingText.setText(R.string.shrink_text_action);
 
         final ValueAnimator valueAnimator = ValueAnimator.ofFloat(1,0.1f);
@@ -190,6 +192,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
 //                AnimationsActivity.this.shrinkingText.setTextScaleY(Float.parseFloat(valueAnimator.getValues()[0].toString()));
             }
         });
+
         valueAnimator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animator) {
@@ -270,6 +273,20 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         });
         fadeIn.start();
     }
+
+    void flySpinnerToCorner() {
+        ObjectAnimator objectAnimatorX = ObjectAnimator.ofFloat(spinningView, "x", -spinningView.getWidth() / 2);
+        ObjectAnimator objectAnimatorY = ObjectAnimator.ofFloat(spinningView, "y", -spinningView.getHeight() / 2);
+//        objectAnimatorX.setDuration(500).start();
+//        objectAnimatorY.setDuration(500).start();
+
+        AnimatorSet set = new AnimatorSet();
+        set.setInterpolator(new BounceInterpolator());
+        set.play(objectAnimatorX).with(objectAnimatorY);
+        set.setDuration(500);
+        set.start();
+    }
+
 
     @Override
     public void onPause() {
