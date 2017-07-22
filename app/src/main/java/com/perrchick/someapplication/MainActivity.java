@@ -5,10 +5,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Bundle;
-import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -19,7 +18,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -42,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int ROWS_NUM = 3;
 
     private TicTacToeButton[] buttons = new TicTacToeButton[9];
-    private GridLayout mGridLayout;
     private boolean mXTurn = true;
 
     private Fragment sensorsFragment;
@@ -51,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private boolean isServiceBound = false;
     public SensorService.SensorServiceBinder binder;
     private LinearLayout boardLayout;
-    private GridLayout grid;
+    private GridLayout mGridLayout;
     private int threadCounter = 0;
 
     @Override
@@ -137,21 +134,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void putNewBoard() {
-        if (grid != null) {
-            boardLayout.removeView(grid);
+        if (mGridLayout != null && mGridLayout.getParent() == boardLayout) {
+            boardLayout.removeView(mGridLayout);
         }
-        grid = createNewGrid(COLS_NUM, ROWS_NUM);
-        boardLayout.addView(grid, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        mGridLayout = createNewGrid(COLS_NUM, ROWS_NUM);
+        boardLayout.addView(mGridLayout, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
     private GridLayout createNewGrid(int colsNum, int rowsNum) {
         ViewGroup.LayoutParams gridLayoutParams = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mGridLayout = new GridLayout(this);
-        mGridLayout.setLayoutParams(gridLayoutParams);
-        mGridLayout.setOrientation(GridLayout.HORIZONTAL);
-        mGridLayout.setColumnCount(colsNum);
-        mGridLayout.setRowCount(rowsNum);
-        mGridLayout.setId(0);
+        GridLayout gridLayout = new GridLayout(this);
+        gridLayout.setLayoutParams(gridLayoutParams);
+        gridLayout.setOrientation(GridLayout.HORIZONTAL);
+        gridLayout.setColumnCount(colsNum);
+        gridLayout.setRowCount(rowsNum);
+        gridLayout.setId(0);
 
         // Programmatically create the buttons layout
         for (int column = 0; column < colsNum; column++) {
@@ -167,11 +164,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
-                mGridLayout.addView(btnTicTacToe);
+                gridLayout.addView(btnTicTacToe);
             }
         }
 
-        return mGridLayout;
+        return gridLayout;
     }
 
     @Override
