@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final int COLS_NUM = 3;
     private static final int ROWS_NUM = 3;
 
-    private TicTacToeButton[] buttons = new TicTacToeButton[9];
+    private TicTacToeButton[] buttons = new TicTacToeButton[ROWS_NUM * COLS_NUM];
     private boolean mXTurn = true;
 
     private Fragment sensorsFragment;
@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 int buttonWidth = theSmallerAxis / fraction;
 
-                TicTacToeButton btnTicTacToe = new TicTacToeButton(this,column, row);
+                TicTacToeButton btnTicTacToe = new TicTacToeButton(this, column, row);
                 btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
                 buttons[row + column * colsNum] = btnTicTacToe;
