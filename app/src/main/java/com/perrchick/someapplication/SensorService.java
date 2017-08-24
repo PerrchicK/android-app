@@ -8,13 +8,14 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Binder;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
 import android.util.Log;
 
-import java.util.Arrays;
+import com.perrchick.someapplication.data.SomePojo;
+
 import java.util.List;
-import java.util.Random;
 
 /**
  * Created by perrchick on 12/5/15.
@@ -22,20 +23,32 @@ import java.util.Random;
 public class SensorService extends Service implements SensorEventListener {
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
+    public static final String PARCEL_RECORD_KEY = "record";
 
-    private static final String _TAG = SensorService.class.getSimpleName();
-    IBinder sensorServiceBinder = new SensorServiceBinder();
+    private static final String TAG = SensorService.class.getSimpleName();
+    protected SensorServiceBinder sensorServiceBinder = new SensorServiceBinder();// An IBinder implementation subclass
     protected float values;
     private SensorManager sensorManager;
     boolean isListening = false;
+    HandlerThread sensorThread;
+    private Handler sensorHandler;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+
+        sensorThread = new HandlerThread(SensorService.class.getSimpleName());
+        sensorThread.start();
+        sensorHandler = new Handler(sensorThread.getLooper());
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+    }
 
     /**
      * A client is binding to the service with bindService()
      */
     @Override
     public IBinder onBind(Intent intent) {
-        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-        ((SensorServiceBinder) sensorServiceBinder).setSensorService(this);
+        sensorServiceBinder.sensorService = this;
 
         // A.D: "You must always implement this method, but if you don't want to allow binding, then you should return null."
         return sensorServiceBinder;
@@ -51,13 +64,14 @@ public class SensorService extends Service implements SensorEventListener {
         return super.onUnbind(intent);
     }
 
-    protected float[] evaluate() {
-        return new float[]{0.1f, 0.1f, 0.1f};
-    }
-
     protected void notifyEvaluation(float[] values) {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SENSOR_SERVICE_BROADCAST_ACTION);
+        SomePojo somePojo = new SomePojo();
+        somePojo.setName("parcelable POJO");
+        somePojo.setLatitude(32.1151989);
+        somePojo.setLongitude(34.8196429);
+        broadcastIntent.putExtra(PARCEL_RECORD_KEY, somePojo);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
         //Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
         sendBroadcast(broadcastIntent);
@@ -72,7 +86,7 @@ public class SensorService extends Service implements SensorEventListener {
      * @return A String of the acting class's tag
      */
     public String getTag() {
-        return _TAG;
+        return TAG;
     }
 
     public SensorService getSelf() {
@@ -82,16 +96,11 @@ public class SensorService extends Service implements SensorEventListener {
     @Override
     public void onSensorChanged(final SensorEvent event) {
         final float[] values = new float[event.values.length];
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i =0; i < event.values.length; i++) {
-                    values[i] = event.values[i];// * 1000000.0f;
-                }
+        for (int i = 0; i < event.values.length; i++) {
+            values[i] = event.values[i];// * 1000000.0f;
+        }
 
-                notifyEvaluation(values);
-            }
-        }).start();
+        notifyEvaluation(values);
     }
 
     @Override
@@ -99,8 +108,8 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     class SensorServiceBinder extends Binder {
-        public static final String START_LISTENING = "Start";
-        SensorService sensorService;
+        static final String START_LISTENING = "Start";
+        private SensorService sensorService;
 
         SensorService getService() {
             return sensorService;
@@ -111,20 +120,16 @@ public class SensorService extends Service implements SensorEventListener {
             Log.v(getTag(), SensorService.class.getSimpleName() +
                     " has got a message from its binding activity. Message: " + msg);
 
-            if (msg == SensorServiceBinder.START_LISTENING && !isListening) {
+            if (msg == SensorServiceBinder.START_LISTENING && !isListening) { // Why can we
                 List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
                 Log.v(getTag(), "Available sensors: " + sensorList);
                 Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // null in Genymotion free edition of course
                 if (sensor == null && sensorList.size() > 0) {
                     sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
                 }
-                sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI);
+                sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI, sensorHandler);
                 isListening = true;
             }
-        }
-
-        public void setSensorService(SensorService sensorService) {
-            this.sensorService = sensorService;
         }
     }
 }

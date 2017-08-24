@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -98,6 +99,10 @@ public class SensorsFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(SensorService.SENSOR_SERVICE_BROADCAST_ACTION)) {
+                    Parcelable parcelableRecord = intent.getParcelableExtra(SensorService.PARCEL_RECORD_KEY);
+                    if (parcelableRecord != null) {
+                        Log.v(getTag(), "onReceive: parcelableRecord == " + parcelableRecord);
+                    }
                     senseDetected(intent.getFloatArrayExtra(SensorService.SENSOR_SERVICE_VALUES_KEY));
                 }
             }

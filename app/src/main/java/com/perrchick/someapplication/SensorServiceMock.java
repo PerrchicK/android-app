@@ -11,7 +11,7 @@ import java.util.Random;
 public class SensorServiceMock extends SensorService {
 
     private static final long TIME_TO_SLEEP = 1000;
-    private static final String _TAG = SensorServiceMock.class.getSimpleName();
+    private static final String TAG = SensorServiceMock.class.getSimpleName();
 
     private boolean shouldRun = false;
     private Random random = new Random();
@@ -30,7 +30,7 @@ public class SensorServiceMock extends SensorService {
                         e.printStackTrace();
                     }
 
-                    notifyEvaluation(evaluate());
+                    notifyEvaluation(evaluateRandom());
                 }
 
                 // shouldRun == false => Anonymous Thread is gonna be dead
@@ -54,11 +54,10 @@ public class SensorServiceMock extends SensorService {
 
     @Override
     public String getTag() {
-        return _TAG;
+        return TAG;
     }
 
-    @Override
-    protected float[] evaluate() {
+    protected float[] evaluateRandom() {
         return new float[]{random.nextFloat(),random.nextFloat(),random.nextFloat()};
     }
 }
