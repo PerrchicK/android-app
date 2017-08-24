@@ -1,18 +1,19 @@
 package com.perrchick.someapplication.data;
 
-import com.google.gson.GsonBuilder;
+import android.os.Parcel;
+import android.os.Parcelable;
 
-import java.util.Date;
+import com.google.gson.GsonBuilder;
 
 /**
  * POJO stands for "Some Plain Java Object"
  * Created by perrchick on 29/03/2016.
  */
-public class SomePojo {
-    String name;
-    String phoneNumber;
-    double longitude;
-    double latitude;
+public class SomePojo implements Parcelable {
+    private String name;
+    private String phoneNumber;
+    private double longitude;
+    private double latitude;
 
     public String getName() {
         return name;
@@ -49,6 +50,13 @@ public class SomePojo {
     public SomePojo() {
     }
 
+    private SomePojo(Parcel in) {
+        this.name = in.readString();
+        this.phoneNumber = in.readString();
+        this.longitude = in.readDouble();
+        this.latitude = in.readDouble();
+    }
+
     static public SomePojo createFromJson(String jsonString) {
         SomePojo somePojo = (new GsonBuilder()).create().fromJson(jsonString, SomePojo.class);
         return somePojo;
@@ -57,4 +65,29 @@ public class SomePojo {
     public String toJson() {
         return (new GsonBuilder()).create().toJson(this);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(name);
+        dest.writeString(phoneNumber);
+        dest.writeDouble(longitude);
+        dest.writeDouble(latitude);
+    }
+
+    public static final Creator<SomePojo> CREATOR = new Creator<SomePojo>() {
+        @Override
+        public SomePojo createFromParcel(Parcel in) {
+            return new SomePojo(in);
+        }
+
+        @Override
+        public SomePojo[] newArray(int size) {
+            return new SomePojo[size];
+        }
+    };
 }
