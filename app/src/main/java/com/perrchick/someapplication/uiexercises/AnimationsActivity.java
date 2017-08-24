@@ -34,7 +34,8 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     private static final String TAG = AnimationsActivity.class.getSimpleName();
     private static final String SCALE_VALUE_TEXT_VIEW_TAG = "scale's value text";
 
-    ImageView spinningView;
+    private RelativeLayout spinnerContainer;
+    private ImageView spinningView;
     private RotateAnimation rotateAnimation;
     private TextView txtScaleValue;
     private SeekBar scaleSeekBar;
@@ -107,8 +108,9 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
             }
         });
 
-//        findViewById(R.id.mainContainer).setOnDragListener(this);
-//        findViewById(R.id.spinnerContainer).setOnDragListener(this);
+        findViewById(R.id.mainContainer).setOnDragListener(this);
+        spinnerContainer = (RelativeLayout) findViewById(R.id.spinnerContainer);
+        spinnerContainer.setOnDragListener(this);
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
         valueAnimator.setDuration(10000);
         valueAnimator.setInterpolator(new AccelerateInterpolator());
@@ -123,55 +125,10 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     }
 
     @Override
-    public void onBackPressed() {
-        //https://github.com/Yalantis/StarWars.Android
-        //https://yalantis.com/blog/star-wars-the-force-awakens-or-how-to-crumble-view-into-tiny-pieces-on-android/
-        mTilesFrameLayout.startAnimation();
-    }
+    protected void onStart() {
+        super.onStart();
 
-    private void scaleImage(float scaleSize) {
-        if (scaleSize > 0) { // Check anyway to prevent exceptions
-//            txtScaleValue.setText(String.format("%f2.0", scaleSize));
-            txtScaleValue.setText(String.format(new Locale(Locale.ENGLISH.getLanguage()),"%.1f", scaleSize));
-
-            scaleSize *= 0.1;
-            ObjectAnimator scaleImageX = ObjectAnimator.ofFloat(spinningView, "scaleX", spinningView.getScaleX(), scaleSize);
-            scaleImageX.setDuration(200);
-            scaleImageX.start();
-
-            ObjectAnimator scaleImageY = ObjectAnimator.ofFloat(spinningView, "scaleY", spinningView.getScaleY(), scaleSize);
-            scaleImageY.setDuration(200);
-            scaleImageY.start();
-        }
-    }
-
-    private void toggleSpinnerAnimation(boolean start) {
-        if (start) {
-            rotateAnimation = getRotateAnimation(this.spinningView);
-            rotateAnimation.setRepeatCount(Animation.INFINITE);
-            rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
-                @Override
-                public void onAnimationStart(Animation animation) {
-                }
-
-                @Override
-                public void onAnimationEnd(Animation animation) {
-                    rotateAnimation = null;
-                }
-
-                @Override
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });
-
-            this.spinningView.startAnimation(rotateAnimation);
-        } else {
-            rotateAnimation.setRepeatCount(0);
-        }
-    }
-
-    private void toggleSpinnerAnimation() {
-        this.toggleSpinnerAnimation(rotateAnimation == null);
+        spinnerContainer.setVisibility(View.INVISIBLE); // What will happen in case we'll use 'View.GONE'?
     }
 
     @Override
@@ -201,10 +158,15 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
 
             @Override
             public void onAnimationEnd(Animator animator) {
+                spinnerContainer.setTranslationY(-PerrFuncs.screenHeightPixels());
+                spinnerContainer.setVisibility(View.VISIBLE);
+                spinnerContainer.invalidate();
                 PerrFuncs.animateProperty("alpha", AnimationsActivity.this.shrinkingText, 1, 0, 300, new PerrFuncs.CallbacksHandler() {
                     @Override
                     public void callbackWithObject(Object callbackObject) {
-                        AnimationsActivity.this.shrinkingText.setVisibility(View.GONE);
+                        AnimationsActivity.this.shrinkingText.setVisibility(View.INVISIBLE); // What will happen in case we'll use 'View.GONE'?
+                        // An example for ViewPropertyAnimator usage:
+                        spinnerContainer.animate().translationY(0).setDuration(600).setStartDelay(500).start();
                     }
                 });
             }
@@ -250,7 +212,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
 
         // Fade the main layout in
         ObjectAnimator fadeIn = ObjectAnimator.ofFloat(mainLayout, "alpha", 0.0f, 1.0f);
-        long duration = 4000;
+        long duration = 2000;
         fadeIn.setDuration(duration);
         fadeIn.addListener(new Animator.AnimatorListener() {
             @Override
@@ -274,6 +236,65 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         fadeIn.start();
     }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        mTilesFrameLayout.onPause();
+    }
+
+    @Override
+    public void onBackPressed() {
+        //https://github.com/Yalantis/StarWars.Android
+        //https://yalantis.com/blog/star-wars-the-force-awakens-or-how-to-crumble-view-into-tiny-pieces-on-android/
+        mTilesFrameLayout.startAnimation();
+    }
+
+    private void scaleImage(float scaleSize) {
+        if (scaleSize > 0) { // Check anyway to prevent exceptions
+//            txtScaleValue.setText(String.format("%f2.0", scaleSize));
+            txtScaleValue.setText(String.format(new Locale(Locale.ENGLISH.getLanguage()),"%.1f", scaleSize));
+
+            scaleSize *= 0.1;
+            ObjectAnimator scaleImageX = ObjectAnimator.ofFloat(spinningView, "scaleX", spinningView.getScaleX(), scaleSize);
+            scaleImageX.setDuration(200);
+            scaleImageX.start();
+
+            ObjectAnimator scaleImageY = ObjectAnimator.ofFloat(spinningView, "scaleY", spinningView.getScaleY(), scaleSize);
+            scaleImageY.setDuration(200);
+            scaleImageY.start();
+        }
+    }
+
+    private void toggleSpinnerAnimation(boolean start) {
+        if (start) {
+            rotateAnimation = getRotateAnimation(this.spinningView);
+            rotateAnimation.setRepeatCount(Animation.INFINITE);
+            rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
+                @Override
+                public void onAnimationStart(Animation animation) {
+                }
+
+                @Override
+                public void onAnimationEnd(Animation animation) {
+                    rotateAnimation = null;
+                }
+
+                @Override
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });
+
+            spinningView.startAnimation(rotateAnimation);
+        } else {
+            rotateAnimation.setRepeatCount(0);
+        }
+    }
+
+    private void toggleSpinnerAnimation() {
+        this.toggleSpinnerAnimation(rotateAnimation == null);
+    }
+
     void flySpinnerToCorner() {
         ObjectAnimator objectAnimatorX = ObjectAnimator.ofFloat(spinningView, "x", -spinningView.getWidth() / 2);
         ObjectAnimator objectAnimatorY = ObjectAnimator.ofFloat(spinningView, "y", -spinningView.getHeight() / 2);
@@ -287,13 +308,6 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         set.start();
     }
 
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        mTilesFrameLayout.onPause();
-    }
 
     public RotateAnimation getRotateAnimation(View viewToRotate) {
         RotateAnimation rotateAnimation = new RotateAnimation(0f, 360f, viewToRotate.getWidth() / 2.0f, viewToRotate.getHeight() / 2.0f);
