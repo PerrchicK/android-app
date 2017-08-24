@@ -166,7 +166,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                     public void callbackWithObject(Object callbackObject) {
                         AnimationsActivity.this.shrinkingText.setVisibility(View.INVISIBLE); // What will happen in case we'll use 'View.GONE'?
                         // An example for ViewPropertyAnimator usage:
-                        spinnerContainer.animate().translationY(0).setDuration(600).setStartDelay(500).start();
+                        spinnerContainer.animate().translationY(0).setDuration(400).setStartDelay(500).start();
                     }
                 });
             }
