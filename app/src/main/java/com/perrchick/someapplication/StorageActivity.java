@@ -3,8 +3,8 @@ package com.perrchick.someapplication;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -17,7 +17,6 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.backendless.exceptions.BackendlessException;
-import com.facebook.stetho.Stetho;
 import com.firebase.client.FirebaseError;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
@@ -25,6 +24,15 @@ import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.data.SomePojo;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -96,12 +104,6 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Not working? try 'Stetho.initializeWithDefaults(this);' in MainActivity.onCreate()
-        Stetho.initialize(Stetho.newInitializerBuilder(this)
-                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                .enableWebKitInspector(Stetho.defaultInspectorModulesProvider(this))
-                .build());
 
         setContentView(R.layout.activity_storage);
 
@@ -288,6 +290,18 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        try {
+            String dropdownListSelectedItem = readStringFromFile("dropdownListSelectedItem");
+            Log.d(TAG, "onStart: dropdownListSelectedItem == " + dropdownListSelectedItem);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
 
@@ -306,34 +320,13 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         });
 
         // example:
-        SomePojo somePojo = new SomePojo();
-        somePojo.setLatitude(30);
-        somePojo.setLongitude(30);
-        somePojo.setName("me");
-        somePojo.setPhoneNumber("+1234567890");
-        db_firebaseSharedPreferences.putString("somePojo-1", somePojo.toJson());
+        db_firebaseSharedPreferences.putString("somePojo-json", generateSomePojo().toJson());
 
         // Restore Spinner selected option
         int lastSelectedEnumId = db_sharedPreferences.getInt(SELECTED_ENUM_PERSISTENCE_KEY, KeepCalmAnd.Relax.getEnumId());
         dropdownList.setSelection(PerrFuncs.getIndexOfItemInArray(KeepCalmAnd.valueOf(lastSelectedEnumId), KeepCalmAnd.values()));
 
         refreshBackendlessList();
-    }
-
-    private void refreshBackendlessList() {
-        // Restore Backendless List View
-        db_backendlessSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
-            @Override
-            public void done(HashMap<String, String> objects, BackendlessException e) {
-                if (e == null) {
-                    StorageActivity.this.objects = objects;
-                    ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
-                    listOfBackendlessSavedObjects.setAdapter(adapter);
-                } else {
-                    PerrFuncs.toast("Error! Exception:\n" + e, false);
-                }
-            }
-        });
     }
 
     @Override
@@ -365,6 +358,91 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         });
         // firebase cloud
         db_firebaseSharedPreferences.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextFirebase);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        String dropdownListSelectedItem = dropdownList.getSelectedItem().toString();
+        try {
+            writeStringToFile(dropdownListSelectedItem, "dropdownListSelectedItem");
+            Log.d(TAG, "onStop: " + dropdownListSelectedItem);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private SomePojo generateSomePojo() {
+        SomePojo somePojo = new SomePojo();
+        somePojo.setLatitude(30);
+        somePojo.setLongitude(30);
+        somePojo.setName("me");
+        somePojo.setPhoneNumber("+1234567890");
+
+        return somePojo;
+    }
+
+    private void refreshBackendlessList() {
+        // Restore Backendless List View
+        db_backendlessSharedPreferences.getAllObjects(new OnlineSharedPreferences.GetAllObjectsCallback() {
+            @Override
+            public void done(HashMap<String, String> objects, BackendlessException e) {
+                if (e == null) {
+                    StorageActivity.this.objects = objects;
+                    ArrayAdapter<Object> adapter = new ArrayAdapter<>(StorageActivity.this, android.R.layout.simple_spinner_dropdown_item, objects.keySet().toArray());
+                    listOfBackendlessSavedObjects.setAdapter(adapter);
+                } else {
+                    PerrFuncs.toast("Error! Exception:\n" + e, false);
+                }
+            }
+        });
+    }
+
+    private boolean writeStringToFile(String value, String fileName) throws IOException {
+        File fileToWrite = new File(getApplicationContext().getFilesDir() + "/" + fileName);
+        FileOutputStream out = new FileOutputStream(fileToWrite);
+        OutputStreamWriter outputStreamWriter = new OutputStreamWriter(out);
+        outputStreamWriter.write(value);
+        outputStreamWriter.close();
+        ///data/data/com.perrchick.someapplication/files/dropdownListSelectedItem
+
+        return fileToWrite.exists();
+    }
+
+    private String readStringFromFile(String fileName) throws FileNotFoundException {
+        File fileToRead = new File(getApplicationContext().getFilesDir() + "/" + fileName);
+        String value = null;
+
+        InputStream inputStream = new FileInputStream(fileToRead);
+        BufferedReader bufferedReader = null;
+        InputStreamReader inputStreamReader = null;
+        try {
+            inputStreamReader = new InputStreamReader(inputStream);
+            bufferedReader = new BufferedReader(inputStreamReader);
+            String receiveString;
+            StringBuilder stringBuilder = new StringBuilder();
+
+            while ((receiveString = bufferedReader.readLine()) != null) {
+                stringBuilder.append(receiveString);
+            }
+
+            value = stringBuilder.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                inputStream.close();
+                if (bufferedReader != null) bufferedReader.close();
+                if (inputStreamReader != null) inputStreamReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return value;
     }
 
     public void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType, String key, String value) {
