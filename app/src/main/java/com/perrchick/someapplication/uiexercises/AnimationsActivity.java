@@ -241,6 +241,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         super.onPause();
 
         mTilesFrameLayout.onPause();
+        spinnerContainer.animate().cancel();
     }
 
     @Override

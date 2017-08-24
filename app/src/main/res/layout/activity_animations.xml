@@ -43,6 +43,20 @@
             android:layout_below="@id/txtShrinking"
             android:layout_height="fill_parent">
 
+            <RelativeLayout
+                android:id="@+id/spinnerContainer"
+                android:background="#99cc00"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:layout_weight="1000">
+                <ImageView android:id="@+id/spinnerImage"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent"
+                    android:foregroundGravity="center"
+                    android:minWidth="30dp"
+                    android:minHeight="30dp"/>
+            </RelativeLayout>
+
             <SeekBar android:id="@+id/seekBar"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
@@ -57,19 +71,7 @@
                 android:text="@string/zero_value"
                 android:textColor="#000000"
                 android:layout_weight="10" />
-            <RelativeLayout
-                android:id="@+id/spinnerContainer"
-                android:background="#99cc00"
-                android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
-                android:layout_weight="1000">
-                <ImageView android:id="@+id/spinnerImage"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent"
-                    android:foregroundGravity="center"
-                    android:minWidth="30dp"
-                    android:minHeight="30dp"/>
-            </RelativeLayout>
+
         </LinearLayout>
     </RelativeLayout>
 
