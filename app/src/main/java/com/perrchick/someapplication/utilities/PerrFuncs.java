@@ -461,15 +461,12 @@ public class PerrFuncs {
     public static void animateNo(final View view) {
         final long duration = 50;
         ObjectAnimator animator1 = ObjectAnimator.ofFloat(view, "translationX", 20f);
-        animator1.setRepeatCount(0);
         animator1.setDuration(duration / 2);
 
         ObjectAnimator animator2 = ObjectAnimator.ofFloat(view, "translationX", -20f);
-        animator2.setRepeatCount(0);
         animator2.setDuration(duration);
 
         ObjectAnimator animator3 = ObjectAnimator.ofFloat(view, "translationX", 5f);
-        animator3.setRepeatCount(0);
         animator3.setDuration(duration / 2);
 
         AnimatorSet animatorSet = new AnimatorSet();

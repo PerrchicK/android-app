@@ -111,6 +111,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         findViewById(R.id.mainContainer).setOnDragListener(this);
         spinnerContainer = (RelativeLayout) findViewById(R.id.spinnerContainer);
         spinnerContainer.setOnDragListener(this);
+
         ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
         valueAnimator.setDuration(10000);
         valueAnimator.setInterpolator(new AccelerateInterpolator());
@@ -299,8 +300,6 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     void flySpinnerToCorner() {
         ObjectAnimator objectAnimatorX = ObjectAnimator.ofFloat(spinningView, "x", -spinningView.getWidth() / 2);
         ObjectAnimator objectAnimatorY = ObjectAnimator.ofFloat(spinningView, "y", -spinningView.getHeight() / 2);
-//        objectAnimatorX.setDuration(500).start();
-//        objectAnimatorY.setDuration(500).start();
 
         AnimatorSet set = new AnimatorSet();
         set.setInterpolator(new BounceInterpolator());
