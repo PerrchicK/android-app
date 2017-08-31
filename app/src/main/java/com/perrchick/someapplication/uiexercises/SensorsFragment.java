@@ -108,7 +108,8 @@ public class SensorsFragment extends Fragment {
             }
         };
 
-        getContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
+        getActivity().getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
+        //OR: LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
     }
 
     @Override
@@ -156,7 +157,8 @@ public class SensorsFragment extends Fragment {
     public void onStop() {
         super.onStop();
 
-        getContext().unregisterReceiver(broadcastReceiver);
+        getActivity().getApplicationContext().unregisterReceiver(broadcastReceiver);
+        //OR: LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(broadcastReceiver);
     }
 
     @Override

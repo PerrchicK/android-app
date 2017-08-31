@@ -67,10 +67,12 @@ public class SensorService extends Service implements SensorEventListener {
     protected void notifyEvaluation(float[] values) {
         Intent broadcastIntent = new Intent();
         broadcastIntent.setAction(SENSOR_SERVICE_BROADCAST_ACTION);
+
         SomePojo somePojo = new SomePojo();
         somePojo.setName("parcelable POJO");
         somePojo.setLatitude(32.1151989);
         somePojo.setLongitude(34.8196429);
+
         broadcastIntent.putExtra(PARCEL_RECORD_KEY, somePojo);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
         //Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
@@ -117,16 +119,17 @@ public class SensorService extends Service implements SensorEventListener {
 
         void notifyService(String msg) {
             // A.D: "you must provide an interface that clients use to communicate with the service, by returning an IBinder."
-            Log.v(getTag(), SensorService.class.getSimpleName() +
-                    " has got a message from its binding activity. Message: " + msg);
+            Log.v(getTag(), SensorService.class.getSimpleName() + " has got a message from its binding activity. Message: " + msg);
 
             if (msg == SensorServiceBinder.START_LISTENING && !isListening) { // Why can we
                 List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
                 Log.v(getTag(), "Available sensors: " + sensorList);
-                Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // null in Genymotion free edition of course
+                Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Sensor.TYPE_GYROSCOPE will be null in Genymotion free edition
                 if (sensor == null && sensorList.size() > 0) {
+                    // Backup
                     sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
                 }
+
                 sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI, sensorHandler);
                 isListening = true;
             }
