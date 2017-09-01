@@ -29,6 +29,9 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
+    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
+    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
+
     //compile 'com.backendless:backendless:3.0.8.1'
     //compile project(':onlinesharedpreferences')
     compile 'com.android.support:recyclerview-v7:24.0.0'
@@ -39,5 +42,4 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
-    compile 'com.android.support.constraint:constraint-layout:1.0.0-beta4'
 }

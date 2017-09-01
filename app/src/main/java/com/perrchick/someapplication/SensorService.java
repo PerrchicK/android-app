@@ -40,6 +40,7 @@ public class SensorService extends Service implements SensorEventListener {
         sensorThread = new HandlerThread(SensorService.class.getSimpleName());
         sensorThread.start();
         sensorHandler = new Handler(sensorThread.getLooper());
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
     }
 
@@ -129,6 +130,8 @@ public class SensorService extends Service implements SensorEventListener {
                     // Backup
                     sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
                 }
+
+                if (sensor == null) return;
 
                 sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI, sensorHandler);
                 isListening = true;

@@ -30,7 +30,7 @@ import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.uiexercises.list.ListActivity;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorsFragment.SensorsFragmentListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     static final int NOTIFICATION_REQUEST_CODE = 1000;
     private final String TAG = MainActivity.class.getSimpleName();
@@ -176,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Starts interaction with the user
         super.onResume();
 
-        PerrFuncs.setTopActivity(this);
         putNewBoard();
 
         printAllViews();
@@ -495,13 +494,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
 
-    @Override
-    public void valuesUpdated(float[] someData) {
-        //Log.v(TAG, "Got an update from fragment: "+Arrays.toString(someData));
-    }
-
     void notifyBoundService(String massageFromActivity) {
-        if (isServiceBound) {
+        if (isServiceBound && binder != null) {
             binder.notifyService(massageFromActivity);
         }
     }

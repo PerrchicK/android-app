@@ -4,6 +4,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -12,6 +13,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
@@ -47,7 +50,6 @@ public class PerrFuncs {
     private static String TAG = PerrFuncs.class.getSimpleName();
     private static PerrFuncs _perrFuncsInstance;
     private final OkHttpClient httpClient;
-    private Activity _topActivity;
     private DisplayMetrics _metrics;
 
     private static PerrFuncs getInstance() {
@@ -72,6 +74,8 @@ public class PerrFuncs {
         return System.currentTimeMillis();
     }
 
+    @SuppressWarnings("deprecation")
+    @TargetApi(Build.VERSION_CODES.M)
     public static long getMillisFrom1970(TimePicker timePicker) {
 
         // Solves exception: java.lang.NoSuchMethodError
@@ -248,7 +252,7 @@ public class PerrFuncs {
     }
 
     public static void toast(final String toastMessage, final boolean shortDelay) {
-        PerrFuncs.getInstance().getTopActivity().runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 Toast.makeText(getApplicationContext(), toastMessage, shortDelay ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
@@ -256,12 +260,24 @@ public class PerrFuncs {
         });
     }
 
+    private static void runOnUiThread(Runnable runnable) {
+        if (isRunningOnMainThread()) {
+            runnable.run();
+        } else {
+            new Handler(Looper.getMainLooper()).post(runnable);
+        }
+    }
+
+    private static boolean isRunningOnMainThread() {
+        return Looper.myLooper() == Looper.getMainLooper();
+    }
+
     private static Context getApplicationContext() {
-        return Application.getApplicationInstance().getApplicationContext();
+        return Application.getContext();
     }
 
     public static void callNumber(String phoneNumber) {
-        callNumber(phoneNumber, getInstance().getTopActivity());
+        callNumber(phoneNumber, Application.getTopActivity());
     }
 
     public static void callNumber(String phoneNumber, Activity activity) {
@@ -280,18 +296,18 @@ public class PerrFuncs {
         }
 
         // Permission granted, making the call.
-        activity.startActivity(phoneCallIntent);
+        getApplicationContext().startActivity(phoneCallIntent);
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage) {
-        showDialog(dialogTitle, dialogMessage, PerrFuncs.getInstance().getTopActivity());
+        showDialog(dialogTitle, dialogMessage, Application.getTopActivity());
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage, Activity activity) {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                new AlertDialog.Builder(PerrFuncs.getInstance().getTopActivity())
+                new AlertDialog.Builder(getApplicationContext())
                         .setTitle(dialogTitle)
                         .setMessage(dialogMessage)
                 /*
@@ -310,10 +326,6 @@ public class PerrFuncs {
                         .show();
             }
         });
-    }
-
-    public static void setTopActivity(Activity topActivity) {
-        PerrFuncs.getInstance()._topActivity = topActivity;
     }
 
     public static void askUser(Activity inActivity, String title, final CallbacksHandler callbacksHandler) {
@@ -416,10 +428,6 @@ public class PerrFuncs {
         });
 
         builder.show();
-    }
-
-    public Activity getTopActivity() {
-        return PerrFuncs.getInstance()._topActivity;
     }
 
     public static int screenWidthPixels() {
