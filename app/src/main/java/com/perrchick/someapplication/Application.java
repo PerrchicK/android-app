@@ -13,26 +13,21 @@ import java.lang.ref.WeakReference;
  */
 public class Application extends android.app.Application {
 
+    private static WeakReference<Activity> _topActivity;
     private static Context _applicationContext;
     private static boolean isApplicationInForeground;
-    private static WeakReference<Activity> _topActivity;
 
-    public static Context getContext() {
-        return _applicationContext;
-    }
     @Nullable
-    public static Activity getTopActivity() {
-        return _topActivity != null ? _topActivity.get() : null;
-    }
-    public static boolean isInForeground() {
-        return isApplicationInForeground;
-    }
+    public static Activity getTopActivity() { return _topActivity != null ? _topActivity.get() : null; }
+    public static Context getContext() { return _applicationContext; }
+    public static boolean isInForeground() { return isApplicationInForeground; }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
         _applicationContext = getApplicationContext();
+        // From: https://stackoverflow.com/questions/4414171/how-to-detect-when-an-android-app-goes-to-the-background-and-come-back-to-the-fo
         registerActivityLifecycleCallbacks(new AppLifecycleTracker());
     }
 
