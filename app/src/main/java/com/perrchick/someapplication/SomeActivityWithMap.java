@@ -3,16 +3,17 @@ package com.perrchick.someapplication;
 import android.app.FragmentTransaction;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -40,9 +41,9 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class SomeActivityWithMap extends AppCompatActivity {
+public class SomeActivityWithMap extends AppCompatActivity implements LocationListener {
     private static final String TAG = SomeActivityWithMap.class.getSimpleName();
-    private static final int REQUEST_CODE_FOR_LOCATION_PERMISSIONS = -100;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = -100;
 
     final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
     final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
@@ -56,11 +57,18 @@ public class SomeActivityWithMap extends AppCompatActivity {
     private Spinner actionsDropdownList;
     private int markersCounter = 0;
 
+    private Location currentLocation = null;
+    private LocationManager locationManager;
+    private boolean didAlreadyRequestLocationPermission;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_some_activity_with_map);
         PerrFuncs.hideActionBarOfActivity(this);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        didAlreadyRequestLocationPermission = false;
 
         if (isGoogleMapsInstalled()) {
             // Add the Google Maps fragment dynamically
@@ -88,7 +96,7 @@ public class SomeActivityWithMap extends AppCompatActivity {
             mapsPlaceHolder.addView(errorMessageTextView);
         }
 
-        this.actionsDropdownList = (Spinner)findViewById(R.id.spinner_maps_actions);
+        this.actionsDropdownList = (Spinner) findViewById(R.id.spinner_maps_actions);
         final String[] actionValues = new String[]{"Go to Afeka", "Copy target", "Put marker"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, actionValues);
         actionsDropdownList.setAdapter(adapter);
@@ -111,10 +119,14 @@ public class SomeActivityWithMap extends AppCompatActivity {
                     }
                 }
             }
+
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
+            public void onStartTrackingTouch(SeekBar seekBar) {
+            }
+
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            public void onStopTrackingTouch(SeekBar seekBar) {
+            }
         });
 
         findViewById(R.id.btnGoMapAction).setOnClickListener(new View.OnClickListener() {
@@ -129,6 +141,8 @@ public class SomeActivityWithMap extends AppCompatActivity {
                 btnAdreessSearchPressed();
             }
         });
+
+        locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
     }
 
     private void btnMapActionPressed() {
@@ -162,12 +176,12 @@ public class SomeActivityWithMap extends AppCompatActivity {
             }
             break;
             case 2: // Put marker
-            googleMap.addMarker(new MarkerOptions()
-                    .title("marker (" + (++markersCounter) + ")")
-                    .draggable(true)
-                    .position(cameraTarget)) // The 'MarkerOptions' constructor works with Fluent Pattern
-                    .setSnippet(geoLocationString); // The 'addMarker' almost works with Fluent Pattern, it returns the instance of the added marker
-            break;
+                googleMap.addMarker(new MarkerOptions()
+                        .title("marker (" + (++markersCounter) + ")")
+                        .draggable(true)
+                        .position(cameraTarget)) // The 'MarkerOptions' constructor works with Fluent Pattern
+                        .setSnippet(geoLocationString); // The 'addMarker' almost works with Fluent Pattern, it returns the instance of the added marker
+                break;
             default:
                 break;
         }
@@ -219,10 +233,9 @@ public class SomeActivityWithMap extends AppCompatActivity {
 
     public boolean isGoogleMapsInstalled() {
         try {
-            ApplicationInfo info = getPackageManager().getApplicationInfo("com.google.android.apps.maps", 0 );
+            ApplicationInfo info = getPackageManager().getApplicationInfo("com.google.android.apps.maps", 0);
             return info != null;
-        }
-        catch(PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException e) {
             return false;
         }
     }
@@ -241,7 +254,6 @@ public class SomeActivityWithMap extends AppCompatActivity {
                 // Allow to (try to) set
                 googleMap.setMyLocationEnabled(true);
                 takeCameraToAfeka(null);
-                getCurrentLocation();
             } catch (SecurityException exception) {
                 PerrFuncs.toast("Error getting location");
             }
@@ -251,22 +263,38 @@ public class SomeActivityWithMap extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
-        LocationManager locationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
-        Location location = null;
+        boolean isAccessGranted;
 
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            // Because the user's permissions started only from Android M and on...
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-        } else if (getApplicationContext().checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-                getApplicationContext().checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // The user blocked the location services of THIS app
-            String[] permissionsToAsk = new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
-            requestPermissions(permissionsToAsk, REQUEST_CODE_FOR_LOCATION_PERMISSIONS);
-        } else {
-            location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            String fineLocationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
+            String coarseLocationPermission = Manifest.permission.ACCESS_COARSE_LOCATION;
+            if (getApplicationContext().checkSelfPermission(fineLocationPermission) != PackageManager.PERMISSION_GRANTED ||
+                    getApplicationContext().checkSelfPermission(coarseLocationPermission) != PackageManager.PERMISSION_GRANTED) {
+                // The user blocked the location services of THIS app / not yet approved
+                isAccessGranted = false;
+                if (!didAlreadyRequestLocationPermission) {
+                    didAlreadyRequestLocationPermission = true;
+                    String[] permissionsToAsk = new String[]{fineLocationPermission, coarseLocationPermission};
+                    requestPermissions(permissionsToAsk, LOCATION_PERMISSION_REQUEST_CODE);
+                }
+            } else {
+                // Because the user's permissions started only from Android M and on...
+                isAccessGranted = true;
+            }
+
+            if (currentLocation == null) {
+                currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            }
+
+
+            if (isAccessGranted) {
+                float metersToUpdate = 1;
+                long intervalMilliseconds = 1000;
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMilliseconds, metersToUpdate, this);
+            }
         }
-        //PerrFuncs.performGetRequest(formatForReverseGeocoding);
-        Log.d(TAG, "getCurrentLocation: " + location);
+
+        Log.d(TAG, "getCurrentLocation: " + currentLocation);
 
         String searchAddressUrl = String.format(Locale.US, formatForReverseGeocoding, 32.1226496f, 34.8240027f, apiKey);
         PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
@@ -306,10 +334,42 @@ public class SomeActivityWithMap extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+
+        getCurrentLocation();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        locationManager.removeUpdates(this);
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        currentLocation = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        Log.d(TAG, "onStatusChanged: " + provider);
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (REQUEST_CODE_FOR_LOCATION_PERMISSIONS == requestCode) {
+        if (LOCATION_PERMISSION_REQUEST_CODE == requestCode) {
             Log.d(TAG, "onRequestPermissionsResult: user granted location permissions " + Arrays.toString(grantResults));
         }
     }
