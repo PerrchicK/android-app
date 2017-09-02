@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="location_spinner_options">
+        <item>Go to Afeka</item>
+        <item>Copy target</item>
+        <item>Put marker</item>
+        <item>Go to current location</item>
+    </string-array>
+</resources>

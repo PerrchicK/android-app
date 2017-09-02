@@ -97,7 +97,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
         }
 
         this.actionsDropdownList = (Spinner) findViewById(R.id.spinner_maps_actions);
-        final String[] actionValues = new String[]{"Go to Afeka", "Copy target", "Put marker"};
+        final String[] actionValues = getResources().getStringArray(R.array.location_spinner_options);
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, actionValues);
         actionsDropdownList.setAdapter(adapter);
 
@@ -167,8 +167,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
                     }
                 });
                 break;
-            case 1: // Copy current target to clipboard
-            {
+            case 1: { // Copy current target to clipboard
                 ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
                 ClipData clipData = ClipData.newPlainText("geocode", geoLocationString);
                 clipboardManager.setPrimaryClip(clipData); //text/plain
@@ -181,6 +180,11 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
                         .draggable(true)
                         .position(cameraTarget)) // The 'MarkerOptions' constructor works with Fluent Pattern
                         .setSnippet(geoLocationString); // The 'addMarker' almost works with Fluent Pattern, it returns the instance of the added marker
+                break;
+            case 3: // Go to current location
+                if (currentLocation != null) {
+                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+                }
                 break;
             default:
                 break;
@@ -318,7 +322,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
                                 .getJSONObject(1)
                                 .getString("long_name");
                         // All good
-                        String currentLocationMessage = "You are currently at (street name): '" + streetName + "'";
+                        String currentLocationMessage = "The map is currently on street: '" + streetName + "'";
                         PerrFuncs.toast(currentLocationMessage);
                         Log.v(TAG, currentLocationMessage);
 
