@@ -45,10 +45,10 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
     private static final String TAG = SomeActivityWithMap.class.getSimpleName();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = -100;
 
-    final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
-    final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
-    final String formatForAutocompletePlacesSearch = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&types=address&language=iw&key=%s";
-    final String apiKey = "AIzaSyDC5LC2DDP6Vi11nVw53q7uAyxyVhOfbxw"; // Different from the Maps API key
+    private final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
+    private final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
+    private final String formatForAutocompletePlacesSearch = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&types=address&language=iw&key=%s";
+    private final String apiKey = "AIzaSyDC5LC2DDP6Vi11nVw53q7uAyxyVhOfbxw"; // Different from the Maps API key
 
     private GoogleMap googleMap;
     private TextView lblZoom;
@@ -270,8 +270,8 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
         boolean isAccessGranted;
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String fineLocationPermission = Manifest.permission.ACCESS_FINE_LOCATION;
-            String coarseLocationPermission = Manifest.permission.ACCESS_COARSE_LOCATION;
+            String fineLocationPermission = android.Manifest.permission.ACCESS_FINE_LOCATION;
+            String coarseLocationPermission = android.Manifest.permission.ACCESS_COARSE_LOCATION;
             if (getApplicationContext().checkSelfPermission(fineLocationPermission) != PackageManager.PERMISSION_GRANTED ||
                     getApplicationContext().checkSelfPermission(coarseLocationPermission) != PackageManager.PERMISSION_GRANTED) {
                 // The user blocked the location services of THIS app / not yet approved
@@ -286,12 +286,11 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
                 isAccessGranted = true;
             }
 
-            if (currentLocation == null) {
-                currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            }
-
-
             if (isAccessGranted) {
+                if (currentLocation == null) {
+                    currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                }
+
                 float metersToUpdate = 1;
                 long intervalMilliseconds = 1000;
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMilliseconds, metersToUpdate, this);
