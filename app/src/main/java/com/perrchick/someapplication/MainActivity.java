@@ -492,7 +492,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void presentMapActivity() {
-        startActivity(new Intent(this, SomeActivityWithMap.class));
+        startActivity(new Intent(this, SomeMapActivity.class));
     }
 
     private enum TicTacToeButtonPlayer {

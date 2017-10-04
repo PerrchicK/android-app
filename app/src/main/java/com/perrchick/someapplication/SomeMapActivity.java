@@ -3,7 +3,6 @@ package com.perrchick.someapplication;
 import android.app.FragmentTransaction;
 import android.content.ClipData;
 import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -30,7 +29,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.perrchick.someapplication.utilities.PerrFuncs;
@@ -43,8 +41,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Locale;
 
-public class SomeActivityWithMap extends AppCompatActivity implements LocationListener {
-    private static final String TAG = SomeActivityWithMap.class.getSimpleName();
+public class SomeMapActivity extends AppCompatActivity implements LocationListener {
+    private static final String TAG = SomeMapActivity.class.getSimpleName();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = -100;
 
     private final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
@@ -66,7 +64,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_some_activity_with_map);
+        setContentView(R.layout.activity_some_map);
         PerrFuncs.hideActionBarOfActivity(this);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 

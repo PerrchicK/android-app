@@ -4,7 +4,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.perrchick.someapplication.SomeActivityWithMap">
+    tools:context="com.perrchick.someapplication.SomeMapActivity">
 
     <RelativeLayout
         android:layout_width="fill_parent"

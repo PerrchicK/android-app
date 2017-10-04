@@ -107,7 +107,7 @@ public class NotificationsActivity extends AppCompatActivity {
         sendFcmNotificationUsingUrlRequest(generateNotificationPayload("Test", "From Android"), data, new String[]{fcmToken}, new PerrFuncs.CallbacksHandler() {
             @Override
             public void callbackWithObject(Object callbackObject) {
-                Log.d(TAG, "callbackWithObject: " + callbackObject);
+                Log.d(TAG, "sendFcmNotificationUsingUrlRequest: " + callbackObject);
             }
         });
     }
