@@ -50,17 +50,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private LinearLayout boardLayout;
     private GridLayout mGridLayout;
     private int threadCounter = 0;
+    private Intent intentToHandle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (getIntent() != null && getIntent().getExtras() != null && getIntent().getExtras().containsKey("data")) {
-            String data = getIntent().getExtras().getString("data");
-            if (data != null && data.length() > 0) {
-                PerrFuncs.toast("Got data from notification: " + getIntent().getExtras().getString("data"));
-            }
-        }
 
         setContentView(R.layout.activity_main);
 
@@ -172,6 +166,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+
+        intentToHandle = intent;
+    }
+
+    @Override
     public void onResume() {
         // Starts interaction with the user
         super.onResume();
@@ -179,6 +180,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         putNewBoard();
 
         printAllViews();
+
+        Intent intent = getIntent();
+        if (intentToHandle == null && intent != null) {
+            intentToHandle = intent;
+        }
+        handleIntent();
+    }
+
+    private void handleIntent() {
+        if (intentToHandle == null || !intentToHandle.hasExtra(NotificationsActivity.EXTRA_NOTIFICATION_DATA_KEY)) return;
+
+        String data = intentToHandle.getStringExtra(NotificationsActivity.EXTRA_NOTIFICATION_DATA_KEY);
+        if (data != null && data.length() > 0) {
+            PerrFuncs.toast("Got data from notification: " + data);
+
+            Integer activityId = Integer.valueOf(data);
+            switch (activityId) {
+                case 1:
+                    presentMapActivity();
+                    break;
+                case 2:
+                    presentAnimationsActivity();
+                    break;
+                case 3:
+                    presentStorageActivity();
+                    break;
+            }
+        }
+        intentToHandle = null;
+        setIntent(null);
     }
 
     @Override
@@ -382,6 +413,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case NOTIFICATION_REQUEST_CODE:
                 String notificationTitle = data.getCharSequenceExtra(NotificationsActivity.EXTRA_NOTIFICATION_TITLE_KEY).toString();
                 PerrFuncs.toast("Scheduled notification: '" + notificationTitle + "'");
+                int timeFromNow = data.getIntExtra(NotificationsActivity.EXTRA_NOTIFICATION_DELAY_KEY, 0);
+                PerrFuncs.toast("Will notify in " + timeFromNow / 1000 + " seconds...");
         }
     }
 
@@ -396,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (id) {
             case R.id.action_go_to_animations:
                 // Example for explicit intent (the developer chooses the handler, not Android OS)
-                startActivity(new Intent(this, AnimationsActivity.class));
+                presentAnimationsActivity();
                 return true;
             /* An old implementation which is no longer needed, the rotation is demonstrated in the AnimationsActivity class
             case R.id.action_rotate: {
@@ -418,10 +451,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivityForResult(new Intent(this, NotificationsActivity.class), NOTIFICATION_REQUEST_CODE);
                 return true;
             case R.id.action_go_map:
-                startActivity(new Intent(this, SomeActivityWithMap.class));
+                presentMapActivity();
                 return true;
             case R.id.action_go_storage:
-                startActivity(new Intent(this, StorageActivity.class));
+                presentStorageActivity();
                 return true;
             case R.id.action_go_list:
                 startActivity(new Intent(this, ListActivity.class));
@@ -448,6 +481,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void presentAnimationsActivity() {
+        startActivity(new Intent(this, AnimationsActivity.class));
+    }
+
+    private void presentStorageActivity() {
+        startActivity(new Intent(this, StorageActivity.class));
+    }
+
+    private void presentMapActivity() {
+        startActivity(new Intent(this, SomeActivityWithMap.class));
     }
 
     private enum TicTacToeButtonPlayer {

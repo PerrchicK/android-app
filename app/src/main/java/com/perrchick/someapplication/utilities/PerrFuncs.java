@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
@@ -30,8 +31,10 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.perrchick.someapplication.Application;
+import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
 import java.io.IOException;
@@ -39,7 +42,9 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -47,6 +52,7 @@ import java.util.concurrent.TimeUnit;
  * Created by perrchick on 10/23/15.
  */
 public class PerrFuncs {
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static String TAG = PerrFuncs.class.getSimpleName();
     private static PerrFuncs _perrFuncsInstance;
     private final OkHttpClient httpClient;
@@ -97,20 +103,6 @@ public class PerrFuncs {
                 hour, minutes, 0);
 
         return calendar.getTimeInMillis();
-    }
-
-    public static boolean hasPermissionForLocationServices(Context context) {
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            // Because the user's permissions started only from Android M and on...
-            return true;
-        }
-
-        if (context.checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && context.checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // The user blocked the location services of THIS app
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -171,30 +163,48 @@ public class PerrFuncs {
         return null;
     }
 
+    public static void makePostRequest(String jsonString, String urlString, HashMap<String, String> httpHeaders, CallbacksHandler callbacksHandler) {
+        getInstance().performRequest(jsonString, "post", urlString, httpHeaders, callbacksHandler);
+    }
+
+    public static void makeGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
+        getInstance().performRequest(null, null, urlString, null, callbacksHandler);
+    }
+
     /**
-     * Makes a network request and fetches an image from the specified URL.
+     * Performs a network request to the specified URL with the given parameters.
      *
-     * @param urlString The URL path to the web GET request.
+     * @param urlString The URL of the URL request.
      * @return A response object if the request succeeded, otherwise it returns null.
      */
-    public static void performGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
-        // An open source project, downloaded from gradle
+    void performRequest(@Nullable String jsonString, @Nullable String method, final String urlString, @Nullable HashMap<String, String> httpHeaders, final PerrFuncs.CallbacksHandler callbacksHandler) {
         try {
-            final Request request = new Request.Builder()
-                    .url(urlString)
-                    .build();
+            Request.Builder builder = new Request.Builder()
+                    .url(urlString);
+
+            if (httpHeaders != null) {
+                for (Map.Entry<String, String> httpHeaderKey : httpHeaders.entrySet()) {
+                    builder.header(httpHeaderKey.getKey(), httpHeaderKey.getValue());
+                }
+            }
+
+            if (jsonString != null && method != null && method.toLowerCase().equals("post")) {
+                builder.post(RequestBody.create(JSON, jsonString));
+            }
+
+            final Request request = builder.build();
 
             new Thread(new Runnable() {
                 @Override
                 public void run() {
                     Response response = null;
                     try {
-                        response = getInstance().httpClient.newCall(request).execute();
+                        response = httpClient.newCall(request).execute(); // OkHttpClient - An open source project, downloaded from gradle
                     } catch (IOException e) {
                         e.printStackTrace();
-                        Log.e(TAG, "performGetRequest: Failed to perform request url from string '" + urlString + "', exception: " + e.toString());
+                        Log.e(TAG, "performRequest: Failed to perform url request with string '" + urlString + "', exception: " + e.toString());
                         if (callbacksHandler != null)
-                            callbacksHandler.callbackWithObject(response);
+                            callbacksHandler.callbackWithObject(null);
                     }
 
                     if (callbacksHandler != null)
@@ -202,7 +212,7 @@ public class PerrFuncs {
                 }
             }).start();
         } catch (IllegalArgumentException e) {
-            Log.e(TAG, "performGetRequest: Failed to create request url from string '" + urlString + "'");
+            Log.e(TAG, "performRequest: Failed to create url request with string '" + urlString + "'");
             if (callbacksHandler != null)
                 callbacksHandler.callbackWithObject(null);
         }

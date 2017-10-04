@@ -3,6 +3,7 @@ package com.perrchick.someapplication;
 import android.app.FragmentTransaction;
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -29,6 +30,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.perrchick.someapplication.utilities.PerrFuncs;
@@ -182,18 +184,26 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
                         .setSnippet(geoLocationString); // The 'addMarker' almost works with Fluent Pattern, it returns the instance of the added marker
                 break;
             case 3: // Go to current location
-                if (currentLocation != null) {
-                    googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
-                }
+                takeCameraToCurrentLocation();
                 break;
             default:
                 break;
         }
     }
 
+    private void takeCameraToCurrentLocation() {
+        if (currentLocation != null) {
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude())));
+        } else {
+            if (!isPermissionForLocationServicesGranted()) {
+                requestLocationPermissionsIfNeeded(true);
+            }
+        }
+    }
+
     private void btnAdreessSearchPressed() {
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, this.txtAddress.getText().toString(), apiKey);
-        PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
             public void callbackWithObject(Object callbackObject) {
                 try {
@@ -252,7 +262,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
         this.googleMap = googleMap;
         //googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE); // Unmark to see the changes...
 
-        boolean isAllowedToUseLocation = PerrFuncs.hasPermissionForLocationServices(getApplicationContext());
+        boolean isAllowedToUseLocation = isPermissionForLocationServicesGranted();
         if (isAllowedToUseLocation) {
             try {
                 // Allow to (try to) set
@@ -266,41 +276,30 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
         }
     }
 
+    private boolean isPermissionForLocationServicesGranted() {
+        return android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
+                (!(checkSelfPermission(android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED));
+
+    }
+
+    @SuppressWarnings("MissingPermission")
     private void getCurrentLocation() {
-        boolean isAccessGranted;
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            String fineLocationPermission = android.Manifest.permission.ACCESS_FINE_LOCATION;
-            String coarseLocationPermission = android.Manifest.permission.ACCESS_COARSE_LOCATION;
-            if (getApplicationContext().checkSelfPermission(fineLocationPermission) != PackageManager.PERMISSION_GRANTED ||
-                    getApplicationContext().checkSelfPermission(coarseLocationPermission) != PackageManager.PERMISSION_GRANTED) {
-                // The user blocked the location services of THIS app / not yet approved
-                isAccessGranted = false;
-                if (!didAlreadyRequestLocationPermission) {
-                    didAlreadyRequestLocationPermission = true;
-                    String[] permissionsToAsk = new String[]{fineLocationPermission, coarseLocationPermission};
-                    requestPermissions(permissionsToAsk, LOCATION_PERMISSION_REQUEST_CODE);
-                }
-            } else {
-                // Because the user's permissions started only from Android M and on...
-                isAccessGranted = true;
+        if (requestLocationPermissionsIfNeeded(false)) {
+            if (currentLocation == null) {
+                currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             }
 
-            if (isAccessGranted) {
-                if (currentLocation == null) {
-                    currentLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                }
-
-                float metersToUpdate = 1;
-                long intervalMilliseconds = 1000;
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMilliseconds, metersToUpdate, this);
-            }
+            float metersToUpdate = 1;
+            long intervalMilliseconds = 1000;
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMilliseconds, metersToUpdate, this);
         }
+
 
         Log.d(TAG, "getCurrentLocation: " + currentLocation);
 
         String searchAddressUrl = String.format(Locale.US, formatForReverseGeocoding, 32.1226496f, 34.8240027f, apiKey);
-        PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
             public void callbackWithObject(Object callbackObject) {
                 try {
@@ -336,9 +335,33 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
         });
     }
 
+    private boolean requestLocationPermissionsIfNeeded(boolean byUserAction) {
+        boolean isAccessGranted;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            String fineLocationPermission = android.Manifest.permission.ACCESS_FINE_LOCATION;
+            String coarseLocationPermission = android.Manifest.permission.ACCESS_COARSE_LOCATION;
+            isAccessGranted = getApplicationContext().checkSelfPermission(fineLocationPermission) == PackageManager.PERMISSION_GRANTED &&
+                    getApplicationContext().checkSelfPermission(coarseLocationPermission) == PackageManager.PERMISSION_GRANTED;
+            if (!isAccessGranted) { // The user blocked the location services of THIS app / not yet approved
+
+                if (!didAlreadyRequestLocationPermission || byUserAction) {
+                    didAlreadyRequestLocationPermission = true;
+                    String[] permissionsToAsk = new String[]{fineLocationPermission, coarseLocationPermission};
+                    requestPermissions(permissionsToAsk, LOCATION_PERMISSION_REQUEST_CODE);
+                }
+            }
+        } else {
+            // Because the user's permissions started only from Android M and on...
+            isAccessGranted = true;
+        }
+
+        return isAccessGranted;
+    }
+
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onResume() {
+        super.onResume();
 
         getCurrentLocation();
     }
@@ -391,7 +414,7 @@ public class SomeActivityWithMap extends AppCompatActivity implements LocationLi
             return;
 
         String searchAddressUrl = String.format(Locale.US, formatForGeocodeFromAddress, address, apiKey);
-        PerrFuncs.performGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
             @Override
             public void callbackWithObject(Object callbackObject) {
                 try {

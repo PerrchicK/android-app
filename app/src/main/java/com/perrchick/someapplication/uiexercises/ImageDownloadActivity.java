@@ -59,7 +59,7 @@ public class ImageDownloadActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     public void run() {
                         // The "long operation"
-                        PerrFuncs.performGetRequest(imageUrl, new PerrFuncs.CallbacksHandler() {
+                        PerrFuncs.makeGetRequest(imageUrl, new PerrFuncs.CallbacksHandler() {
                             @Override
                             public void callbackWithObject(Object callbackObject) {
                                 if (callbackObject instanceof Response) {

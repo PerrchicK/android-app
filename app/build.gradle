@@ -4,13 +4,6 @@ android {
     compileSdkVersion 25
     buildToolsVersion '25.0.2'
 
-    // To prevent 'duplicate' compilation errors in firebase integration
-    packagingOptions {
-        exclude 'META-INF/LICENSE'
-        exclude 'META-INF/LICENSE-FIREBASE.txt'
-        exclude 'META-INF/NOTICE'
-    }
-
     defaultConfig {
         applicationId "com.perrchick.someapplication"
         minSdkVersion 19
@@ -24,6 +17,11 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+    }
 }
 
 dependencies {
@@ -32,8 +30,8 @@ dependencies {
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
 
-    //compile 'com.backendless:backendless:3.0.8.1'
-    //compile project(':onlinesharedpreferences')
+    compile 'com.backendless:backendless:3.0.8.1'
+    compile project(':onlinesharedpreferences')
     compile 'com.android.support:recyclerview-v7:24.0.0'
     compile 'com.android.support:appcompat-v7:25.0.1'
     compile 'com.yalantis:starwarstiles:0.1.0'
@@ -41,5 +39,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.facebook.stetho:stetho:1.5.0'
-    compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
+    //compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
 }

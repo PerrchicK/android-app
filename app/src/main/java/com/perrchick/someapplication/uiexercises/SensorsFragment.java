@@ -150,6 +150,7 @@ public class SensorsFragment extends Fragment {
         shouldCount = false;
 
         txtCounter.setCurrentText("---");
+        getActivity().getApplicationContext().unregisterReceiver(broadcastReceiver); // remove this line and see what happens
         super.onPause();
     }
 
@@ -157,7 +158,6 @@ public class SensorsFragment extends Fragment {
     public void onStop() {
         super.onStop();
 
-        getActivity().getApplicationContext().unregisterReceiver(broadcastReceiver);
         //OR: LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(broadcastReceiver);
     }
 
