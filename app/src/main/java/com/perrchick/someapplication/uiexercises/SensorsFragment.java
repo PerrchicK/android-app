@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SensorService;
+import com.perrchick.someapplication.data.SomePojo;
 
 import java.util.Arrays;
 
@@ -99,9 +100,10 @@ public class SensorsFragment extends Fragment {
             @Override
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(SensorService.SENSOR_SERVICE_BROADCAST_ACTION)) {
-                    Parcelable parcelableRecord = intent.getParcelableExtra(SensorService.PARCEL_RECORD_KEY);
-                    if (parcelableRecord != null) {
-                        Log.v(getTag(), "onReceive: parcelableRecord == " + parcelableRecord);
+                    SomePojo parcelablePojo = intent.getParcelableExtra(SensorService.PARCEL_OBJECT_KEY);
+                    if (parcelablePojo != null) {
+//                        Log.v(getTag(), "onReceive: parcelablePojo == " + parcelablePojo);
+                        parcelablePojo.setLatitude(parcelablePojo.getLatitude() + 0.1);
                     }
                     senseDetected(intent.getFloatArrayExtra(SensorService.SENSOR_SERVICE_VALUES_KEY));
                 }

@@ -23,7 +23,7 @@ import java.util.List;
 public class SensorService extends Service implements SensorEventListener {
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
-    public static final String PARCEL_RECORD_KEY = "record";
+    public static final String PARCEL_OBJECT_KEY = "some_parceled_object";
 
     private static final String TAG = SensorService.class.getSimpleName();
     protected SensorServiceBinder sensorServiceBinder = new SensorServiceBinder();// An IBinder implementation subclass
@@ -74,7 +74,7 @@ public class SensorService extends Service implements SensorEventListener {
         somePojo.setLatitude(32.1151989);
         somePojo.setLongitude(34.8196429);
 
-        broadcastIntent.putExtra(PARCEL_RECORD_KEY, somePojo);
+        broadcastIntent.putExtra(PARCEL_OBJECT_KEY, somePojo);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
         //Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
         sendBroadcast(broadcastIntent);

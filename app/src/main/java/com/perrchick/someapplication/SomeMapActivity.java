@@ -13,6 +13,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Gravity;
@@ -43,7 +44,7 @@ import java.util.Locale;
 
 public class SomeMapActivity extends AppCompatActivity implements LocationListener {
     private static final String TAG = SomeMapActivity.class.getSimpleName();
-    private static final int LOCATION_PERMISSION_REQUEST_CODE = -100;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 100;
 
     private final String formatForGeocodeFromAddress = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s";
     private final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
@@ -293,7 +294,6 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, intervalMilliseconds, metersToUpdate, this);
         }
 
-
         Log.d(TAG, "getCurrentLocation: " + currentLocation);
 
         String searchAddressUrl = String.format(Locale.US, formatForReverseGeocoding, 32.1226496f, 34.8240027f, apiKey);
@@ -346,7 +346,8 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
                 if (!didAlreadyRequestLocationPermission || byUserAction) {
                     didAlreadyRequestLocationPermission = true;
                     String[] permissionsToAsk = new String[]{fineLocationPermission, coarseLocationPermission};
-                    requestPermissions(permissionsToAsk, LOCATION_PERMISSION_REQUEST_CODE);
+                    // IllegalArgumentException: Can only use lower 16 bits for requestCode
+                    ActivityCompat.requestPermissions(this, permissionsToAsk, LOCATION_PERMISSION_REQUEST_CODE);
                 }
             }
         } else {
