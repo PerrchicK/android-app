@@ -32,6 +32,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -158,33 +160,30 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
 
                 final Object pressedKey = StorageActivity.this.listOfBackendlessSavedObjects.getAdapter().getItem(position);
                 Object oldValue = objects.get(pressedKey.toString());
-                getTextFromUser("New string", oldValue.toString(), new PerrFuncs.CallbacksHandler() {
+                getTextFromUser("New string", oldValue.toString(), new PerrFuncs.CallbacksHandler<String>() {
                     @Override
-                    public void callbackWithObject(Object callbackObject) {
-                        if (callbackObject == null) { // Delete
-                            PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.CallbacksHandler() {
+                    public void onCallback(final String newValue) {
+                        if (newValue == null) { // Delete
+                            PerrFuncs.askUser(StorageActivity.this, "Delete?", new PerrFuncs.CallbacksHandler<Boolean>() {
                                 @Override
-                                public void callbackWithObject(Object callbackObject) {
-                                    if (callbackObject instanceof Boolean) {
-                                        if ((Boolean) callbackObject) {
-                                            db_backendlessSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
-                                                @Override
-                                                public void done(BackendlessException e) {
-                                                    if (e == null) {
-                                                        PerrFuncs.toast("Deleted");
-                                                        refreshBackendlessList();
-                                                    } else {
-                                                        PerrFuncs.toast("Failed to delete, Exception: " + e.toString());
-                                                    }
+                                public void onCallback(Boolean callbackObject) {
+                                    if (callbackObject != null && callbackObject) {
+                                        db_backendlessSharedPreferences.remove(pressedKey.toString(), new OnlineSharedPreferences.RemoveCallback() {
+                                            @Override
+                                            public void done(BackendlessException e) {
+                                                if (e == null) {
+                                                    PerrFuncs.toast("Deleted");
+                                                    refreshBackendlessList();
+                                                } else {
+                                                    PerrFuncs.toast("Failed to delete, Exception: " + e.toString());
                                                 }
-                                            });
-                                        }
+                                            }
+                                        });
                                     }
                                 }
                             });
-                        } else if (callbackObject instanceof String) {
+                        } else {
                             final String key = (String) pressedKey;
-                            final String newValue = (String) callbackObject;
                             saveInBackendlessCloud(key, newValue, new OnlineSharedPreferences.CommitCallback() {
                                 @Override
                                 public void done(BackendlessException e) {
@@ -216,33 +215,30 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
                 valueTextInput.setHint("value");
                 EditText[] textInputs = new EditText[]{keyTextInput, valueTextInput};
 
-                PerrFuncs.getTextsFromUser(storageActivity, "Add new <key,value>", textInputs , new PerrFuncs.CallbacksHandler() {
+                PerrFuncs.getTextsFromUser(storageActivity, "Add new <key,value>", textInputs , new PerrFuncs.CallbacksHandler<ArrayList<String>>() {
                     @Override
-                    public void callbackWithObject(Object callbackObject) {
-                        if (callbackObject instanceof ArrayList) {
-                            ArrayList<String> texts = (ArrayList<String>) callbackObject;
-                            String key = texts.get(0);
-                            String value = texts.get(1);
+                    public void onCallback(ArrayList<String> texts) {
+                        String key = texts.get(0);
+                        String value = texts.get(1);
 
-                            // Validate
-                            if (key.length() == 0 && value.length() == 0) {
-                                return;
-                            }
-
-                            // <key,value> are valid, proceed...
-                            db_backendlessSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
-                                @Override
-                                public void done(BackendlessException e) {
-                                    if (e == null) {
-                                        PerrFuncs.toast("Added!");
-                                        refreshBackendlessList();
-                                    } else {
-                                        PerrFuncs.toast("Error in adding  <"+","+">" + e.toString());
-                                    }
-
-                                }
-                            });
+                        // Validate
+                        if (key.length() == 0 && value.length() == 0) {
+                            return;
                         }
+
+                        // <key,value> are valid, proceed...
+                        db_backendlessSharedPreferences.putString(key, value).commitInBackground(new OnlineSharedPreferences.CommitCallback() {
+                            @Override
+                            public void done(BackendlessException e) {
+                                if (e == null) {
+                                    PerrFuncs.toast("Added!");
+                                    refreshBackendlessList();
+                                } else {
+                                    PerrFuncs.toast("Error in adding  <" + "," + ">" + e.toString());
+                                }
+
+                            }
+                        });
                     }
                 });
                 //saveInBackendlessCloud(key, value);
@@ -293,11 +289,37 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     protected void onStart() {
         super.onStart();
 
+        loadObjectFromFile();
+
         try {
             String dropdownListSelectedItem = readStringFromFile("dropdownListSelectedItem");
             Log.d(TAG, "onStart: dropdownListSelectedItem == " + dropdownListSelectedItem);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void loadObjectFromFile() {
+        File localFilesDir = getFilesDir();
+        String localFilePath = localFilesDir + "/" + SomePojo.class.getSimpleName();
+        File localFile = new File(localFilePath);
+        SomePojo somePojo = null;
+
+        try {
+            FileInputStream fileInputStream = new FileInputStream(localFile);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+            somePojo = (SomePojo) objectInputStream.readObject();
+            fileInputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        if (somePojo != null) {
+            Log.d(TAG, "Loaded: " + somePojo);
         }
     }
 
@@ -372,7 +394,28 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
             e.printStackTrace();
         }
 
+        saveObjectToFile();
+    }
 
+    private void saveObjectToFile() {
+
+        SomePojo somePojo = new SomePojo();
+        somePojo.setName("temp");
+        somePojo.setPhoneNumber("050----");
+
+        File localFilesDir = getFilesDir();
+        String localFilePath = localFilesDir + "/" + SomePojo.class.getSimpleName();
+        File localFile = new File(localFilePath);
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(localFile);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(somePojo);
+            fileOutputStream.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private SomePojo generateSomePojo() {
@@ -475,7 +518,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         saveInBackendlessCloud(key, value, null);
     }
 
-    public void getTextFromUser(String title, String defaultText, final PerrFuncs.CallbacksHandler callbacksHandler) {
+    public void getTextFromUser(String title, String defaultText, final PerrFuncs.CallbacksHandler<String> callbacksHandler) {
         if (callbacksHandler == null) {
             return;
         }
@@ -496,13 +539,13 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String result = inputText.getText().toString();
-                callbacksHandler.callbackWithObject(result);
+                callbacksHandler.onCallback(result);
             }
         });
         builder.setNeutralButton("Delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callbacksHandler.callbackWithObject(null);
+                callbacksHandler.onCallback(null);
             }
         });
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
