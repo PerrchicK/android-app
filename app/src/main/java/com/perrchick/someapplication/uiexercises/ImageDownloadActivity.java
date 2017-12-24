@@ -59,26 +59,23 @@ public class ImageDownloadActivity extends AppCompatActivity {
                 new Thread(new Runnable() {
                     public void run() {
                         // The "long operation"
-                        PerrFuncs.makeGetRequest(imageUrl, new PerrFuncs.CallbacksHandler() {
+                        PerrFuncs.makeGetRequest(imageUrl, new PerrFuncs.CallbacksHandler<Response>() {
                             @Override
-                            public void callbackWithObject(Object callbackObject) {
-                                if (callbackObject instanceof Response) {
-                                    Response response = (Response) callbackObject;
-                                    try {
-                                        final Bitmap bmp = BitmapFactory.decodeStream(response.body().byteStream());
+                            public void onCallback(Response response) {
+                                try {
+                                    final Bitmap bmp = BitmapFactory.decodeStream(response.body().byteStream());
 
-                                        // We shouldn't update UI in the worker thread, only on the UI Thread (main thread).
-                                        // Let's do it with "Handler -> post(runnable)":
-                                        handler.post(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                imageView.setImageBitmap(bmp);
-                                            }
-                                        });
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                        PerrFuncs.toast("Error downloading the image");
-                                    }
+                                    // We shouldn't update UI in the worker thread, only on the UI Thread (main thread).
+                                    // Let's do it with "Handler -> post(runnable)":
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            imageView.setImageBitmap(bmp);
+                                        }
+                                    });
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    PerrFuncs.toast("Error downloading the image");
                                 }
                             }
                         });

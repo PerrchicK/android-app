@@ -177,7 +177,7 @@ public class PerrFuncs {
      * @param urlString The URL of the URL request.
      * @return A response object if the request succeeded, otherwise it returns null.
      */
-    void performRequest(@Nullable String jsonString, @Nullable String method, final String urlString, @Nullable HashMap<String, String> httpHeaders, final PerrFuncs.CallbacksHandler callbacksHandler) {
+    void performRequest(@Nullable String jsonString, @Nullable String method, final String urlString, @Nullable HashMap<String, String> httpHeaders, final PerrFuncs.CallbacksHandler<Response> callbacksHandler) {
         try {
             Request.Builder builder = new Request.Builder()
                     .url(urlString);
@@ -204,21 +204,22 @@ public class PerrFuncs {
                         e.printStackTrace();
                         Log.e(TAG, "performRequest: Failed to perform url request with string '" + urlString + "', exception: " + e.toString());
                         if (callbacksHandler != null)
-                            callbacksHandler.callbackWithObject(null);
+                            callbacksHandler.onCallback(null);
                     }
 
                     if (callbacksHandler != null)
-                        callbacksHandler.callbackWithObject(response);
+                        callbacksHandler.onCallback(response);
                 }
             }).start();
+
         } catch (IllegalArgumentException e) {
             Log.e(TAG, "performRequest: Failed to create url request with string '" + urlString + "'");
             if (callbacksHandler != null)
-                callbacksHandler.callbackWithObject(null);
+                callbacksHandler.onCallback(null);
         }
     }
 
-    public static void animateProperty(String whatProperty, Object ofWho, float from, float to, long millis, final CallbacksHandler onDoneHandler) {
+    public static void animateProperty(String whatProperty, Object ofWho, float from, float to, long millis, final CallbacksHandler<Animator> onDoneHandler) {
         ObjectAnimator fadeOut = ObjectAnimator.ofFloat(ofWho, whatProperty, from, to);
         fadeOut.setDuration(millis);
         fadeOut.addListener(new Animator.AnimatorListener() {
@@ -229,7 +230,7 @@ public class PerrFuncs {
             @Override
             public void onAnimationEnd(Animator animator) {
                 if (onDoneHandler != null){
-                    onDoneHandler.callbackWithObject(animator);
+                    onDoneHandler.onCallback(animator);
                 }
             }
 
@@ -248,8 +249,8 @@ public class PerrFuncs {
         animateProperty(whatProperty, ofWho, from, to, millis, null);
     }
 
-    public interface CallbacksHandler {
-        void callbackWithObject(Object callbackObject);
+    public interface CallbacksHandler<T> {
+        void onCallback(T callbackObject);
     }
 
     public static String getCurrentTime() {
@@ -338,7 +339,7 @@ public class PerrFuncs {
         });
     }
 
-    public static void askUser(Activity inActivity, String title, final CallbacksHandler callbacksHandler) {
+    public static void askUser(Activity inActivity, String title, final CallbacksHandler<Boolean> callbacksHandler) {
         if (callbacksHandler == null) {
             return;
         }
@@ -350,13 +351,13 @@ public class PerrFuncs {
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callbacksHandler.callbackWithObject(new Boolean(true));
+                callbacksHandler.onCallback(Boolean.TRUE);
             }
         });
         builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                callbacksHandler.callbackWithObject(new Boolean(false));
+                callbacksHandler.onCallback(Boolean.FALSE);
             }
         });
 
@@ -388,9 +389,10 @@ public class PerrFuncs {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String result = inputText.getText().toString();
-                callbacksHandler.callbackWithObject(result);
+                callbacksHandler.onCallback(result);
             }
         });
+
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -427,9 +429,10 @@ public class PerrFuncs {
                 for (EditText inputText:textInputs) {
                     texts.add(inputText.getText().toString());
                 }
-                callbacksHandler.callbackWithObject(texts);
+                callbacksHandler.onCallback(texts);
             }
         });
+
         builder.setNegativeButton(android.R.string.cancel, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

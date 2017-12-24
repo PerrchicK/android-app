@@ -162,9 +162,9 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                 spinnerContainer.setTranslationY(-PerrFuncs.screenHeightPixels());
                 spinnerContainer.setVisibility(View.VISIBLE);
                 spinnerContainer.invalidate();
-                PerrFuncs.animateProperty("alpha", AnimationsActivity.this.shrinkingText, 1, 0, 300, new PerrFuncs.CallbacksHandler() {
+                PerrFuncs.animateProperty("alpha", AnimationsActivity.this.shrinkingText, 1, 0, 300, new PerrFuncs.CallbacksHandler<Animator>() {
                     @Override
-                    public void callbackWithObject(Object callbackObject) {
+                    public void onCallback(Animator callbackObject) {
                         AnimationsActivity.this.shrinkingText.setVisibility(View.INVISIBLE); // What will happen in case we'll use 'View.GONE'?
                         // An example for ViewPropertyAnimator usage:
                         spinnerContainer.animate().translationY(0).setDuration(400).setStartDelay(500).start();

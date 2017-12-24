@@ -460,21 +460,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(new Intent(this, ListActivity.class));
                 return true;
             case R.id.action_download_image:
-                PerrFuncs.getTextFromUser(this, "Put a string for intent's extra data", new PerrFuncs.CallbacksHandler() {
+                PerrFuncs.getTextFromUser(this, "Put a string for intent's extra data", new PerrFuncs.CallbacksHandler<String>() {
                     @Override
-                    public void callbackWithObject(Object callbackObject) {
+                    public void onCallback(String callbackObject) {
                         Intent otherActivityIntent = new Intent();
                         otherActivityIntent.setComponent(new ComponentName(MainActivity.this, ImageDownloadActivity.class));
-                        otherActivityIntent.putExtra("data", (String) callbackObject);
+                        otherActivityIntent.putExtra("data", callbackObject);
                         startActivity(otherActivityIntent);
                     }
                 });
                 return true;
             case R.id.action_make_phone_call:
-                PerrFuncs.getTextFromUser(this, "What number should we call?", new PerrFuncs.CallbacksHandler() {
+                PerrFuncs.getTextFromUser(this, "What number should we call?", new PerrFuncs.CallbacksHandler<String>() {
                     @Override
-                    public void callbackWithObject(Object callbackObject) {
-                        PerrFuncs.callNumber(callbackObject + "", MainActivity.this);
+                    public void onCallback(String callbackObject) {
+                        PerrFuncs.callNumber(callbackObject, MainActivity.this);
                     }
                 });
                 return true;

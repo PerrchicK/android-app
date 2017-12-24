@@ -20,6 +20,7 @@ import android.widget.TimePicker;
 import com.google.gson.Gson;
 import com.perrchick.someapplication.utilities.NotificationPublisher;
 import com.perrchick.someapplication.utilities.PerrFuncs;
+import com.squareup.okhttp.Response;
 
 import java.util.HashMap;
 
@@ -60,7 +61,7 @@ public class NotificationsActivity extends AppCompatActivity {
 
                 // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
                 // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
-                Notification notification = new NotificationCompat.Builder(getApplicationContext())
+                Notification notification = new NotificationCompat.Builder(NotificationsActivity.this)
                         .setContentTitle(notificationTitle)
                         .setContentText(notificationText)
                         .setPriority(Notification.PRIORITY_MAX) // Determines how "naggy" will the notification be
@@ -104,10 +105,10 @@ public class NotificationsActivity extends AppCompatActivity {
         String fcmToken = "fJs_6MQ04-I:APA91bEzO5TPZsw56qIq2bSInMJbuKqD_4GaSN8wNDZb1qO9GtogJYO257KYC2I9GIvtNGqbzOq9g65UjIHGqwlo5C68u4FRyQWo6vRsWaoH03kOtF7mTLK3aJwHdkUUZ_MD3-iMwSgV";
         HashMap<String, String> data = new HashMap<>();
         data.put("more data", "some ID");
-        sendFcmNotificationUsingUrlRequest(generateNotificationPayload("Test", "From Android"), data, new String[]{fcmToken}, new PerrFuncs.CallbacksHandler() {
+        sendFcmNotificationUsingUrlRequest(generateNotificationPayload("Test", "From Android"), data, new String[]{fcmToken}, new PerrFuncs.CallbacksHandler<Response>() {
             @Override
-            public void callbackWithObject(Object callbackObject) {
-                Log.d(TAG, "sendFcmNotificationUsingUrlRequest: " + callbackObject);
+            public void onCallback(Response response) {
+                Log.d(TAG, "sendFcmNotificationUsingUrlRequest: " + response);
             }
         });
     }

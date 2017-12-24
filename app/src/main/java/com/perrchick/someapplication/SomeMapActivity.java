@@ -202,15 +202,11 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
 
     private void btnAdreessSearchPressed() {
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, this.txtAddress.getText().toString(), apiKey);
-        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler<Response>() {
             @Override
-            public void callbackWithObject(Object callbackObject) {
+            public void onCallback(Response callbackObject) {
                 try {
-                    if (!(callbackObject instanceof Response))
-                        return;
-
-                    Response response = (Response) callbackObject;
-                    String jsonData = response.body().string();
+                    String jsonData = callbackObject.body().string();
                     JSONObject jsonObject = new JSONObject(jsonData);
 
                     String responseStatus = jsonObject.getString("status");
@@ -297,15 +293,11 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
         Log.d(TAG, "getCurrentLocation: " + currentLocation);
 
         String searchAddressUrl = String.format(Locale.US, formatForReverseGeocoding, 32.1226496f, 34.8240027f, apiKey);
-        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler<Response>() {
             @Override
-            public void callbackWithObject(Object callbackObject) {
+            public void onCallback(Response callbackObject) {
                 try {
-                    if (!(callbackObject instanceof Response))
-                        return;
-
-                    Response response = (Response) callbackObject;
-                    String jsonData = response.body().string();
+                    String jsonData = callbackObject.body().string();
                     JSONObject jsonObject = new JSONObject(jsonData);
 
                     // Extract the status we get in the response from Google
@@ -413,15 +405,13 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
             return;
 
         String searchAddressUrl = String.format(Locale.US, formatForGeocodeFromAddress, address, apiKey);
-        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler() {
+        PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler<Response>() {
             @Override
-            public void callbackWithObject(Object callbackObject) {
-                try {
-                    if (!(callbackObject instanceof Response))
-                        return;
+            public void onCallback(Response callbackObject) {
+                if (callbackObject == null) return;
 
-                    Response response = (Response) callbackObject;
-                    String jsonData = response.body().string();
+                try {
+                    String jsonData = callbackObject.body().string();
                     JSONObject jsonObject = new JSONObject(jsonData);
 
                     String responseStatus = jsonObject.getString("status");
