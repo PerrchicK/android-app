@@ -21,6 +21,10 @@ import java.util.List;
  * Created by perrchick on 12/5/15.
  */
 public class SensorService extends Service implements SensorEventListener {
+
+    interface SensorServiceListener {
+        void onSensorValuesChanged(SensorService sensorService, float[] values);
+    }
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
     public static final String PARCEL_OBJECT_KEY = "some_parceled_object";
@@ -32,6 +36,7 @@ public class SensorService extends Service implements SensorEventListener {
     boolean isListening = false;
     HandlerThread sensorThread;
     private Handler sensorHandler;
+    private SensorServiceListener listener;
 
     @Override
     public void onCreate() {
@@ -74,10 +79,18 @@ public class SensorService extends Service implements SensorEventListener {
         somePojo.setLatitude(32.1151989);
         somePojo.setLongitude(34.8196429);
 
-        broadcastIntent.putExtra(PARCEL_OBJECT_KEY, somePojo);
+        //broadcastIntent.putExtra(PARCEL_OBJECT_KEY, somePojo);
         broadcastIntent.putExtra(SENSOR_SERVICE_VALUES_KEY, values);
         //Log.v(getTag(), "Notifying new values: " + Arrays.toString(broadcastIntent.getFloatArrayExtra(SENSOR_SERVICE_VALUES_KEY)));
         sendBroadcast(broadcastIntent);
+
+        if (listener != null) {
+            listener.onSensorValuesChanged(this, values);
+        }
+    }
+
+    public void setListener(SensorServiceListener listener) {
+        this.listener = listener;
     }
 
     public float getValues() {
@@ -122,7 +135,7 @@ public class SensorService extends Service implements SensorEventListener {
             // A.D: "you must provide an interface that clients use to communicate with the service, by returning an IBinder."
             Log.v(getTag(), SensorService.class.getSimpleName() + " has got a message from its binding activity. Message: " + msg);
 
-            if (msg == SensorServiceBinder.START_LISTENING && !isListening) { // Why can we
+            if (msg == SensorServiceBinder.START_LISTENING && !isListening) { // Why can we use this instead of equals?
                 List<Sensor> sensorList= sensorManager.getSensorList(Sensor.TYPE_ALL);
                 Log.v(getTag(), "Available sensors: " + sensorList);
                 Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Sensor.TYPE_GYROSCOPE will be null in Genymotion free edition

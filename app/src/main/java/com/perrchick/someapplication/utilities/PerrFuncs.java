@@ -249,6 +249,15 @@ public class PerrFuncs {
         animateProperty(whatProperty, ofWho, from, to, millis, null);
     }
 
+    public static int tryParseInt(String intString, int defaultValue) {
+        try {
+            defaultValue = Integer.parseInt(intString);
+        } catch (IllegalArgumentException e){
+            e.printStackTrace();
+        }
+        return defaultValue;
+    }
+
     public interface CallbacksHandler<T> {
         void onCallback(T callbackObject);
     }

@@ -30,9 +30,12 @@ import com.perrchick.someapplication.uiexercises.SensorsFragment;
 import com.perrchick.someapplication.uiexercises.list.ListActivity;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+import java.util.Arrays;
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorService.SensorServiceListener {
 
     static final int NOTIFICATION_REQUEST_CODE = 1000;
+
     private final String TAG = MainActivity.class.getSimpleName();
 
     private static final boolean SHOULD_USE_MOCK = false;
@@ -75,7 +78,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
                 bindService(new Intent(this, SensorServiceMock.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
             } else {
-                bindService(new Intent(this, SensorService.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+                Intent serviceIntent = new Intent(this, SensorService.class);
+                bindService(serviceIntent, sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
             }
             // Now, this activity has its own bound service, which broadcasts its own info.
             // In this specific case, a fragment listens to the service's broadcast
@@ -195,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (data != null && data.length() > 0) {
             PerrFuncs.toast("Got data from notification: " + data);
 
-            Integer activityId = Integer.valueOf(data);
+            Integer activityId = PerrFuncs.tryParseInt(data, 0);
             switch (activityId) {
                 case 1:
                     presentMapActivity();
@@ -219,6 +223,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // What if... we will put an animation inside the onPause event? Suggestions?
         explodeGrid();
 //        OnlineSharedPreferences.getOnlineSharedPreferences(this).putObject("tempFloat",new Float(4)).commitInBackground();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+
+        if (binder != null && binder.getService() != null) {
+            binder.getService().setListener(null);
+        }
     }
 
     @Override
@@ -257,16 +270,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 case R.id.verticalLinearLayout: {
                     FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
                     sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
-                    String sensorsFragmentTag = sensorsFragment.getTag();
 
                     if (sensorsFragment instanceof SensorsFragmentBlue) {
-                        if (fragmentManager.findFragmentByTag(SensorsFragmentRed.class.getSimpleName()) == null) {
+                        if (fragmentManager.findFragmentByTag(SensorsFragmentRed.TAG) == null) {
                             fragmentTransaction.hide(sensorsFragment);
                             sensorsFragment = new SensorsFragmentRed();
                             fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
                         }
                     } else {
-                        if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.class.getSimpleName()) == null) {
+                        if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.TAG) == null) {
                             fragmentTransaction.hide(sensorsFragment);
                             sensorsFragment = new SensorsFragmentBlue();
                             fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
@@ -495,6 +507,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivity(new Intent(this, SomeMapActivity.class));
     }
 
+    @Override
+    public void onSensorValuesChanged(SensorService sensorService, float[] values) {
+        Log.d(TAG, "onSensorValuesChanged: Accelerometer sensors state: " + Arrays.toString(values));
+    }
+
     private enum TicTacToeButtonPlayer {
         None,
         xPlayer,
@@ -529,6 +546,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {
             binder = (SensorService.SensorServiceBinder) service;
+            binder.getService().setListener(MainActivity.this);
             isServiceBound = true;
             notifyBoundService(SensorService.SensorServiceBinder.START_LISTENING);
         }

@@ -12,6 +12,8 @@ import com.perrchick.someapplication.uiexercises.SensorsFragment;
  * Created by perrchick on 12/4/15.
  */
 public class SensorsFragmentBlue extends SensorsFragment {
+    public static final String TAG = SensorsFragmentBlue.class.getSimpleName();
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Which is the same as: this.fragmentView (it doesn't really matter)
