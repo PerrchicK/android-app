@@ -403,7 +403,7 @@ public class PerrFuncs {
         builder.show();
     }
 
-    public static void getTextsFromUser(Activity inActivity, String title, final EditText[] textInputs, final CallbacksHandler callbacksHandler) {
+    public static void getTextsFromUser(Activity inActivity, String title, final EditText[] textInputs, final CallbacksHandler<ArrayList<String>> callbacksHandler) {
         if (callbacksHandler == null) {
             return;
         }
