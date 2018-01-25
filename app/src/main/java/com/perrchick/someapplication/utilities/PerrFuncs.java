@@ -275,7 +275,7 @@ public class PerrFuncs {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(getApplicationContext(), toastMessage, shortDelay ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                Toast.makeText(Application.getContext(), toastMessage, shortDelay ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -292,10 +292,6 @@ public class PerrFuncs {
         return Looper.myLooper() == Looper.getMainLooper();
     }
 
-    private static Context getApplicationContext() {
-        return Application.getContext();
-    }
-
     public static void callNumber(String phoneNumber) {
         callNumber(phoneNumber, Application.getTopActivity());
     }
@@ -304,7 +300,7 @@ public class PerrFuncs {
         // Example for implicit intent (the Android OS will choose the handler)
         Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
         phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));
-        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(Application.getContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -316,7 +312,7 @@ public class PerrFuncs {
         }
 
         // Permission granted, making the call.
-        getApplicationContext().startActivity(phoneCallIntent);
+        Application.getContext().startActivity(phoneCallIntent);
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage) {
@@ -327,7 +323,7 @@ public class PerrFuncs {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                new AlertDialog.Builder(getApplicationContext())
+                new AlertDialog.Builder(Application.getContext())
                         .setTitle(dialogTitle)
                         .setMessage(dialogMessage)
                 /*
@@ -462,7 +458,7 @@ public class PerrFuncs {
 
     private DisplayMetrics getMetrics() {
         if (_metrics == null) {
-            WindowManager wm = (WindowManager) getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
+            WindowManager wm = (WindowManager) Application.getContext().getSystemService(Context.WINDOW_SERVICE);
             Display display = wm.getDefaultDisplay();
             _metrics = new DisplayMetrics();
             display.getMetrics(_metrics);
