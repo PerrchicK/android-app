@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 27
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "com.perrchick.someapplication"
         minSdkVersion 19
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
     }
@@ -32,12 +32,13 @@ dependencies {
 
     compile 'com.backendless:backendless:3.0.8.1'
     compile project(':onlinesharedpreferences')
-    compile 'com.android.support:recyclerview-v7:24.0.0'
-    compile 'com.android.support:appcompat-v7:25.0.1'
+    compile 'com.android.support:recyclerview-v7:27.1.0'
+    compile 'com.android.support:appcompat-v7:27.1.0'
     compile 'com.yalantis:starwarstiles:0.1.0'
     compile 'com.squareup.okhttp:okhttp:2.5.0'
-    compile 'com.google.android.gms:play-services-maps:8.4.0'
-    compile 'com.google.code.gson:gson:2.2.4'
+    compile 'com.google.android.gms:play-services-maps:11.8.0'
+    compile 'com.google.code.gson:gson:2.8.0'
     compile 'com.facebook.stetho:stetho:1.5.0'
+
     //compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
 }

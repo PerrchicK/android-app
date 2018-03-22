@@ -30,7 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-import com.perrchick.someapplication.Application;
+import com.perrchick.someapplication.SomeApplication;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -275,7 +275,7 @@ public class PerrFuncs {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                Toast.makeText(Application.getContext(), toastMessage, shortDelay ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
+                Toast.makeText(SomeApplication.getContext(), toastMessage, shortDelay ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -293,14 +293,14 @@ public class PerrFuncs {
     }
 
     public static void callNumber(String phoneNumber) {
-        callNumber(phoneNumber, Application.getTopActivity());
+        callNumber(phoneNumber, SomeApplication.getTopActivity());
     }
 
     public static void callNumber(String phoneNumber, Activity activity) {
         // Example for implicit intent (the Android OS will choose the handler)
         Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
         phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));
-        if (ActivityCompat.checkSelfPermission(Application.getContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(SomeApplication.getContext(), Manifest.permission.CALL_PHONE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -312,20 +312,17 @@ public class PerrFuncs {
         }
 
         // Permission granted, making the call.
-        Application.getContext().startActivity(phoneCallIntent);
+        SomeApplication.getContext().startActivity(phoneCallIntent);
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage) {
-        showDialog(dialogTitle, dialogMessage, Application.getTopActivity());
+        showDialog(dialogTitle, dialogMessage, SomeApplication.getTopActivity());
     }
 
     public static void showDialog(final String dialogTitle, final String dialogMessage, Activity activity) {
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                new AlertDialog.Builder(Application.getContext())
-                        .setTitle(dialogTitle)
-                        .setMessage(dialogMessage)
+        new AlertDialog.Builder(activity)
+                .setTitle(dialogTitle)
+                .setMessage(dialogMessage)
                 /*
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
@@ -333,15 +330,13 @@ public class PerrFuncs {
                     }
                 })
                 */
-                        .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-            }
-        });
+                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // do nothing
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
     }
 
     public static void askUser(Activity inActivity, String title, final CallbacksHandler<Boolean> callbacksHandler) {
@@ -458,7 +453,7 @@ public class PerrFuncs {
 
     private DisplayMetrics getMetrics() {
         if (_metrics == null) {
-            WindowManager wm = (WindowManager) Application.getContext().getSystemService(Context.WINDOW_SERVICE);
+            WindowManager wm = (WindowManager) SomeApplication.getContext().getSystemService(Context.WINDOW_SERVICE);
             Display display = wm.getDefaultDisplay();
             _metrics = new DisplayMetrics();
             display.getMetrics(_metrics);

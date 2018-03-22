@@ -512,10 +512,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Log.d(TAG, "onSensorValuesChanged: Accelerometer sensors state: " + Arrays.toString(values));
     }
 
-    private enum TicTacToeButtonPlayer {
+    public enum TicTacToeButtonPlayer {
         None,
         xPlayer,
-        oPlayer,
+        oPlayer;
     }
 
     private class TicTacToeButton extends AppCompatButton {

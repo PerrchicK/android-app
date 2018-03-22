@@ -9,9 +9,9 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -61,7 +61,10 @@ public class NotificationsActivity extends AppCompatActivity {
 
                 // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
                 // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
-                Notification notification = new NotificationCompat.Builder(NotificationsActivity.this)
+
+                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#setChannelId(java.lang.String)
+                String channelId = SomeApplication.getContext().getString(R.string.app_name);
+                Notification notification = new NotificationCompat.Builder(SomeApplication.getContext(), channelId)
                         .setContentTitle(notificationTitle)
                         .setContentText(notificationText)
                         .setPriority(Notification.PRIORITY_MAX) // Determines how "naggy" will the notification be

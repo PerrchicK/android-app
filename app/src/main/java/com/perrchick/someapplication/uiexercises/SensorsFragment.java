@@ -94,7 +94,7 @@ public class SensorsFragment extends Fragment {
         //intentFilter.addAction(PHONE_BROADCAST_ACTION);
 
         // Q: Should I bind it to the main activity or to the app?
-        // A: It doesn't matter as long as you remember to shut the service down / destroy the Application
+        // A: It doesn't matter as long as you remember to shut the service down / destroy the SomeApplication
         // (for more info: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
         broadcastReceiver = new BroadcastReceiver() {
             @Override
