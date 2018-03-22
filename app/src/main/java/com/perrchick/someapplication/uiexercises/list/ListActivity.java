@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ListActivity extends AppCompatActivity {
 
-    ArrayList<SomePojo> list;
+    private ArrayList<SomePojo> list;
     private RecyclerView listView;
     private ListViewAdapter listViewAdapter;
 

@@ -13,7 +13,8 @@
     <string name="action_make_phone_call">Make a phone call…</string>
     <string name="action_go_map">View Map</string>
     <string name="action_go_storage">Storage</string>
-    <string name="action_go_list">Recycler View (list)</string>
+    <string name="action_go_easy_list">Easy List (RecyclerView)</string>
+    <string name="action_go_list">RecyclerView (list)</string>
     <string name="action_go_to_animations">Animations</string>
     <string name="action_go_notification">Go Notify</string>
 

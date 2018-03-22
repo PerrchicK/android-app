@@ -11,6 +11,8 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_list" android:title="@string/action_go_list"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_go_easy_list" android:title="@string/action_go_easy_list"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_map" android:title="@string/action_go_map"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_notification" android:title="@string/action_go_notification"

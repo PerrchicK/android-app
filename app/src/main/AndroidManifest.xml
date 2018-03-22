@@ -30,7 +30,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -69,6 +69,7 @@
             android:name=".SomeMapActivity"
             android:label="@string/title_activity_some_activity_with_map" />
         <activity android:name=".uiexercises.list.ListActivity" />
+        <activity android:name=".uiexercises.list.EasyListActivity"></activity>
     </application>
 
 </manifest>

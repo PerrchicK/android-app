@@ -1,5 +1,6 @@
 package com.perrchick.someapplication.uiexercises.list;
 
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,7 +14,6 @@ import java.util.ArrayList;
 /**
  * Created by perrchick on 14/06/2017.
  */
-
 class ListViewAdapter extends RecyclerView.Adapter {
 
     private final ArrayList<SomePojo> dataList;
@@ -22,6 +22,7 @@ class ListViewAdapter extends RecyclerView.Adapter {
         this.dataList = list;
     }
 
+    @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, null);
