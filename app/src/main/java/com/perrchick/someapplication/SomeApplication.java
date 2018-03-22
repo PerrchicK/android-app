@@ -1,6 +1,7 @@
 package com.perrchick.someapplication;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,8 +14,22 @@ import java.lang.ref.WeakReference;
  */
 public class SomeApplication extends android.app.Application {
 
+    /**
+     * Holds the application context in a safe static reference.
+     */
     private enum ContextHolder {
+        /**
+         * A singleton-like object.
+         */
         applicationContext;
+
+        /**
+         * Holds the application context in a safe static reference.
+         * <br/><br/>
+         * Read more at:
+         * https://dzone.com/articles/java-singletons-using-enum
+         * https://dzone.com/articles/singleton-bill-pugh-solution-or-enum
+         */
         private Context context; // Saving context in enum should be moere secure
     }
 
@@ -35,14 +50,12 @@ public class SomeApplication extends android.app.Application {
         registerActivityLifecycleCallbacks(new AppLifecycleTracker());
     }
 
-    private static class AppLifecycleTracker implements SomeApplication.ActivityLifecycleCallbacks  {
+    private static class AppLifecycleTracker implements Application.ActivityLifecycleCallbacks  {
         private static final String TAG = AppLifecycleTracker.class.getSimpleName();
         private int numStarted = 0;
 
         @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-        }
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) { }
 
         @Override
         public void onActivityStarted(Activity activity) {
