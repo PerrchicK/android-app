@@ -48,11 +48,6 @@ public class SensorServiceMock extends SensorService {
     }
 
     @Override
-    public SensorService getSelf() {
-        return this;
-    }
-
-    @Override
     public String getTag() {
         return TAG;
     }

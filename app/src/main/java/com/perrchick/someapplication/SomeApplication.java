@@ -2,10 +2,21 @@ package com.perrchick.someapplication;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.facebook.stetho.Stetho;
+import com.perrchick.someapplication.utilities.AppLogger;
 
 import java.lang.ref.WeakReference;
 
@@ -17,11 +28,11 @@ public class SomeApplication extends android.app.Application {
     /**
      * Holds the application context in a safe static reference.
      */
-    private enum ContextHolder {
+    private enum ApplicationHolder {
         /**
          * A singleton-like object.
          */
-        applicationContext;
+        sharedInstance;
 
         /**
          * Holds the application context in a safe static reference.
@@ -30,28 +41,47 @@ public class SomeApplication extends android.app.Application {
          * https://dzone.com/articles/java-singletons-using-enum
          * https://dzone.com/articles/singleton-bill-pugh-solution-or-enum
          */
-        private Context context; // Saving context in enum should be moere secure
+        private SomeApplication application; // Saving context in enum shouldn't create memory leaks, because eventually the application memory holds a reference to itself and he GC supports that.
     }
 
-    private static WeakReference<Activity> _topActivity;
-    private static boolean isApplicationInForeground;
+    private static final String TAG = SomeApplication.class.getSimpleName();
+    private WeakReference<Activity> topActivity;
+    private boolean isApplicationInForeground;
+    private Handler mainThreadHandler;
 
     @Nullable
-    public static Activity getTopActivity() { return _topActivity != null ? _topActivity.get() : null; }
-    public static Context getContext() { return ContextHolder.applicationContext.context; }
-    public static boolean isInForeground() { return isApplicationInForeground; }
+    public static Activity getTopActivity() { return ApplicationHolder.sharedInstance.application.topActivity != null ? ApplicationHolder.sharedInstance.application.topActivity.get() : null; }
+    public static Context getContext() { return ApplicationHolder.sharedInstance.application.getApplicationContext(); }
+    public static boolean isInForeground() { return ApplicationHolder.sharedInstance.application.isApplicationInForeground; }
+    public static final boolean isReleaseVersion;
+    static {
+        isReleaseVersion = !BuildConfig.DEBUG;
+    }
+    public static void runOnUiThread(Runnable runnable) {
+        runOnUiThread(runnable, 0);
+    }
+    public static void runOnUiThread(Runnable runnable, long delayMillis) {
+        if (delayMillis > 0) {
+            ApplicationHolder.sharedInstance.application.mainThreadHandler.postDelayed(runnable, delayMillis);
+        } else {
+            ApplicationHolder.sharedInstance.application.mainThreadHandler.post(runnable);
+        }
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        ContextHolder.applicationContext.context = getApplicationContext();
+        mainThreadHandler = new Handler(Looper.getMainLooper());
+        ApplicationHolder.sharedInstance.application = this;
         // From: https://stackoverflow.com/questions/4414171/how-to-detect-when-an-android-app-goes-to-the-background-and-come-back-to-the-fo
         registerActivityLifecycleCallbacks(new AppLifecycleTracker());
+
+        Stetho.initializeWithDefaults(this);
     }
 
-    private static class AppLifecycleTracker implements Application.ActivityLifecycleCallbacks  {
-        private static final String TAG = AppLifecycleTracker.class.getSimpleName();
+    private class AppLifecycleTracker implements Application.ActivityLifecycleCallbacks  {
+        private final String TAG = AppLifecycleTracker.class.getSimpleName();
         private int numStarted = 0;
 
         @Override
@@ -59,11 +89,12 @@ public class SomeApplication extends android.app.Application {
 
         @Override
         public void onActivityStarted(Activity activity) {
-            _topActivity = new WeakReference<>(activity);
+            topActivity = new WeakReference<>(activity);
 
             if (numStarted++ == 0) {
                 isApplicationInForeground = false;
                 Log.d(TAG, "onActivityStopped: app went to foreground");
+                LocalBroadcastReceiver.notify(LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND);
             }
         }
 
@@ -82,6 +113,7 @@ public class SomeApplication extends android.app.Application {
             if (--numStarted == 0) {
                 isApplicationInForeground = false;
                 Log.d(TAG, "onActivityStopped: app went to background");
+                LocalBroadcastReceiver.notify(LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND);
             }
         }
 
@@ -93,6 +125,84 @@ public class SomeApplication extends android.app.Application {
         @Override
         public void onActivityDestroyed(Activity activity) {
 
+        }
+    }
+
+    static public class LocalBroadcastReceiver extends BroadcastReceiver {
+
+        public static final String APPLICATION_GOING_BACKGROUND = BuildConfig.APPLICATION_ID + " - yo";
+        public static final String APPLICATION_GOING_FOREGROUND = BuildConfig.APPLICATION_ID + " - yoyo";
+
+        public interface PrivateBroadcastListener {
+            void onBroadcastReceived(@NonNull Intent intent, LocalBroadcastReceiver receiver);
+        }
+
+        private final String[] actions;
+        @Nullable
+        private PrivateBroadcastListener receiverListener;
+
+        /**
+         * The receiver will live as long as the context lives. Therefore we will pass the application context in most of the times.
+         * @param actionsToListen
+         */
+        private LocalBroadcastReceiver(String[] actionsToListen) {
+            actions = actionsToListen;
+            IntentFilter intentFilter = new IntentFilter();
+            if (actionsToListen.length == 0) return;
+
+            for (int i = 0; i < actionsToListen.length; i++) {
+                intentFilter.addAction(actionsToListen[i]);
+            }
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(this, intentFilter);
+        }
+
+        public void setListener(PrivateBroadcastListener listener) {
+            this.receiverListener = listener;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            receivedAction(intent);
+        }
+
+        private void receivedAction(Intent intent) {
+            if (receiverListener == null) {
+                AppLogger.error(TAG, "onBroadcastReceived: Missing listener! Intent == " + intent);
+            } else if (intent != null && !TextUtils.isEmpty(intent.getAction())) {
+                receiverListener.onBroadcastReceived(intent, this);
+            }
+        }
+
+        public static LocalBroadcastReceiver createNewReceiver(PrivateBroadcastListener listener, String... action) {
+            LocalBroadcastReceiver scenesReceiver = new LocalBroadcastReceiver(action);
+            scenesReceiver.setListener(listener);
+            return scenesReceiver;
+        }
+
+        public static void notify(String action) {
+            notify(action, null);
+        }
+
+        public static void notify(String action, Bundle extraValues) {
+            Intent broadcastIntent = new Intent(getContext(), LocalBroadcastReceiver.class).setAction(action);
+            if (extraValues != null && extraValues.size() > 0) {
+                broadcastIntent.putExtras(extraValues);
+            }
+
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(broadcastIntent);
+        }
+
+        public void quit() {
+            try {
+                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(this);
+            } catch (Exception e) {
+                AppLogger.error(TAG, "removeReceiver: couldn't quitReceiving receiver: " + e.getMessage());
+            }
+            receiverListener = null;
+        }
+
+        public String[] getActions() {
+            return actions;
         }
     }
 }

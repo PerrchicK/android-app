@@ -17,6 +17,7 @@
     <string name="action_go_list">RecyclerView (list)</string>
     <string name="action_go_to_animations">Animations</string>
     <string name="action_go_notification">Go Notify</string>
+    <string name="action_go_pager">Show Pager</string>
 
     <string name="title_activity_another">AnotherActivity</string>
     <string name="title_activity_storage">StorageActivity</string>
@@ -53,5 +54,10 @@
     <string name="missing_google_maps_error_message">No GoogleMaps installed on this device</string>
     <string name="shrink_text_action">Will shrink…</string>
     <string name="shrinking_title">… shrinking…</string>
+    <string name="accelerometer_state_format">Accelerometer sensors state: %s</string>
+    <string name="title_activity_google_maps">Map</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="page_fragment_title">Page fragment</string>
 
 </resources>

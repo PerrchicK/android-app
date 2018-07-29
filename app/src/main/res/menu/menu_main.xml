@@ -17,4 +17,6 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_notification" android:title="@string/action_go_notification"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_go_pager" android:title="@string/action_go_pager"
+        android:orderInCategory="100" app:showAsAction="never" />
 </menu>

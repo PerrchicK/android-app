@@ -6,16 +6,21 @@ import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.ClipData;
 import android.content.ClipDescription;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -28,7 +33,8 @@ import com.yalantis.starwars.TilesFrameLayout;
 import com.yalantis.starwars.interfaces.TilesFrameLayoutListener;
 
 import java.util.Locale;
-import java.util.StringTokenizer;
+
+import static android.opengl.GLES20.glGenTextures;
 
 public class AnimationsActivity extends AppCompatActivity implements TilesFrameLayoutListener, View.OnDragListener {
     private static final String TAG = AnimationsActivity.class.getSimpleName();
@@ -41,6 +47,8 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     private SeekBar scaleSeekBar;
     private TextView shrinkingText;
     private ObjectAnimator shrinkingTextAnimator;
+    private FrameLayout mainLayout;
+    @Nullable
     private TilesFrameLayout mTilesFrameLayout;
 
     @Override
@@ -48,14 +56,21 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_animations);
 
-        mTilesFrameLayout = (TilesFrameLayout) findViewById(R.id.tiles_frame_layout);
-        mTilesFrameLayout.setOnAnimationFinishedListener(this);
+        mainLayout = findViewById(R.id.main_layout);
+        if (!PerrFuncs.isRunningOnSimulator() && isStarWarsAnimationAvailable()) {
+            mTilesFrameLayout = new TilesFrameLayout(this);
+            mTilesFrameLayout.setOnAnimationFinishedListener(this);
+            View innerLayout = findViewById(R.id.inner_layout);
+            ((ViewGroup) innerLayout.getParent()).removeView(innerLayout);
+            mTilesFrameLayout.addView(innerLayout, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            mainLayout.addView(mTilesFrameLayout);
+        }
 
-        this.shrinkingText = (TextView) findViewById(R.id.txtShrinking);
+        shrinkingText = (TextView) findViewById(R.id.txtShrinking);
 
-        this.scaleSeekBar = (SeekBar) findViewById(R.id.seekBar);
-        this.scaleSeekBar.setProgress(6);
-        this.scaleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        scaleSeekBar = (SeekBar) findViewById(R.id.seekBar);
+        scaleSeekBar.setProgress(6);
+        scaleSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 progress += 1;
@@ -74,24 +89,24 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
             }
         });
 
-        this.spinningView = (ImageView) findViewById(R.id.spinnerImage);
-        this.spinningView.setImageResource(R.drawable.ic_spinner_image);
-        this.spinningView.setOnClickListener(new View.OnClickListener() {
+        spinningView = (ImageView) findViewById(R.id.spinnerImage);
+        spinningView.setImageResource(R.drawable.ic_spinner_image);
+        spinningView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 toggleSpinnerAnimation();
             }
         });
 
-        this.txtScaleValue = (TextView) findViewById(R.id.txtScaleValue);
-        this.txtScaleValue.setTag(SCALE_VALUE_TEXT_VIEW_TAG);
-        this.txtScaleValue.setOnClickListener(new View.OnClickListener() {
+        txtScaleValue = (TextView) findViewById(R.id.txtScaleValue);
+        txtScaleValue.setTag(SCALE_VALUE_TEXT_VIEW_TAG);
+        txtScaleValue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 PerrFuncs.animateNo(v);
             }
         });
-        this.txtScaleValue.setOnLongClickListener(new View.OnLongClickListener() {
+        txtScaleValue.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 String viewTag = (String) v.getTag();
@@ -112,17 +127,33 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         spinnerContainer = (RelativeLayout) findViewById(R.id.spinnerContainer);
         spinnerContainer.setOnDragListener(this);
 
-        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
-        valueAnimator.setDuration(10000);
-        valueAnimator.setInterpolator(new AccelerateInterpolator());
-        valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+        HandlerThread handlerThread = new HandlerThread("ValueAnimator example thread");
+        handlerThread.start();
+        Handler valueAnimatorHandler = new Handler(handlerThread.getLooper());
+        valueAnimatorHandler.post(new Runnable() {
             @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                String animatorCounterString = String.format(Locale.ENGLISH, "%.4f", (Float)valueAnimator.getAnimatedValue());
-                Log.d(TAG, "counter: " + animatorCounterString);
+            public void run() {
+                // Preventing log info message: "I/Choreographer: Skipped XYZ frames!  The application may be doing too much work on its main thread."
+                // FYI: android.util.AndroidRuntimeException: Animators may only be run on Looper threads
+                ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1);
+                valueAnimator.setDuration(10000);
+                valueAnimator.setInterpolator(new AccelerateInterpolator());
+                valueAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                        String animatorCounterString = String.format(Locale.ENGLISH, "%.4f", (Float) valueAnimator.getAnimatedValue());
+                        Log.d(TAG, "counter: " + animatorCounterString);
+                    }
+                });
+                valueAnimator.start();
             }
         });
-        valueAnimator.start();
+    }
+
+    private boolean isStarWarsAnimationAvailable() {
+        final int[] textureHandle = new int[1];
+        glGenTextures(1, textureHandle, 0);
+        return textureHandle[0] != 0;
     }
 
     @Override
@@ -136,8 +167,11 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     public void onResume() {
         super.onResume();
 
-        mTilesFrameLayout.onResume();
-        this.shrinkingText.setText(R.string.shrink_text_action);
+        if (mTilesFrameLayout != null) {
+            mTilesFrameLayout.onResume();
+        }
+
+        shrinkingText.setText(R.string.shrink_text_action);
 
         final ValueAnimator valueAnimator = ValueAnimator.ofFloat(1,0.1f);
         valueAnimator.setDuration(1000);
@@ -167,7 +201,11 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
                     public void onCallback(Animator callbackObject) {
                         AnimationsActivity.this.shrinkingText.setVisibility(View.INVISIBLE); // What will happen in case we'll use 'View.GONE'?
                         // An example for ViewPropertyAnimator usage:
-                        spinnerContainer.animate().translationY(0).setDuration(400).setStartDelay(500).start();
+                        spinnerContainer.animate()
+                                .translationY(0)
+                                .setDuration(400)
+                                .setStartDelay(500)
+                                .start();
                     }
                 });
             }
@@ -182,7 +220,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
             }
         });
 
-        this.shrinkingTextAnimator = ObjectAnimator.ofFloat(this.shrinkingText, "scaleY", 1.0f, 0.0f);
+        this.shrinkingTextAnimator = ObjectAnimator.ofFloat(this.shrinkingText, "x", 1.0f, 0.0f);
         this.shrinkingTextAnimator.setDuration(1000);
         this.shrinkingTextAnimator.addListener(new Animator.AnimatorListener() {
             @Override
@@ -205,11 +243,10 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
         });
 
         // Disappear the main layout
-        RelativeLayout mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
         mainLayout.setAlpha(0);
 
         // Prepare UI
-        scaleImage(this.scaleSeekBar.getProgress());
+        scaleImage(scaleSeekBar.getProgress());
 
         // Fade the main layout in
         ObjectAnimator fadeIn = ObjectAnimator.ofFloat(mainLayout, "alpha", 0.0f, 1.0f);
@@ -241,7 +278,10 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     public void onPause() {
         super.onPause();
 
-        mTilesFrameLayout.onPause();
+        if (mTilesFrameLayout != null) {
+            mTilesFrameLayout.onPause();
+        }
+
         spinnerContainer.animate().cancel();
     }
 
@@ -249,7 +289,11 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     public void onBackPressed() {
         //https://github.com/Yalantis/StarWars.Android
         //https://yalantis.com/blog/star-wars-the-force-awakens-or-how-to-crumble-view-into-tiny-pieces-on-android/
-        mTilesFrameLayout.startAnimation();
+        if (mTilesFrameLayout != null) {
+            mTilesFrameLayout.startAnimation();
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void scaleImage(float scaleSize) {
@@ -270,7 +314,7 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
 
     private void toggleSpinnerAnimation(boolean start) {
         if (start) {
-            rotateAnimation = getRotateAnimation(this.spinningView);
+            rotateAnimation = getRotateAnimation(spinningView);
             rotateAnimation.setRepeatCount(Animation.INFINITE);
             rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
                 @Override
@@ -294,7 +338,8 @@ public class AnimationsActivity extends AppCompatActivity implements TilesFrameL
     }
 
     private void toggleSpinnerAnimation() {
-        this.toggleSpinnerAnimation(rotateAnimation == null);
+        toggleSpinnerAnimation(rotateAnimation == null);
+//        compile "com.andkulikov:transitionseverywhere:1.7.9"
     }
 
     void flySpinnerToCorner() {

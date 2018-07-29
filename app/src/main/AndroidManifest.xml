@@ -69,7 +69,11 @@
             android:name=".SomeMapActivity"
             android:label="@string/title_activity_some_activity_with_map" />
         <activity android:name=".uiexercises.list.ListActivity" />
-        <activity android:name=".uiexercises.list.EasyListActivity"></activity>
+        <activity android:name=".uiexercises.list.EasyListActivity" />
+        <activity
+            android:name=".GoogleMapsActivity"
+            android:label="@string/title_activity_google_maps" />
+        <activity android:name=".PagerActivity"></activity>
     </application>
 
 </manifest>

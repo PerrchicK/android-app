@@ -8,11 +8,11 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,16 +22,18 @@ import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
-import com.perrchick.someapplication.ui.SensorsFragmentBlue;
-import com.perrchick.someapplication.ui.SensorsFragmentRed;
+import com.perrchick.someapplication.ui.TicTacToeButton;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
-import com.perrchick.someapplication.uiexercises.SensorsFragment;
+import com.perrchick.someapplication.ui.fragments.SensorsFragment;
 import com.perrchick.someapplication.uiexercises.list.EasyListActivity;
 import com.perrchick.someapplication.uiexercises.list.ListActivity;
+import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.PerrFuncs;
+import com.perrchick.someapplication.utilities.Synchronizer;
 
 import java.util.Arrays;
+import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorService.SensorServiceListener {
 
@@ -55,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private GridLayout mGridLayout;
     private int threadCounter = 0;
     private Intent intentToHandle;
+    private SomeApplication.LocalBroadcastReceiver localBroadcastReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +65,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.activity_main);
 
+        localBroadcastReceiver = SomeApplication.LocalBroadcastReceiver.createNewReceiver(new SomeApplication.LocalBroadcastReceiver.PrivateBroadcastListener() {
+            @Override
+            public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.LocalBroadcastReceiver receiver) {
+                if (TextUtils.isEmpty(intent.getAction())) return;
+
+                switch (intent.getAction()) {
+                    case SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND:
+                        AppLogger.log(TAG, "going background...");
+                        break;
+                    case SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND:
+                        AppLogger.log(TAG, "coming back to foreground!");
+                        break;
+                }
+            }
+        }, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND);
 //        tickForever(true);
+
+        synchronizeAsynchronousOperations();
 
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
@@ -77,13 +97,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // A: It doesn't matter as long as you remember to shut the service down / destroy the Application
             // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
             if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
-                bindService(new Intent(this, SensorServiceMock.class), sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+                bindService(new Intent(this, SensorServiceMock.class), serviceConnectionListener, Context.BIND_AUTO_CREATE);
             } else {
                 Intent serviceIntent = new Intent(this, SensorService.class);
-                bindService(serviceIntent, sensorsBoundServiceConnection, Context.BIND_AUTO_CREATE);
+                bindService(serviceIntent, serviceConnectionListener, Context.BIND_AUTO_CREATE);
             }
             // Now, this activity has its own bound service, which broadcasts its own info.
             // In this specific case, a fragment listens to the service's broadcast
+        }
+    }
+
+    private void synchronizeAsynchronousOperations() {
+        Synchronizer synchronizer = new Synchronizer(new Runnable() {
+            @Override
+            public void run() {
+                AppLogger.log(TAG, "All async operations are done!");
+            }
+        });
+
+        final int min = 1000;
+        final int max = 5000;
+        final Random random = new Random();
+        for (int i = 0; i < 50; i++) {
+            final Synchronizer.Holder taskHolder = synchronizer.createHolder();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        final int randomWaitingTime = random.nextInt((max - min) + 1) + min;
+                        Thread.sleep(randomWaitingTime);
+                        AppLogger.log(TAG,  "Thread (" + Thread.currentThread().getName() + ") is waiting: " + randomWaitingTime + " milliseconds...");
+                    } catch (InterruptedException e) {
+                        AppLogger.error(TAG, e);
+                    }
+                    taskHolder.release();
+                }
+            }, "thread " + i).start();
         }
     }
 
@@ -239,7 +288,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy: activity destroyed");
-        unbindService(sensorsBoundServiceConnection);
+        unbindService(serviceConnectionListener);
+        localBroadcastReceiver.quit();
     }
 
     // The method that was defined from the hard coded XML file
@@ -265,32 +315,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 checkWinner();
             }
         } else {
-            Log.v(TAG, "clicked on a View which is not a '" + TicTacToeButton.class.getSimpleName());
-
-            switch (-1) {//temporarily disabled, was: switch (v.getId())
-                case R.id.verticalLinearLayout: {
-                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                    sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
-
-                    if (sensorsFragment instanceof SensorsFragmentBlue) {
-                        if (fragmentManager.findFragmentByTag(SensorsFragmentRed.TAG) == null) {
-                            fragmentTransaction.hide(sensorsFragment);
-                            sensorsFragment = new SensorsFragmentRed();
-                            fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
-                        }
-                    } else {
-                        if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.TAG) == null) {
-                            fragmentTransaction.hide(sensorsFragment);
-                            sensorsFragment = new SensorsFragmentBlue();
-                            fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
-                        }
-                    }
-
-                    fragmentTransaction.show(sensorsFragment);
-                    fragmentTransaction.commit();
-                }
-                break;
-            }
+            Log.v(TAG, "clicked on a View which is not a '" + TicTacToeButton.class.getSimpleName() + "'");
         }
     }
 
@@ -426,8 +451,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case NOTIFICATION_REQUEST_CODE:
                 String notificationTitle = data.getCharSequenceExtra(NotificationsActivity.EXTRA_NOTIFICATION_TITLE_KEY).toString();
                 PerrFuncs.toast("Scheduled notification: '" + notificationTitle + "'");
+
+
+
                 int timeFromNow = data.getIntExtra(NotificationsActivity.EXTRA_NOTIFICATION_DELAY_KEY, 0);
                 PerrFuncs.toast("Will notify in " + timeFromNow / 1000 + " seconds...");
+                default:
+                    Log.e(TAG, "onActivityResult: Unknown request code");
         }
     }
 
@@ -437,6 +467,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
+
+        Intent i = getIntent();
+        if (i == getIntent()) {
+            //
+        }
+
 
         //noinspection SimplifiableIfStatement
         switch (id) {
@@ -460,6 +496,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
                 return true;
             */
+            case R.id.action_go_pager:
+                startActivity(new Intent(this, PagerActivity.class));
+                return true;
             case R.id.action_go_notification:
                 startActivityForResult(new Intent(this, NotificationsActivity.class), NOTIFICATION_REQUEST_CODE);
                 return true;
@@ -513,6 +552,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onSensorValuesChanged(SensorService sensorService, float[] values) {
+        if (!SomeApplication.isInForeground()) return;
         Log.d(TAG, "onSensorValuesChanged: Accelerometer sensors state: " + Arrays.toString(values));
     }
 
@@ -522,30 +562,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         oPlayer;
     }
 
-    private class TicTacToeButton extends AppCompatButton {
-        private final int x;
-        private final int y;
-        private TicTacToeButtonPlayer buttonPlayer = TicTacToeButtonPlayer.None;
-
-        public TicTacToeButton(Context context, int x, int y) {
-            super(context);
-            this.x = x;
-            this.y = y;
-        }
-
-        public TicTacToeButtonPlayer getButtonPlayer() {
-            return buttonPlayer;
-        }
-
-        public void setButtonPlayer(TicTacToeButtonPlayer buttonPlayer) {
-            this.buttonPlayer = buttonPlayer;
-        }
-    }
-
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
-    private ServiceConnection sensorsBoundServiceConnection = new ServiceConnection() {
+    private ServiceConnection serviceConnectionListener = new ServiceConnection() {
 
         @Override
         public void onServiceConnected(ComponentName className, IBinder service) {

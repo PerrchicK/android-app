@@ -1,14 +1,13 @@
-package com.perrchick.someapplication.uiexercises;
+package com.perrchick.someapplication.ui.fragments;
 
 import android.app.Activity;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +19,7 @@ import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SensorService;
+import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.data.SomePojo;
 
 import java.util.Arrays;
@@ -77,6 +77,30 @@ public class SensorsFragment extends Fragment {
         txtCounter.setInAnimation(in);
         txtCounter.setOutAnimation(out);
 
+        fragmentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
+                if (fragmentManager == null) return;
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                Fragment sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
+                fragmentTransaction.remove(sensorsFragment);
+
+                if (sensorsFragment instanceof SensorsFragmentBlue) {
+                    if (fragmentManager.findFragmentByTag(SensorsFragmentRed.TAG) == null) {
+                        sensorsFragment = new SensorsFragmentRed();
+                        fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                    }
+                } else {
+                    if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.TAG) == null) {
+                        sensorsFragment = new SensorsFragmentBlue();
+                        fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                    }
+                }
+                fragmentTransaction.commit();
+            }
+        });
+
         return fragmentView;
     }
 
@@ -110,7 +134,7 @@ public class SensorsFragment extends Fragment {
             }
         };
 
-        getActivity().getApplicationContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
+        SomeApplication.getContext().registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
         //OR: LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).registerReceiver(broadcastReceiver, new IntentFilter(SensorService.SENSOR_SERVICE_BROADCAST_ACTION));
     }
 
@@ -152,7 +176,7 @@ public class SensorsFragment extends Fragment {
         shouldCount = false;
 
         txtCounter.setCurrentText("---");
-        getActivity().getApplicationContext().unregisterReceiver(broadcastReceiver); // remove this line and see what happens
+
         super.onPause();
     }
 
@@ -160,6 +184,10 @@ public class SensorsFragment extends Fragment {
     public void onStop() {
         super.onStop();
 
+        if (broadcastReceiver != null) {
+            SomeApplication.getContext().unregisterReceiver(broadcastReceiver); // remove this line and see what happens
+            broadcastReceiver = null;
+        }
         //OR: LocalBroadcastManager.getInstance(getActivity().getApplicationContext()).unregisterReceiver(broadcastReceiver);
     }
 
@@ -184,6 +212,6 @@ public class SensorsFragment extends Fragment {
             values[i] = Math.round(sensorAngles[i]);
         }
 
-        this.txtInfo.setText("Accelerometer sensors state: " + Arrays.toString(values));
+        this.txtInfo.setText(getString(R.string.accelerometer_state_format, Arrays.toString(values)));
     }
 }

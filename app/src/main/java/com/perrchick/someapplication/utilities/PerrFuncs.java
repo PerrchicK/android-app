@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -129,6 +128,8 @@ public class PerrFuncs {
     }
 
     public static void animateRandomlyFlyingOut(View view, long duration) {
+        if (view == null) return;
+
         Random random = new Random();
         int otherSide;
 
@@ -258,6 +259,18 @@ public class PerrFuncs {
         return defaultValue;
     }
 
+    // https://stackoverflow.com/questions/2799097/how-can-i-detect-when-an-android-application-is-running-in-the-emulator
+    public static boolean isRunningOnSimulator() {
+        return Build.FINGERPRINT.startsWith("generic")
+                || Build.FINGERPRINT.startsWith("unknown")
+                || Build.MODEL.contains("google_sdk")
+                || Build.MODEL.contains("Emulator")
+                || Build.MODEL.contains("Android SDK built for x86")
+                || Build.MANUFACTURER.contains("Genymotion")
+                || (Build.BRAND.startsWith("generic") && Build.DEVICE.startsWith("generic"))
+                || "google_sdk".equals(Build.PRODUCT);
+    }
+
     public interface CallbacksHandler<T> {
         void onCallback(T callbackObject);
     }
@@ -284,11 +297,11 @@ public class PerrFuncs {
         if (isRunningOnMainThread()) {
             runnable.run();
         } else {
-            new Handler(Looper.getMainLooper()).post(runnable);
+            SomeApplication.runOnUiThread(runnable);
         }
     }
 
-    private static boolean isRunningOnMainThread() {
+    static boolean isRunningOnMainThread() {
         return Looper.myLooper() == Looper.getMainLooper();
     }
 

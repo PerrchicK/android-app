@@ -33,8 +33,8 @@ public class SensorService extends Service implements SensorEventListener {
     protected SensorServiceBinder sensorServiceBinder = new SensorServiceBinder();// An IBinder implementation subclass
     protected float values;
     private SensorManager sensorManager;
-    boolean isListening = false;
-    HandlerThread sensorThread;
+    private boolean isListening = false;
+    private HandlerThread sensorThread;
     private Handler sensorHandler;
     private SensorServiceListener listener;
 
@@ -105,18 +105,21 @@ public class SensorService extends Service implements SensorEventListener {
         return TAG;
     }
 
-    public SensorService getSelf() {
-        return this;
-    }
-
     @Override
     public void onSensorChanged(final SensorEvent event) {
-        final float[] values = new float[event.values.length];
-        for (int i = 0; i < event.values.length; i++) {
-            values[i] = event.values[i];// * 1000000.0f;
-        }
 
-        notifyEvaluation(values);
+        sensorHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                final float[] values = new float[event.values.length];
+                for (int i = 0; i < event.values.length; i++) {
+                    values[i] = event.values[i];// * 1000000.0f;
+                }
+
+                notifyEvaluation(values);
+
+            }
+        });
     }
 
     @Override
@@ -146,7 +149,7 @@ public class SensorService extends Service implements SensorEventListener {
 
                 if (sensor == null) return;
 
-                sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_UI, sensorHandler);
+                sensorManager.registerListener(getService(), sensor, SensorManager.SENSOR_DELAY_NORMAL, sensorHandler);
                 isListening = true;
             }
         }

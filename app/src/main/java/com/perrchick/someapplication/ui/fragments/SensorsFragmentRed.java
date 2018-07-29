@@ -1,12 +1,10 @@
-package com.perrchick.someapplication.ui;
+package com.perrchick.someapplication.ui.fragments;
 
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.perrchick.someapplication.uiexercises.SensorsFragment;
 
 /**
  * Created by perrchick on 12/4/15.
