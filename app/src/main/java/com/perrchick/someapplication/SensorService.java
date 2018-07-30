@@ -143,7 +143,7 @@ public class SensorService extends Service implements SensorEventListener {
                 Log.v(getTag(), "Available sensors: " + sensorList);
                 Sensor sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER); // Sensor.TYPE_GYROSCOPE will be null in Genymotion free edition
                 if (sensor == null && sensorList.size() > 0) {
-                    // Backup
+                    // Fallback
                     sensor = sensorList.get(0); // for Genymotion sensors (Genymotion Accelerometer in my case)
                 }
 
