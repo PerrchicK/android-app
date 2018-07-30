@@ -31,7 +31,9 @@ import com.perrchick.someapplication.uiexercises.list.ListActivity;
 import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.perrchick.someapplication.utilities.Synchronizer;
+import com.perrchick.someapplication.utilities.SynchronizerV0;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -82,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND);
 //        tickForever(true);
 
+        //synchronizeAsynchronousOperationsV0();
         synchronizeAsynchronousOperations();
 
         // The main layout (vertical)
@@ -107,8 +110,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void synchronizeAsynchronousOperations() {
-        Synchronizer synchronizer = new Synchronizer(new Runnable() {
+    private void synchronizeAsynchronousOperationsV0() {
+        SynchronizerV0 synchronizer = new SynchronizerV0(new Runnable() {
             @Override
             public void run() {
                 AppLogger.log(TAG, "All async operations are done!");
@@ -119,7 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         final int max = 5000;
         final Random random = new Random();
         for (int i = 0; i < 50; i++) {
-            final Synchronizer.Holder taskHolder = synchronizer.createHolder();
+            final SynchronizerV0.Holder taskHolder = synchronizer.createHolder();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -131,6 +134,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         AppLogger.error(TAG, e);
                     }
                     taskHolder.release();
+                }
+            }, "thread " + i).start();
+        }
+    }
+
+    private void synchronizeAsynchronousOperations() {
+        Synchronizer<Integer> synchronizer = new Synchronizer<>(new Synchronizer.SynchronizerCallback<Integer>() {
+            @Override
+            public void done(ArrayList<Integer> extra) {
+                AppLogger.log(TAG, "All async operations are done! Extra: " + extra);
+            }
+        });
+
+        final int min = 1000;
+        final int max = 5000;
+        final Random random = new Random();
+        for (int i = 0; i < 50; i++) {
+            final Synchronizer<Integer>.Holder taskHolder = synchronizer.createHolder();
+            final int finalI = i;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        final int randomWaitingTime = random.nextInt((max - min) + 1) + min;
+                        Thread.sleep(randomWaitingTime);
+                        AppLogger.log(TAG,  "Thread (" + Thread.currentThread().getName() + ") is waiting: " + randomWaitingTime + " milliseconds...");
+                    } catch (InterruptedException e) {
+                        AppLogger.error(TAG, e);
+                    }
+                    if (finalI % 7 == 0) {
+                        taskHolder.release(null);
+                    } else {
+                        taskHolder.release(finalI);
+                    }
                 }
             }, "thread " + i).start();
         }
