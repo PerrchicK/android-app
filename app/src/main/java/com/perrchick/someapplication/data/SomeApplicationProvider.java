@@ -9,6 +9,8 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
+import com.perrchick.someapplication.SomeApplication;
+
 /**
  * Created by perrchick on 11/19/15.
  */
@@ -32,9 +34,12 @@ public class SomeApplicationProvider extends ContentProvider {
     private SQLiteDatabase db;
 
     @Override
-    public boolean onCreate() {
-        this.db_sqLiteHelper = new DictionaryOpenHelper(this.getContext());
+    public boolean onCreate() { // NOTE: This is called BEFORE the `android.app.Application.onCreate()`, cool ha?
+        // Reference: https://www.youtube.com/watch?v=AJqakuas_6g&feature=youtu.be&t=20m38s
+        SomeApplication.setContext(getContext()); // The idea from: https://firebase.googleblog.com/2016/12/how-does-firebase-initialize-on-android.html
 
+        // Initialize the simple DictionaryOpenHelper
+        this.db_sqLiteHelper = new DictionaryOpenHelper(this.getContext());
         // Create a write able database which will trigger its creation if it doesn't already exist.
         this.db = db_sqLiteHelper.getWritableDatabase();
         return this.db != null;

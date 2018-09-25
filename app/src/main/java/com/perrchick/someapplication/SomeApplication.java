@@ -52,6 +52,13 @@ public class SomeApplication extends android.app.Application {
     @Nullable
     public static Activity getTopActivity() { return ApplicationHolder.sharedInstance.application.topActivity != null ? ApplicationHolder.sharedInstance.application.topActivity.get() : null; }
     public static Context getContext() { return ApplicationHolder.sharedInstance.application.getApplicationContext(); }
+    public static void setContext(Context context) {
+        if (context == null) return;
+        if (!(context.getApplicationContext() instanceof SomeApplication)) return;
+
+        ApplicationHolder.sharedInstance.application = (SomeApplication) context.getApplicationContext();
+    }
+
     public static boolean isInForeground() { return ApplicationHolder.sharedInstance.application.isApplicationInForeground; }
     public static final boolean isReleaseVersion;
     static {

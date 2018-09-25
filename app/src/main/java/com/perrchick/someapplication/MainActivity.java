@@ -546,7 +546,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 presentStorageActivity();
                 return true;
             case R.id.action_go_easy_list:
-                startActivity(new Intent(this, EasyListActivity.class));
+                // Experimenting - POC for starting activity via application context:
+                SomeApplication.getContext().startActivity(new Intent(this, EasyListActivity.class));
                 return true;
             case R.id.action_go_list:
                 startActivity(new Intent(this, ListActivity.class));
