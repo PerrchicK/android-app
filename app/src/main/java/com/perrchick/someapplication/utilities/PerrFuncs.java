@@ -164,11 +164,11 @@ public class PerrFuncs {
         return null;
     }
 
-    public static void makePostRequest(String jsonString, String urlString, HashMap<String, String> httpHeaders, CallbacksHandler callbacksHandler) {
+    public static void makePostRequest(String jsonString, String urlString, HashMap<String, String> httpHeaders, CallbacksHandler<Response> callbacksHandler) {
         getInstance().performRequest(jsonString, "post", urlString, httpHeaders, callbacksHandler);
     }
 
-    public static void makeGetRequest(final String urlString, final PerrFuncs.CallbacksHandler callbacksHandler) {
+    public static void makeGetRequest(final String urlString, final PerrFuncs.CallbacksHandler<Response> callbacksHandler) {
         getInstance().performRequest(null, null, urlString, null, callbacksHandler);
     }
 

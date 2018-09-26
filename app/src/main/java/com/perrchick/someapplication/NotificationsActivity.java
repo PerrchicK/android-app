@@ -142,15 +142,21 @@ public class NotificationsActivity extends AppCompatActivity {
         alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, broadcastPendingIntent);
     }
 
-    //notificationDictionary: [String:String], dataDictionary: [String:String], toRegistrationIds registrationIds: [String], completion: @escaping (Bool) -> ()
-    private void sendFcmNotificationUsingUrlRequest(HashMap<String, String> notificationDictionary, HashMap<String, String> dataDictionary, String[] registrationIds, PerrFuncs.CallbacksHandler callbacksHandler) {
+    /**
+     * This method demonstrates how to send a notification using a simple URL request.
+     * @param notificationDictionary A dictionary (HashMap) of the visual notification. It should include: "title", "body", "icon" (optional), "sound" (optional). If not used: the notification will be "silent" - it won't be presented automatically by FCM but the data's payload will arrive to the firebase service.
+     * @param dataDictionary         A dictionary (HashMap) of the payload data. It should include any custom data you want (key-value pairs), if you want.
+     * @param registrationIds        An array of recipients.
+     * @param callbacksHandler       The callback to invoke after the process is finished.
+     */
+    private void sendFcmNotificationUsingUrlRequest(HashMap<String, String> notificationDictionary, HashMap<String, String> dataDictionary, String[] registrationIds, PerrFuncs.CallbacksHandler<Response> callbacksHandler) {
         HashMap<String, Object> jsonDictionary = new HashMap<>();
         jsonDictionary.put("registration_ids", registrationIds); // or use 'to' for ony one registration ID (without using an array)
         jsonDictionary.put("notification", notificationDictionary);
         jsonDictionary.put("data", dataDictionary);
 
         HashMap<String, String> httpHeaders = new HashMap<>();
-        String secretKey = "your secret key from FCM";
+        String secretKey = "your secret key from FCM"; // I extremely recommend NOT TO USE your secret key in the client side. Execute this request on your server side instead.
         httpHeaders.put("Authorization", "key= " + secretKey);
 
         PerrFuncs.makePostRequest(new Gson().toJson(jsonDictionary), "https://fcm.googleapis.com/fcm/send", httpHeaders, callbacksHandler);
