@@ -547,7 +547,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             case R.id.action_go_easy_list:
                 // Experimenting - POC for starting activity via application context:
-                SomeApplication.getContext().startActivity(new Intent(this, EasyListActivity.class));
+                SomeApplication.getContext().startActivity(new Intent(SomeApplication.getContext(), EasyListActivity.class));
                 return true;
             case R.id.action_go_list:
                 startActivity(new Intent(this, ListActivity.class));
