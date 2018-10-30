@@ -17,6 +17,7 @@ import android.util.Log;
 
 import com.facebook.stetho.Stetho;
 import com.perrchick.someapplication.utilities.AppLogger;
+import com.perrchick.someapplication.utilities.Synchronizer;
 
 import java.lang.ref.WeakReference;
 
@@ -85,6 +86,8 @@ public class SomeApplication extends android.app.Application {
         registerActivityLifecycleCallbacks(new AppLifecycleTracker());
 
         Stetho.initializeWithDefaults(this);
+
+        exampleForSyncedAsyncOperations();
     }
 
     private class AppLifecycleTracker implements Application.ActivityLifecycleCallbacks  {
@@ -212,4 +215,63 @@ public class SomeApplication extends android.app.Application {
             return actions;
         }
     }
+
+    private static Synchronizer.SyncedSynchronizer<Boolean> onApplicationEntersForeground;
+    private void exampleForSyncedAsyncOperations() {
+
+        onApplicationEntersForeground = Synchronizer.makeSyncedSynchronizer();
+        onApplicationEntersForeground.addOperation(new Synchronizer.OperationHolder<Boolean>() {
+            @Override
+            public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
+                Log.d(TAG, "1st operation: login");
+                // When done, the app should run: synchronizer.doNext();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onLoggedIn();
+                    }
+                }, 400);
+            }
+        }).addOperation(new Synchronizer.OperationHolder<Boolean>() {
+            @Override
+            public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
+                Log.d(TAG, "2nd operation: register for remote notification");
+                // When done, the app should run: synchronizer.doNext();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPushTokenReceived();
+                    }
+                }, 800);
+            }
+        }).addOperation(new Synchronizer.OperationHolder<Boolean>() {
+            @Override
+            public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
+                Log.d(TAG, "3rd operation: upload token data to server");
+                synchronizer.lastResult();
+                // When done, the app should run: synchronizer.doNext();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        onPushTokenFinishedUpdateRemotely();
+                    }
+                }, 700);
+            }
+        });
+
+        onApplicationEntersForeground.doNext(); // Login
+    }
+
+    void onLoggedIn() {
+        onApplicationEntersForeground.doNext(true);
+    }
+
+    void onPushTokenReceived() {
+        onApplicationEntersForeground.doNext(false);
+    }
+
+    void onPushTokenFinishedUpdateRemotely() {
+        onApplicationEntersForeground.doNext(null); // Won't run anything 'onAllDone()'
+    }
+
 }

@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorService.SensorServiceListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorService.SensorServiceListener, SensorsFragment.SensorsFragmentListener {
 
     static final int NOTIFICATION_REQUEST_CODE = 1000;
 
@@ -592,6 +592,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onSensorValuesChanged(SensorService sensorService, float[] values) {
         if (!SomeApplication.isInForeground()) return;
         Log.d(TAG, "onSensorValuesChanged: Accelerometer sensors state: " + Arrays.toString(values));
+    }
+
+    @Override
+    public void valuesUpdated(SensorsFragment sensorsFragment, float[] someData) {
+        // Do something with fragment's data
     }
 
     public enum TicTacToeButtonPlayer {

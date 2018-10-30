@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -31,8 +32,8 @@ import java.util.Arrays;
  */
 // http://stackoverflow.com/questions/17553374/android-app-fragments-vs-android-support-v4-app-using-viewpager
 public class SensorsFragment extends Fragment {
+    public static final String TAG = SensorsFragment.class.getSimpleName();
 
-    private SensorsFragmentListener _fragmentListener;
     private BroadcastReceiver broadcastReceiver;
     private TextView txtInfo;
     private TextSwitcher txtCounter;
@@ -41,8 +42,24 @@ public class SensorsFragment extends Fragment {
     private boolean shouldCount = true;
 
     public interface SensorsFragmentListener {
-        void valuesUpdated(float[] someData);
+        void valuesUpdated(SensorsFragment sensorsFragment, float[] someData);
     }
+
+    @Nullable
+    public SensorsFragmentListener getFragmentListener() {
+        SensorsFragmentListener fragmentListener;
+        Activity activity = getActivity();
+        if (activity instanceof SensorsFragmentListener) {
+            fragmentListener = (SensorsFragmentListener) activity;
+        } else {
+            Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
+            fragmentListener = null;
+        }
+
+        return fragmentListener;
+    }
+
+    public SensorsFragment() { }
 
     /* Beginning of Fragment's Lifecycle */
 
@@ -50,15 +67,7 @@ public class SensorsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        Activity activity;
-        if (context instanceof Activity) {
-            activity = (Activity) getContext();
-            if (activity instanceof SensorsFragmentListener) {
-                _fragmentListener = (SensorsFragmentListener) activity;
-            } else {
-                Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
-            }
-        }
+        //
     }
 
     @Override
@@ -203,8 +212,8 @@ public class SensorsFragment extends Fragment {
     /* Ending of Fragment's Lifecycle */
 
     public void senseDetected(float[] sensorAngles) {
-        if (this._fragmentListener != null) {
-            this._fragmentListener.valuesUpdated(sensorAngles);
+        if (this.getFragmentListener() != null) {
+            this.getFragmentListener().valuesUpdated(this, sensorAngles);
         }
 
         int[] values = new int[sensorAngles.length];

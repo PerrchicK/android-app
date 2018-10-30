@@ -73,8 +73,9 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
 
         if (isGoogleMapsInstalled()) {
             // Add the Google Maps fragment dynamically
-            final FragmentTransaction transaction = getFragmentManager().beginTransaction();
             MapFragment mapFragment = MapFragment.newInstance();
+
+            final FragmentTransaction transaction = getFragmentManager().beginTransaction();
             transaction.add(R.id.mapsPlaceHolder, mapFragment);
             transaction.commit();
 
@@ -139,7 +140,7 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
         findViewById(R.id.btnAdreessSearch).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                btnAdreessSearchPressed();
+                btnAddressSearchPressed();
             }
         });
 
@@ -200,7 +201,7 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
         }
     }
 
-    private void btnAdreessSearchPressed() {
+    private void btnAddressSearchPressed() {
         String searchAddressUrl = String.format(formatForGeocodeFromAddress, this.txtAddress.getText().toString(), apiKey);
         PerrFuncs.makeGetRequest(searchAddressUrl, new PerrFuncs.CallbacksHandler<Response>() {
             @Override
