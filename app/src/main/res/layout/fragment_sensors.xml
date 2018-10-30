@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:background="#555555"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <TextView
+        android:id="@+id/fragment_title"
+        android:layout_alignParentTop="true"
         android:gravity="center"
         android:text="@string/fragment_title"
         android:textColor="#cc99aa"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="10"/>
+        android:layout_height="wrap_content" />
 
     <TextSwitcher
-        android:id="@+id/lblCounter"
+        android:layout_below="@id/fragment_title"
+        android:id="@+id/lbl_counter"
         android:gravity="center"
         android:textColor="#4499ff"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="10">
+        android:layout_height="wrap_content">
         <TextView
             android:gravity="center"
             android:layout_width="fill_parent"
@@ -30,11 +31,11 @@
     </TextSwitcher>
 
     <TextView
-        android:id="@+id/lblInfo"
+        android:layout_below="@id/lbl_counter"
+        android:id="@+id/lbl_info"
         android:gravity="center"
         android:text="@string/txt_values"
         android:textColor="#aadd00"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:layout_weight="10"/>
-</LinearLayout>
+        android:layout_height="wrap_content" />
+</RelativeLayout>

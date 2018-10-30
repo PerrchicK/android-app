@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -51,8 +52,11 @@ public class SensorsFragment extends Fragment {
         Activity activity = getActivity();
         if (activity instanceof SensorsFragmentListener) {
             fragmentListener = (SensorsFragmentListener) activity;
-        } else {
+        } else if (activity != null) {
             Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
+            fragmentListener = null;
+        } else {
+            Log.e(getTag(), "Missing activity that implements " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
             fragmentListener = null;
         }
 
@@ -73,14 +77,15 @@ public class SensorsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         this.fragmentView = inflater.inflate(R.layout.fragment_sensors, container, false);
-        txtInfo = (TextView) fragmentView.findViewById(R.id.lblInfo);
-        txtCounter = (TextSwitcher) fragmentView.findViewById(R.id.lblCounter);
+        txtInfo = (TextView) fragmentView.findViewById(R.id.lbl_info);
+        txtCounter = (TextSwitcher) fragmentView.findViewById(R.id.lbl_counter);
         Animation in = AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_in_left);
         Animation out = AnimationUtils.loadAnimation(getContext(), android.R.anim.slide_out_right);
         txtCounter.setInAnimation(in);
@@ -89,21 +94,20 @@ public class SensorsFragment extends Fragment {
         fragmentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                android.support.v4.app.FragmentManager fragmentManager = getFragmentManager();
+                FragmentManager fragmentManager = getFragmentManager();
                 if (fragmentManager == null) return;
+
                 FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                Fragment sensorsFragment = fragmentManager.findFragmentById(R.id.sensorsFragment);
+                Fragment sensorsFragment = SensorsFragment.this;
                 fragmentTransaction.remove(sensorsFragment);
 
                 if (sensorsFragment instanceof SensorsFragmentBlue) {
                     if (fragmentManager.findFragmentByTag(SensorsFragmentRed.TAG) == null) {
-                        sensorsFragment = new SensorsFragmentRed();
-                        fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                        fragmentTransaction.add(R.id.sensorsFragment, new SensorsFragmentRed());
                     }
                 } else {
                     if (fragmentManager.findFragmentByTag(SensorsFragmentBlue.TAG) == null) {
-                        sensorsFragment = new SensorsFragmentBlue();
-                        fragmentTransaction.add(R.id.sensorsFragment, sensorsFragment);
+                        fragmentTransaction.add(R.id.sensorsFragment, new SensorsFragmentBlue());
                     }
                 }
                 fragmentTransaction.commit();
