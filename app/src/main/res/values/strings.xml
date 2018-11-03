@@ -59,5 +59,6 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="page_fragment_title">Page fragment</string>
+    <string name="autocomplete_list_hint">type text here for autocomplete list</string>
 
 </resources>

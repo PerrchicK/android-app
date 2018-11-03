@@ -1,7 +1,7 @@
 package com.perrchick.someapplication.uiexercises.list;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,6 +27,7 @@ public class EasyListActivity extends AppCompatActivity {
         EasyRecyclerView<SomePojo> easyRecyclerView = new EasyRecyclerView<>(this, new EasyRecyclerView.CellsFactory<SomePojo>() {
             @Override
             public EasyRecyclerView.CellHolder<SomePojo> create(ViewGroup parent, int viewType) {
+                // Please read: https://possiblemobile.com/2013/05/layout-inflation-as-intended/
                 View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_row, null);
                 return new Cell(view);
             }

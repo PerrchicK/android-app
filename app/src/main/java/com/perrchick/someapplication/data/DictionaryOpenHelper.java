@@ -5,10 +5,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.perrchick.someapplication.R;
-import com.perrchick.someapplication.StorageActivity;
 
 /**
  * Created by perrchick on 11/17/15.

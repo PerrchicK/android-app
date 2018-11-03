@@ -4,7 +4,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.perrchick.someapplication.ListActivity">
+    tools:context="com.perrchick.someapplication.uiexercises.list.ListActivity">
+
+    <android.support.v7.widget.AppCompatMultiAutoCompleteTextView
+        android:id="@+id/autocomplete_list"
+        android:hint="@string/autocomplete_list_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/listView"

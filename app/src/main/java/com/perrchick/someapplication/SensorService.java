@@ -25,6 +25,7 @@ public class SensorService extends Service implements SensorEventListener {
     interface SensorServiceListener {
         void onSensorValuesChanged(SensorService sensorService, float[] values);
     }
+
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
     public static final String SENSOR_SERVICE_VALUES_KEY = "SENSOR_SERVICE_VALUES_KEY";
     public static final String PARCEL_OBJECT_KEY = "some_parceled_object";
