@@ -53,10 +53,10 @@ public class SensorsFragment extends Fragment {
         if (activity instanceof SensorsFragmentListener) {
             fragmentListener = (SensorsFragmentListener) activity;
         } else if (activity != null) {
-            Log.e(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
+            AppLogger.error(getTag(), activity.toString() + " doesn't implement " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
             fragmentListener = null;
         } else {
-            Log.e(getTag(), "Missing activity that implements " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
+            AppLogger.error(getTag(), "Missing activity that implements " + SensorsFragmentListener.class.getSimpleName() + "! Listener calls won't be available");
             fragmentListener = null;
         }
 
@@ -217,7 +217,7 @@ public class SensorsFragment extends Fragment {
     public void senseDetected(float[] sensorAngles) {
         SensorsFragmentListener fragmentListener = getFragmentListener();
         if (fragmentListener != null) {
-            fragmentListener.valuesUpdated(sensorAngles);
+            fragmentListener.valuesUpdated(this, sensorAngles);
         }
 
         int[] values = new int[sensorAngles.length];
