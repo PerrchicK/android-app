@@ -2,20 +2,28 @@ package com.perrchick.someapplication;
 
 import android.app.Activity;
 import android.app.Application;
+import android.app.job.JobInfo;
+import android.app.job.JobScheduler;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.Looper;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.facebook.stetho.Stetho;
+import com.perrchick.someapplication.service.SomeJobService;
 import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.Synchronizer;
 
@@ -49,6 +57,7 @@ public class SomeApplication extends android.app.Application {
     private WeakReference<Activity> topActivity;
     private boolean isApplicationInForeground;
     private Handler mainThreadHandler;
+    private Handler appBackgroundHandler;
 
     @Nullable
     public static Activity getTopActivity() { return ApplicationHolder.sharedInstance.application.topActivity != null ? ApplicationHolder.sharedInstance.application.topActivity.get() : null; }
@@ -62,12 +71,15 @@ public class SomeApplication extends android.app.Application {
 
     public static boolean isInForeground() { return ApplicationHolder.sharedInstance.application.isApplicationInForeground; }
     public static final boolean isReleaseVersion;
+
     static {
         isReleaseVersion = !BuildConfig.DEBUG;
     }
+
     public static void runOnUiThread(Runnable runnable) {
         runOnUiThread(runnable, 0);
     }
+
     public static void runOnUiThread(Runnable runnable, long delayMillis) {
         if (delayMillis > 0) {
             ApplicationHolder.sharedInstance.application.mainThreadHandler.postDelayed(runnable, delayMillis);
@@ -76,18 +88,60 @@ public class SomeApplication extends android.app.Application {
         }
     }
 
+    public static void runInBackgroundThread(Runnable runnable) {
+        ApplicationHolder.sharedInstance.application.appBackgroundHandler.post(runnable);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         mainThreadHandler = new Handler(Looper.getMainLooper());
         ApplicationHolder.sharedInstance.application = this;
+
+        HandlerThread appBackgroundThread = new HandlerThread(SomeApplication.class.getSimpleName());
+        appBackgroundThread.start();
+        appBackgroundHandler = new Handler(appBackgroundThread.getLooper());
+
         // From: https://stackoverflow.com/questions/4414171/how-to-detect-when-an-android-app-goes-to-the-background-and-come-back-to-the-fo
         registerActivityLifecycleCallbacks(new AppLifecycleTracker());
 
         Stetho.initializeWithDefaults(this);
 
         exampleForSyncedAsyncOperations();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    static boolean registerJobService() { // From: https://medium.com/google-developers/scheduling-jobs-like-a-pro-with-jobscheduler-286ef8510129
+        JobScheduler jobScheduler = (JobScheduler) getContext().getSystemService(Context.JOB_SCHEDULER_SERVICE);
+        if (jobScheduler == null) return false;
+        PersistableBundle extras = new PersistableBundle();
+        JobInfo jobInfo = new JobInfo.Builder(SomeJobService.JOB_ID,
+                new ComponentName(getContext(), SomeJobService.class))
+                .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                //.setRequiresCharging(false)
+                //.setRequiresDeviceIdle(false)
+                .setExtras(extras)
+                .setPersisted(true) // Requires adding to Manifest.xml: <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+                .build();
+        jobScheduler.schedule(jobInfo);
+
+        // Or FirebaseJobDispatcher:
+//        Job myJob = firebaseJobDispatcher.newJobBuilder() // Import in gradle using: implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
+//                .setService(SmartService.class)
+//                .setTag(SmartService.LOCATION_SMART_JOB)
+//                .setRecurring(true)
+//                .setLifetime(FOREVER)
+//                .setTrigger(Trigger.executionWindow(0, 60 * 5))
+//                .setReplaceCurrent(false)
+//                .setConstraints(ON_ANY_NETWORK)
+//                .build();
+//        firebaseJobDispatcher.mustSchedule(myJob);
+
+        // Or WorkManager: https://developer.android.com/topic/libraries/architecture/workmanager/
+
+        // Gain more knowledge from: https://medium.com/google-developer-experts/services-the-life-with-without-and-worker-6933111d62a6
+        return true;
     }
 
     private class AppLifecycleTracker implements Application.ActivityLifecycleCallbacks  {
@@ -223,7 +277,7 @@ public class SomeApplication extends android.app.Application {
         onApplicationEntersForeground.addOperation(new Synchronizer.OperationHolder<Boolean>() {
             @Override
             public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
-                Log.d(TAG, "1st operation: login");
+                AppLogger.log(TAG, "1st operation: login");
                 // When done, the app should run: synchronizer.doNext();
                 runOnUiThread(new Runnable() {
                     @Override
@@ -235,7 +289,7 @@ public class SomeApplication extends android.app.Application {
         }).addOperation(new Synchronizer.OperationHolder<Boolean>() {
             @Override
             public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
-                Log.d(TAG, "2nd operation: register for remote notification");
+                AppLogger.log(TAG, "2nd operation: register for remote notification");
                 // When done, the app should run: synchronizer.doNext();
                 runOnUiThread(new Runnable() {
                     @Override
@@ -247,8 +301,8 @@ public class SomeApplication extends android.app.Application {
         }).addOperation(new Synchronizer.OperationHolder<Boolean>() {
             @Override
             public void onMyTurn(final Synchronizer.SyncedSynchronizer<Boolean> synchronizer) {
-                Log.d(TAG, "3rd operation: upload token data to server");
-                synchronizer.lastResult();
+                AppLogger.log(TAG, "3rd operation: upload token data to server");
+                AppLogger.log(TAG, "synchronizer.lastResult() == " + synchronizer.lastResult());
                 // When done, the app should run: synchronizer.doNext();
                 runOnUiThread(new Runnable() {
                     @Override
@@ -259,19 +313,21 @@ public class SomeApplication extends android.app.Application {
             }
         });
 
-        onApplicationEntersForeground.doNext(); // Login
+        onApplicationEntersForeground.carryOn(); // Login
     }
 
     void onLoggedIn() {
-        onApplicationEntersForeground.doNext(true);
+        onApplicationEntersForeground.carryOn(true);
     }
 
     void onPushTokenReceived() {
-        onApplicationEntersForeground.doNext(false);
+        onApplicationEntersForeground.carryOn(false);
     }
 
     void onPushTokenFinishedUpdateRemotely() {
-        onApplicationEntersForeground.doNext(null); // Won't run anything 'onAllDone()'
+        onApplicationEntersForeground.carryOn(null); // Won't run anything 'onAllDone()'
     }
 
+    private void doInBackground() {
+    }
 }

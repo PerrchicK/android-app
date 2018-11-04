@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="ANDROID.PERMISSION.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".SomeApplication"
@@ -22,18 +23,21 @@
             android:value="AIzaSyB700S2ZCSx_iq_nvSKkVSHhDylpk9HuFg" />
 
         <service
-            android:name=".SensorService"
+            android:name=".service.SensorService"
             android:enabled="true" />
         <service
-            android:name=".SensorServiceMock"
+            android:name=".service.SensorServiceMock"
             android:enabled="true" />
+        <service android:name=".service.SomeJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"
+            android:exported="true" />
 
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
+                <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -73,7 +77,7 @@
         <activity
             android:name=".GoogleMapsActivity"
             android:label="@string/title_activity_google_maps" />
-        <activity android:name=".PagerActivity"></activity>
+        <activity android:name=".PagerActivity" />
     </application>
 
 </manifest>

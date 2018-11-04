@@ -1,4 +1,4 @@
-package com.perrchick.someapplication;
+package com.perrchick.someapplication.service;
 
 import android.app.Service;
 import android.content.Context;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class SensorService extends Service implements SensorEventListener {
 
-    interface SensorServiceListener {
+    public interface SensorServiceListener {
         void onSensorValuesChanged(SensorService sensorService, float[] values);
     }
     public static final String SENSOR_SERVICE_BROADCAST_ACTION = "SENSOR_SERVICE_BROADCAST_ACTION";
@@ -126,15 +126,15 @@ public class SensorService extends Service implements SensorEventListener {
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
     }
 
-    class SensorServiceBinder extends Binder {
-        static final String START_LISTENING = "Start";
+    public class SensorServiceBinder extends Binder {
+        public static final String START_LISTENING = "Start";
         private SensorService sensorService;
 
-        SensorService getService() {
+        public SensorService getService() {
             return sensorService;
         }
 
-        void notifyService(String msg) {
+        public void notifyService(String msg) {
             // A.D: "you must provide an interface that clients use to communicate with the service, by returning an IBinder."
             Log.v(getTag(), SensorService.class.getSimpleName() + " has got a message from its binding activity. Message: " + msg);
 

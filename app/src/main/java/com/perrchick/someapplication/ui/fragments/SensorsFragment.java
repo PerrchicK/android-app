@@ -20,9 +20,9 @@ import android.widget.TextSwitcher;
 import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
-import com.perrchick.someapplication.SensorService;
 import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.data.SomePojo;
+import com.perrchick.someapplication.service.SensorService;
 
 import java.util.Arrays;
 

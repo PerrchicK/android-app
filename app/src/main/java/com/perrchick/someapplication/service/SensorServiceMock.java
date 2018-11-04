@@ -1,4 +1,4 @@
-package com.perrchick.someapplication;
+package com.perrchick.someapplication.service;
 
 import android.content.Intent;
 import android.os.IBinder;

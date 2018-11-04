@@ -50,6 +50,7 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
     private final String formatForReverseGeocoding = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%f,%f&key=%s";
     private final String formatForAutocompletePlacesSearch = "https://maps.googleapis.com/maps/api/place/autocomplete/json?input=%s&types=address&language=iw&key=%s";
     private final String apiKey = "AIzaSyDC5LC2DDP6Vi11nVw53q7uAyxyVhOfbxw"; // Different from the Maps API key
+    // https://console.cloud.google.com/google/maps-apis/apis/geocoding-backend.googleapis.com
 
     private GoogleMap googleMap;
     private TextView lblZoom;
@@ -435,7 +436,6 @@ public class SomeMapActivity extends AppCompatActivity implements LocationListen
                                 } else {
                                     googleMap.animateCamera(CameraUpdateFactory.newLatLng(new LatLng(lat, lng)));
                                 }
-
                             }
                         });
                     } else {

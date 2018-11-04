@@ -306,10 +306,6 @@ public class PerrFuncs {
     }
 
     public static void callNumber(String phoneNumber) {
-        callNumber(phoneNumber, SomeApplication.getTopActivity());
-    }
-
-    public static void callNumber(String phoneNumber, Activity activity) {
         // Example for implicit intent (the Android OS will choose the handler)
         Intent phoneCallIntent = new Intent(Intent.ACTION_CALL);
         phoneCallIntent.setData(Uri.parse("tel:" + phoneNumber));

@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -22,6 +23,8 @@ import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.perrchick.someapplication.service.SensorService;
+import com.perrchick.someapplication.service.SensorServiceMock;
 import com.perrchick.someapplication.ui.TicTacToeButton;
 import com.perrchick.someapplication.uiexercises.AnimationsActivity;
 import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
@@ -104,6 +107,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else {
                 Intent serviceIntent = new Intent(this, SensorService.class);
                 bindService(serviceIntent, serviceConnectionListener, Context.BIND_AUTO_CREATE);
+
+                // Nope, using 'startService' may throw an 'IllegalStateException' in Android O and above.
+                //startService(serviceIntent);
+
+                //startForegroundService(serviceIntent); // The app MUST present a local notification to show the user that the app is running
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    if (!SomeApplication.registerJobService()) {
+                        AppLogger.error(TAG, "Failed to schedule background job!");
+                    }
+                }
+
             }
             // Now, this activity has its own bound service, which broadcasts its own info.
             // In this specific case, a fragment listens to the service's broadcast
@@ -567,7 +582,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 PerrFuncs.getTextFromUser(this, "What number should we call?", new PerrFuncs.CallbacksHandler<String>() {
                     @Override
                     public void onCallback(String callbackObject) {
-                        PerrFuncs.callNumber(callbackObject, MainActivity.this);
+                        PerrFuncs.callNumber(callbackObject);
                     }
                 });
                 return true;
