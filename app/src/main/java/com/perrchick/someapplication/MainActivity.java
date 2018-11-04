@@ -520,12 +520,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        Intent i = getIntent();
-        if (i == getIntent()) {
-            //
-        }
-
-
         //noinspection SimplifiableIfStatement
         switch (id) {
             case R.id.action_go_to_animations:

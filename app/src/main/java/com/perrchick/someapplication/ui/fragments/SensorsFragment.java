@@ -10,7 +10,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +21,7 @@ import android.widget.TextView;
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.data.SomePojo;
+import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.service.SensorService;
 
 import java.util.Arrays;
@@ -71,7 +71,6 @@ public class SensorsFragment extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
 
-        //
     }
 
     @Override
@@ -166,7 +165,7 @@ public class SensorsFragment extends Fragment {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        AppLogger.error(this, e);
                     }
 
                     if (getView() != null) {
@@ -216,8 +215,9 @@ public class SensorsFragment extends Fragment {
     /* Ending of Fragment's Lifecycle */
 
     public void senseDetected(float[] sensorAngles) {
-        if (this.getFragmentListener() != null) {
-            this.getFragmentListener().valuesUpdated(this, sensorAngles);
+        SensorsFragmentListener fragmentListener = getFragmentListener();
+        if (fragmentListener != null) {
+            fragmentListener.valuesUpdated(sensorAngles);
         }
 
         int[] values = new int[sensorAngles.length];
