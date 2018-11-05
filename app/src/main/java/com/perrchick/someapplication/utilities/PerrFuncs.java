@@ -30,6 +30,7 @@ import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.perrchick.someapplication.SomeApplication;
+import com.perrchick.someapplication.data.FirebaseHelper;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -45,6 +46,7 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -52,6 +54,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class PerrFuncs {
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    public static final long ONE_MINUTE_MILLISECONDS = 1000 * 60;
     private static String TAG = PerrFuncs.class.getSimpleName();
     private static PerrFuncs _perrFuncsInstance;
     private final OkHttpClient httpClient;
@@ -103,6 +106,20 @@ public class PerrFuncs {
 
         return calendar.getTimeInMillis();
     }
+
+    public static long getCurrentTimestamp() {
+        Long timestamp = getRealCurrentTimestamp();
+        if (timestamp == null) {
+            timestamp = getCurrentDeviceTimestamp();
+        }
+
+        return timestamp;
+    }
+
+    public static String generateGuid() {
+        return UUID.randomUUID().toString();
+    }
+
 
     /**
      * For Android Marshmallow SDK, version 6.0 (API 23) and above. Checks the permissions in runtime.
@@ -275,9 +292,25 @@ public class PerrFuncs {
         void onCallback(T callbackObject);
     }
 
-    public static String getCurrentTime() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss MM/dd/yyyy", Locale.US);
-        return (dateFormat.format(System.currentTimeMillis()));
+    public static String getCurrentTimeAndDate() {
+        return getTimeAndDate("HH:mm:ss MM/dd/yyyy", getCurrentDeviceTimestamp());
+    }
+
+    @Nullable
+    public static Long getRealCurrentTimestamp() {
+        Long diff = FirebaseHelper.getTimestampDiff();
+        if (diff == null) return null;
+
+        return getCurrentDeviceTimestamp() + diff;
+    }
+
+    public static long getCurrentDeviceTimestamp() {
+        return System.currentTimeMillis();
+    }
+
+    public static String getTimeAndDate(String format, long timestampMillis) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format, Locale.US);
+        return (dateFormat.format(timestampMillis));
     }
 
     public static void toast(String toastMessage) {

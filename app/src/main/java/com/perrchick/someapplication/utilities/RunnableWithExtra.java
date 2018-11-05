@@ -7,5 +7,13 @@ import android.os.Bundle;
  */
 
 public abstract class RunnableWithExtra implements Runnable {
-    protected Bundle extraData;
+    private Bundle extraData;
+
+    protected Bundle getExtraData() {
+        return extraData;
+    }
+
+    public void setExtraData(Bundle extraData) {
+        this.extraData = extraData;
+    }
 }

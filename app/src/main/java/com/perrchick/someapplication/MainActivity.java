@@ -62,7 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private GridLayout mGridLayout;
     private int threadCounter = 0;
     private Intent intentToHandle;
-    private SomeApplication.LocalBroadcastReceiver localBroadcastReceiver;
+    private SomeApplication.PrivateEventBus.Receiver eventBusReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,21 +70,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         setContentView(R.layout.activity_main);
 
-        localBroadcastReceiver = SomeApplication.LocalBroadcastReceiver.createNewReceiver(new SomeApplication.LocalBroadcastReceiver.PrivateBroadcastListener() {
+        eventBusReceiver = SomeApplication.PrivateEventBus.createNewReceiver(new SomeApplication.PrivateEventBus.BroadcastReceiverListener() {
             @Override
-            public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.LocalBroadcastReceiver receiver) {
+            public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.PrivateEventBus.Receiver receiver) {
                 if (TextUtils.isEmpty(intent.getAction())) return;
 
                 switch (intent.getAction()) {
-                    case SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND:
+                    case SomeApplication.PrivateEventBus.Action.APPLICATION_GOING_BACKGROUND:
                         AppLogger.log(TAG, "going background...");
                         break;
-                    case SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND:
+                    case SomeApplication.PrivateEventBus.Action.APPLICATION_GOING_FOREGROUND:
                         AppLogger.log(TAG, "coming back to foreground!");
                         break;
                 }
             }
-        }, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND, SomeApplication.LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND);
+        }, SomeApplication.PrivateEventBus.Action.APPLICATION_GOING_BACKGROUND, SomeApplication.PrivateEventBus.Action.APPLICATION_GOING_FOREGROUND);
+
 //        tickForever(true);
 
         //synchronizeAsynchronousOperationsV0();
@@ -114,9 +115,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //startForegroundService(serviceIntent); // The app MUST present a local notification to show the user that the app is running
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    if (!SomeApplication.registerJobService()) {
-                        AppLogger.error(TAG, "Failed to schedule background job!");
-                    }
+                    SomeApplication.PrivateEventBus.createNewReceiver(new SomeApplication.PrivateEventBus.BroadcastReceiverListener() {
+                        @Override
+                        public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.PrivateEventBus.Receiver receiver) {
+                            receiver.quit(); // Disposable - remove after first notification
+
+                            if (!SomeApplication.registerJobService()) {
+                                AppLogger.error(TAG, "Failed to schedule background job!");
+                            }
+                        }
+                    }, SomeApplication.PrivateEventBus.Action.FIREBASE_IS_READY);
                 }
 
             }
@@ -341,7 +349,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         Log.d(TAG, "onDestroy: activity destroyed");
         unbindService(serviceConnectionListener);
-        localBroadcastReceiver.quit();
+        eventBusReceiver.quit();
     }
 
     // The method that was defined from the hard coded XML file

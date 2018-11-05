@@ -23,8 +23,10 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.facebook.stetho.Stetho;
+import com.perrchick.someapplication.data.FirebaseHelper;
 import com.perrchick.someapplication.service.SomeJobService;
 import com.perrchick.someapplication.utilities.AppLogger;
+import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.perrchick.someapplication.utilities.Synchronizer;
 
 import java.lang.ref.WeakReference;
@@ -33,6 +35,9 @@ import java.lang.ref.WeakReference;
  * Created by perrchick on 12/16/15.
  */
 public class SomeApplication extends android.app.Application {
+    static {
+        isReleaseVersion = !BuildConfig.DEBUG;
+    }
 
     /**
      * Holds the application context in a safe static reference.
@@ -65,16 +70,13 @@ public class SomeApplication extends android.app.Application {
     public static void setContext(Context context) {
         if (context == null) return;
         if (!(context.getApplicationContext() instanceof SomeApplication)) return;
+        // This method is called before its `onCreate` method: https://www.youtube.com/watch?v=L3Cw5clOnxs
 
         ApplicationHolder.sharedInstance.application = (SomeApplication) context.getApplicationContext();
     }
 
     public static boolean isInForeground() { return ApplicationHolder.sharedInstance.application.isApplicationInForeground; }
     public static final boolean isReleaseVersion;
-
-    static {
-        isReleaseVersion = !BuildConfig.DEBUG;
-    }
 
     public static void runOnUiThread(Runnable runnable) {
         runOnUiThread(runnable, 0);
@@ -84,6 +86,7 @@ public class SomeApplication extends android.app.Application {
         if (delayMillis > 0) {
             ApplicationHolder.sharedInstance.application.mainThreadHandler.postDelayed(runnable, delayMillis);
         } else {
+            //new Handler(Looper.getMainLooper()).post(runnable);
             ApplicationHolder.sharedInstance.application.mainThreadHandler.post(runnable);
         }
     }
@@ -92,14 +95,17 @@ public class SomeApplication extends android.app.Application {
         ApplicationHolder.sharedInstance.application.appBackgroundHandler.post(runnable);
     }
 
+    public static void cancelBackgroundThread(Runnable runnable) {
+        ApplicationHolder.sharedInstance.application.appBackgroundHandler.removeCallbacks(runnable);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
 
         mainThreadHandler = new Handler(Looper.getMainLooper());
-        ApplicationHolder.sharedInstance.application = this;
 
-        HandlerThread appBackgroundThread = new HandlerThread(SomeApplication.class.getSimpleName());
+        HandlerThread appBackgroundThread = new HandlerThread(SomeApplication.class.getSimpleName() + "_BackgroundThread");
         appBackgroundThread.start();
         appBackgroundHandler = new Handler(appBackgroundThread.getLooper());
 
@@ -109,20 +115,25 @@ public class SomeApplication extends android.app.Application {
         Stetho.initializeWithDefaults(this);
 
         exampleForSyncedAsyncOperations();
+
+        FirebaseHelper.initialize();
     }
 
+    // From Oreo and on the Android OS is embracing the iOS attitude about background tasks
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     static boolean registerJobService() { // From: https://medium.com/google-developers/scheduling-jobs-like-a-pro-with-jobscheduler-286ef8510129
         JobScheduler jobScheduler = (JobScheduler) getContext().getSystemService(Context.JOB_SCHEDULER_SERVICE);
         if (jobScheduler == null) return false;
         PersistableBundle extras = new PersistableBundle();
+        extras.putLong("start", PerrFuncs.getCurrentTimestamp());
         JobInfo jobInfo = new JobInfo.Builder(SomeJobService.JOB_ID,
                 new ComponentName(getContext(), SomeJobService.class))
                 .setRequiredNetworkType(JobInfo.NETWORK_TYPE_ANY)
+                //.setPeriodic(SomeJobService.JOB_PERIOD_MILLISECONDS) // Recurring job
                 //.setRequiresCharging(false)
                 //.setRequiresDeviceIdle(false)
                 .setExtras(extras)
-                .setPersisted(true) // Requires adding to Manifest.xml: <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+                .setPersisted(true) // Persisted across a reboot, requires adding another permission to Manifest.xml: <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
                 .build();
         jobScheduler.schedule(jobInfo);
 
@@ -140,7 +151,7 @@ public class SomeApplication extends android.app.Application {
 
         // Or WorkManager: https://developer.android.com/topic/libraries/architecture/workmanager/
 
-        // Gain more knowledge from: https://medium.com/google-developer-experts/services-the-life-with-without-and-worker-6933111d62a6
+        // Thanks to Yonatan Levin, you can gain more knowledge from: https://medium.com/google-developer-experts/services-the-life-with-without-and-worker-6933111d62a6
         return true;
     }
 
@@ -158,7 +169,7 @@ public class SomeApplication extends android.app.Application {
             if (numStarted++ == 0) {
                 isApplicationInForeground = false;
                 Log.d(TAG, "onActivityStopped: app went to foreground");
-                LocalBroadcastReceiver.notify(LocalBroadcastReceiver.APPLICATION_GOING_FOREGROUND);
+                PrivateEventBus.notify(PrivateEventBus.Action.APPLICATION_GOING_FOREGROUND);
             }
         }
 
@@ -177,7 +188,7 @@ public class SomeApplication extends android.app.Application {
             if (--numStarted == 0) {
                 isApplicationInForeground = false;
                 Log.d(TAG, "onActivityStopped: app went to background");
-                LocalBroadcastReceiver.notify(LocalBroadcastReceiver.APPLICATION_GOING_BACKGROUND);
+                PrivateEventBus.notify(PrivateEventBus.Action.APPLICATION_GOING_BACKGROUND);
             }
         }
 
@@ -192,55 +203,73 @@ public class SomeApplication extends android.app.Application {
         }
     }
 
-    static public class LocalBroadcastReceiver extends BroadcastReceiver {
-
-        public static final String APPLICATION_GOING_BACKGROUND = BuildConfig.APPLICATION_ID + " - yo";
-        public static final String APPLICATION_GOING_FOREGROUND = BuildConfig.APPLICATION_ID + " - yoyo";
-
-        public interface PrivateBroadcastListener {
-            void onBroadcastReceived(@NonNull Intent intent, LocalBroadcastReceiver receiver);
+    static public class PrivateEventBus {
+        public class Action {
+            public static final String APPLICATION_GOING_BACKGROUND = BuildConfig.APPLICATION_ID + " - yo";
+            public static final String APPLICATION_GOING_FOREGROUND = BuildConfig.APPLICATION_ID + " - yoyo";
+            public static final String FIREBASE_IS_READY = BuildConfig.APPLICATION_ID + "runs whenever firebase is connected and has an updated clock diff";
         }
 
-        private final String[] actions;
-        @Nullable
-        private PrivateBroadcastListener receiverListener;
 
-        /**
-         * The receiver will live as long as the context lives. Therefore we will pass the application context in most of the times.
-         * @param actionsToListen
-         */
-        private LocalBroadcastReceiver(String[] actionsToListen) {
-            actions = actionsToListen;
-            IntentFilter intentFilter = new IntentFilter();
-            if (actionsToListen.length == 0) return;
+        public interface BroadcastReceiverListener {
+            void onBroadcastReceived(@NonNull Intent intent, PrivateEventBus.Receiver receiver);
+        }
 
-            for (int i = 0; i < actionsToListen.length; i++) {
-                intentFilter.addAction(actionsToListen[i]);
+
+        static class Receiver extends BroadcastReceiver {
+            private final String[] actions;
+            @Nullable
+            private BroadcastReceiverListener receiverListener;
+            /**
+             * The receiver will live as long as the context lives. Therefore we will pass the application context in most of the times.
+             * @param actionsToListen
+             */
+            private Receiver(String[] actionsToListen) {
+                actions = actionsToListen;
+                IntentFilter intentFilter = new IntentFilter();
+                if (actionsToListen.length == 0) return;
+
+                for (String actionToListen : actionsToListen) {
+                    intentFilter.addAction(actionToListen);
+                }
+
+                LocalBroadcastManager.getInstance(getContext()).registerReceiver(this, intentFilter);
             }
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(this, intentFilter);
-        }
 
-        public void setListener(PrivateBroadcastListener listener) {
-            this.receiverListener = listener;
-        }
+            public void setListener(BroadcastReceiverListener listener) {
+                this.receiverListener = listener;
+            }
 
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            receivedAction(intent);
-        }
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                receivedAction(intent);
+            }
 
-        private void receivedAction(Intent intent) {
-            if (receiverListener == null) {
-                AppLogger.error(TAG, "onBroadcastReceived: Missing listener! Intent == " + intent);
-            } else if (intent != null && !TextUtils.isEmpty(intent.getAction())) {
-                receiverListener.onBroadcastReceived(intent, this);
+            private void receivedAction(Intent intent) {
+                if (receiverListener == null) {
+                    AppLogger.error(TAG, "onBroadcastReceived: Missing listener! Intent == " + intent);
+                } else if (intent != null && !TextUtils.isEmpty(intent.getAction())) {
+                    receiverListener.onBroadcastReceived(intent, this);
+                }
+            }
+
+            public void quit() {
+                try {
+                    LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(this);
+                } catch (Exception e) {
+                    AppLogger.error(TAG, "removeReceiver: couldn't quitReceiving receiver: " + e.getMessage());
+                }
+                receiverListener = null;
+            }
+
+            public String[] getActions() {
+                return actions;
             }
         }
-
-        public static LocalBroadcastReceiver createNewReceiver(PrivateBroadcastListener listener, String... action) {
-            LocalBroadcastReceiver scenesReceiver = new LocalBroadcastReceiver(action);
-            scenesReceiver.setListener(listener);
-            return scenesReceiver;
+        public static PrivateEventBus.Receiver createNewReceiver(BroadcastReceiverListener listener, String... actions) {
+            PrivateEventBus.Receiver receiver = new Receiver(actions);
+            receiver.setListener(listener);
+            return receiver;
         }
 
         public static void notify(String action) {
@@ -248,7 +277,7 @@ public class SomeApplication extends android.app.Application {
         }
 
         public static void notify(String action, Bundle extraValues) {
-            Intent broadcastIntent = new Intent(getContext(), LocalBroadcastReceiver.class).setAction(action);
+            Intent broadcastIntent = new Intent(getContext(), PrivateEventBus.class).setAction(action);
             if (extraValues != null && extraValues.size() > 0) {
                 broadcastIntent.putExtras(extraValues);
             }
@@ -256,18 +285,6 @@ public class SomeApplication extends android.app.Application {
             LocalBroadcastManager.getInstance(getContext()).sendBroadcast(broadcastIntent);
         }
 
-        public void quit() {
-            try {
-                LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(this);
-            } catch (Exception e) {
-                AppLogger.error(TAG, "removeReceiver: couldn't quitReceiving receiver: " + e.getMessage());
-            }
-            receiverListener = null;
-        }
-
-        public String[] getActions() {
-            return actions;
-        }
     }
 
     private static Synchronizer.SyncedSynchronizer<Boolean> onApplicationEntersForeground;

@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "123456",
+    "firebase_url": "https://blah-blah.firebaseio.com",
+    "project_id": "blah-blah",
+    "storage_bucket": "blah-blah.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "blah-blah-blah",
+        "android_client_info": {
+          "package_name": "com.wallak.hmmmmm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "blah-blah-blah.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "blah-blah-blah"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

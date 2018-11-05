@@ -42,5 +42,12 @@ dependencies {
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.facebook.stetho:stetho-js-rhino:1.4.2'
 
+    // Firebase
+    implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
+    implementation 'com.google.firebase:firebase-database:16.0.4'
+
     //compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
 }
+
+// Firebase
+apply plugin: 'com.google.gms.google-services'

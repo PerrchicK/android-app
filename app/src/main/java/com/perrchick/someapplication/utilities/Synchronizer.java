@@ -56,12 +56,12 @@ public class Synchronizer<RESULT_TYPE> {
         return holdersCount == 0;
     }
 
-    public static class SyncedSynchronizer<CLASS> {
+    public static class SyncedSynchronizer<RESULT_CLASS> {
         private boolean hasBeenCanceled;
         private boolean isDone;
         private boolean isStarted;
-        private ArrayList<OperationHolder<CLASS>> operations;
-        private ArrayList<CLASS> operationResults;
+        private ArrayList<OperationHolder<RESULT_CLASS>> operations;
+        private ArrayList<RESULT_CLASS> operationResults;
 
         private SyncedSynchronizer() {
             operations = new ArrayList<>();
@@ -69,11 +69,11 @@ public class Synchronizer<RESULT_TYPE> {
             hasBeenCanceled = false;
         }
 
-        private void add(OperationHolder<CLASS> operationHolder) {
+        private void add(OperationHolder<RESULT_CLASS> operationHolder) {
             operations.add(operationHolder);
         }
 
-        public ArrayList<CLASS> getOperationResults() {
+        public ArrayList<RESULT_CLASS> getOperationResults() {
             return new ArrayList<>(operationResults);
         }
 
@@ -85,7 +85,7 @@ public class Synchronizer<RESULT_TYPE> {
             hasBeenCanceled = true;
         }
 
-        public SyncedSynchronizer<CLASS> addOperation(OperationHolder<CLASS> operationHolder) {
+        public SyncedSynchronizer<RESULT_CLASS> addOperation(OperationHolder<RESULT_CLASS> operationHolder) {
             if (operationHolder == null) return this;
             add(operationHolder);
             return this;
@@ -95,11 +95,15 @@ public class Synchronizer<RESULT_TYPE> {
             isDone = true;
         }
 
-        public SyncedSynchronizer<CLASS> carryOn() {
+        public boolean isDone() {
+            return isDone;
+        }
+
+        public SyncedSynchronizer<RESULT_CLASS> carryOn() {
             return carryOn(null);
         }
 
-        public SyncedSynchronizer<CLASS> carryOn(CLASS extra) {
+        public SyncedSynchronizer<RESULT_CLASS> carryOn(RESULT_CLASS extra) {
             if (hasBeenCanceled) return this;
 
             if (isStarted) {
@@ -113,7 +117,7 @@ public class Synchronizer<RESULT_TYPE> {
                 return this;
             }
 
-            OperationHolder<CLASS> nexOperation = operations.remove(0);
+            OperationHolder<RESULT_CLASS> nexOperation = operations.remove(0);
 
             if (nexOperation == null || nexOperation.isDone) {
                 carryOn(extra);
@@ -126,7 +130,7 @@ public class Synchronizer<RESULT_TYPE> {
         }
 
         @Nullable
-        public CLASS lastResult() {
+        public RESULT_CLASS lastResult() {
             if (operationResults.size() < 1) return null;
             return operationResults.get(operationResults.size() - 1);
         }
@@ -178,7 +182,7 @@ public class Synchronizer<RESULT_TYPE> {
         protected abstract void onMyTurn(Synchronizer.SyncedSynchronizer<CLASS> synchronizer);
     }
 
-    public interface SynchronizerCallback<RESULT_TYPE> {
-        void done(ArrayList<RESULT_TYPE> extra);
+    public interface SynchronizerCallback<TYPE> {
+        void done(ArrayList<TYPE> extra);
     }
 }
