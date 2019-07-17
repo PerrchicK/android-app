@@ -49,8 +49,8 @@ ext {
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
     allLicenses = ["Apache-2.0"]
 
-    apply from: 'https://raw.githubusercontent.com/PerrchicK/android-app/master/onlinesharedpreferences/jcenter/installv1.gradle'
-    apply from: 'https://raw.githubusercontent.com/PerrchicK/android-app/master/onlinesharedpreferences/jcenter/bintrayv1.gradle'
+//    apply from: 'https://raw.githubusercontent.com/PerrchicK/android-app/master/onlinesharedpreferences/jcenter/installv1.gradle'
+//    apply from: 'https://raw.githubusercontent.com/PerrchicK/android-app/master/onlinesharedpreferences/jcenter/bintrayv1.gradle'
 }
 
 dependencies {

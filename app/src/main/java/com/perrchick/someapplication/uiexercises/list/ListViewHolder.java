@@ -1,11 +1,12 @@
 package com.perrchick.someapplication.uiexercises.list;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.data.SomePojo;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Created by perrchick on 14/06/2017.
