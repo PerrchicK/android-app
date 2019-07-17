@@ -2,16 +2,23 @@ package com.perrchick.someapplication;
 
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import com.perrchick.someapplication.ui.fragments.PageFragment;
 
 public class PagerActivity extends AppCompatActivity implements PageFragment.OnFragmentInteractionListener {
+
+    //import android.support.v4.app.Fragment;
+    //import android.support.v4.app.FragmentManager;
+    //import android.support.v4.app.FragmentStatePagerAdapter;
+    //import android.support.v4.view.ViewPager;
+    //import android.support.v7.app.AppCompatActivity;
 
     private static final String TAG = PagerActivity.class.getSimpleName();
 

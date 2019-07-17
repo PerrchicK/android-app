@@ -14,9 +14,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Looper;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -28,6 +25,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.data.FirebaseHelper;
@@ -142,6 +143,11 @@ public class PerrFuncs {
         if (activity.getSupportActionBar() != null) { // Shouldn't have a problem here anyway
             activity.getSupportActionBar().hide();
         }
+
+//        import android.support.annotation.Nullable;
+//          import android.support.v4.app.ActivityCompat;
+//      import android.support.v7.app.AppCompatActivity;
+
     }
 
     public static void animateRandomlyFlyingOut(View view, long duration) {

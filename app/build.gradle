@@ -1,13 +1,18 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     buildToolsVersion '26.0.3'
+
+    dexOptions {
+        preDexLibraries = false
+    }
+
 
     defaultConfig {
         applicationId "com.perrchick.someapplication"
         minSdkVersion 19
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -22,31 +27,34 @@ android {
         exclude 'META-INF/LICENSE-FIREBASE.txt'
         exclude 'META-INF/NOTICE'
     }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    implementation 'com.android.support:support-v4:27.1.1'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    //compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
+    compile project(':onlinesharedpreferences')
 
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     debugCompile 'com.squareup.leakcanary:leakcanary-android:1.5.1'
     releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.5.1'
-
     compile 'com.backendless:backendless:3.0.8.1'
-    compile project(':onlinesharedpreferences')
-    compile 'com.android.support:recyclerview-v7:27.1.1'
-    compile 'com.android.support:appcompat-v7:27.1.1'
+
     compile 'com.yalantis:starwarstiles:0.1.0'
     compile 'com.squareup.okhttp:okhttp:2.7.2'
-    compile 'com.google.android.gms:play-services-maps:16.0.0'
+    compile 'com.google.android.gms:play-services-maps:16.1.0'
     compile 'com.google.code.gson:gson:2.8.5'
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.facebook.stetho:stetho-js-rhino:1.4.2'
 
+    compile 'androidx.recyclerview:recyclerview:1.0.0'
+
     // Firebase
     implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
-    implementation 'com.google.firebase:firebase-database:16.0.4'
-
-    //compile 'com.github.perrchick:onlinesharedpreferences:2.0.0'
+    implementation 'com.google.firebase:firebase-core:16.0.8'
+    implementation 'com.google.firebase:firebase-database:16.1.0'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
 }
 
 // Firebase

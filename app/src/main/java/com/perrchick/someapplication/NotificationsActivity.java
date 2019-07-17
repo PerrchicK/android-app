@@ -9,13 +9,14 @@ import android.content.Intent;
 import android.media.RingtoneManager;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TimePicker;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 
 import com.google.gson.Gson;
 import com.perrchick.someapplication.utilities.NotificationPublisher;
@@ -25,6 +26,9 @@ import com.squareup.okhttp.Response;
 import java.util.HashMap;
 
 public class NotificationsActivity extends AppCompatActivity {
+
+    //import android.support.v4.app.NotificationManagerCompat;
+    //import android.support.v7.app.AppCompatActivity;
 
     private static final String TAG = NotificationsActivity.class.getSimpleName();
 
@@ -53,8 +57,7 @@ public class NotificationsActivity extends AppCompatActivity {
 
                 int notificationId = /* MY_NOTIFICATION_ID */ (int) (System.currentTimeMillis() & 0xfffffff); // Convert long to int
                 PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon,
-                        "Open this app's landing screen", mainActivityPendingIntent);
+                NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon, "Open this app's landing screen", mainActivityPendingIntent);
 
                 TimePicker timePicker = (TimePicker) findViewById(R.id.dateDispatchTime);
                 long scheduledTime = PerrFuncs.getMillisFrom1970(timePicker);
