@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.perrchick.someapplication.R;
+import com.perrchick.someapplication.utilities.AppLogger;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +20,10 @@ import java.net.HttpURLConnection;
 
 public class ImageDownloadActivity extends AppCompatActivity implements View.OnClickListener {
 
+    private static final String TAG = ImageDownloadActivity.class.getSimpleName();
+
     private String imageUrl = "http://static.srcdn.com/wp-content/uploads/the-simpsons-renewed-season-24-25.jpg";
+    private final static boolean shouldAllowMemoryLeakExample = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,23 +58,57 @@ public class ImageDownloadActivity extends AppCompatActivity implements View.OnC
 
         /** CLASS EXERCISE 05 - UPDATE UI AFTER NETWORK REQUEST **/
 
-        // Initialize clickable ImageView
-        final Handler handler = new Handler();
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                v.setRotation(((float) (v.getRotation() + Math.PI)) % 360);
-            }
-        });
+        // Option 1
+//        imageView.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                v.setRotation(((float) (v.getRotation() + Math.PI)) % 360);
+//            }
+//        });
 
-
+        // Option 2
+        imageView.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.image_from_web:
-                break;
+            case R.id.image_from_web: {
+                v.setRotation(((float) (v.getRotation() + Math.PI)) % 360);
+
+                final ImageView imageView = (ImageView) v;
+
+                if (shouldAllowMemoryLeakExample) {
+                    final Handler handler = new Handler();
+                    // Perry: That is the least recommended way (by me) to make async operation, look for HandlerThread in this project for more details.
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                java.net.URL url = new java.net.URL(imageUrl);
+                                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                                connection.setDoInput(true);
+                                connection.connect();
+                                // Perry: Making a network request here, note that this activity is kept being held in memory until this call is done (GC won't let it go) therefore we are allowing leak here! (try to avoid it and use other ways)
+                                InputStream input = connection.getInputStream();
+                                final Bitmap bmpFromWeb = BitmapFactory.decodeStream(input);
+
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        imageView.setImageBitmap(bmpFromWeb);
+                                        AppLogger.log(TAG, "Do some UI work with " + bmpFromWeb);
+                                    }
+                                });
+                            } catch (IOException e) {
+                                AppLogger.error(TAG, e);
+                            }
+                        }
+                    }).start();
+                }
+            }
+
+            break;
             case R.id.dataText:
                 break;
         }
