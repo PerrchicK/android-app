@@ -2,12 +2,11 @@ apply plugin: 'com.android.library'
 //implementation-class=org.gradle.GreetingPlugin
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '26.0.2'
+    compileSdkVersion 28
 
     defaultConfig {
-        minSdkVersion 15
-        targetSdkVersion 27
+        minSdkVersion 19
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
     }
@@ -54,8 +53,9 @@ ext {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:27.1.0'
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.backendless:backendless:3.0.8.1'
-    compile 'com.firebase:firebase-client-android:2.5.0'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.backendless:backendless:3.0.8.1'
+    implementation 'com.google.firebase:firebase-core:17.0.1'
+    implementation 'com.google.firebase:firebase-database:18.0.0'
+
 }

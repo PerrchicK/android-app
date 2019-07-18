@@ -1,9 +1,10 @@
 package com.perrchick.someapplication.ui;
 
 import android.content.Context;
-import android.support.v7.widget.AppCompatButton;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
+
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.perrchick.someapplication.MainActivity;
 

@@ -5,11 +5,15 @@ import android.content.SharedPreferences;
 import android.os.Handler;
 import android.util.Log;
 
-import com.firebase.client.ChildEventListener;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.google.firebase.FirebaseError;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Map;
 import java.util.Set;
@@ -28,7 +32,7 @@ public class SyncedSharedPreferences {
             Removed
         }
         void onSyncedSharedPreferencesChanged(SyncedSharedPreferencesChangeType changeType,String key, String value);
-        void onSyncedSharedPreferencesError(FirebaseError error);
+        void onSyncedSharedPreferencesError(@NonNull DatabaseError error);
     }
 
     private static final String TAG = SyncedSharedPreferences.class.getSimpleName();
@@ -39,7 +43,7 @@ public class SyncedSharedPreferences {
     // To prevent overriding by similar keys, there's another foreign key that will make this combination unique
     private final String packageName;
     public static final String FIREBASE_APP_URL = "https://boiling-inferno-8318.firebaseio.com/";
-    private final Firebase packageFirebaseRef;
+    private final DatabaseReference packageFirebaseRef;
     private final Context context;
     SharedPreferences localKeysAndValues;
     private Object keysAndValuesLocker = new Object();
@@ -87,12 +91,40 @@ public class SyncedSharedPreferences {
         Log.v(TAG, "Initializing integration with Firebase");
 
         if (shouldInitializeFireBase) {
-            Firebase.setAndroidContext(context);
+//            FirebaseD.setAndroidContext(context);
             shouldInitializeFireBase = false;
         }
 
-        packageFirebaseRef = new Firebase(firebaseAppUrl).child(packageName);
+        packageFirebaseRef = FirebaseDatabase.getInstance().getReference();
+
+//        packageFirebaseRef.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+//
+//            }
+//
+//            @Override
+//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+//
+//            }
+//
+//            @Override
+//            public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//            }
+//        });
         packageFirebaseRef.addChildEventListener(new ChildEventListener() {
+//        packageFirebaseRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if (syncedSharedPreferencesListener != null) {
@@ -122,10 +154,11 @@ public class SyncedSharedPreferences {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
-                Log.e(TAG, firebaseError.toString());
-                syncedSharedPreferencesListener.onSyncedSharedPreferencesError(firebaseError);
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e(TAG, databaseError.toString());
+                syncedSharedPreferencesListener.onSyncedSharedPreferencesError(databaseError);
             }
+
         });
 
         localKeysAndValues = null;

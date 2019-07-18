@@ -1,12 +1,12 @@
 package com.perrchick.someapplication.uiexercises.list;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatMultiAutoCompleteTextView;
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.data.SomePojo;
 import java.util.ArrayList;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatMultiAutoCompleteTextView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 

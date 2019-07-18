@@ -1,7 +1,8 @@
 package com.perrchick.someapplication.utilities;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.perrchick.someapplication.SomeApplication;
 

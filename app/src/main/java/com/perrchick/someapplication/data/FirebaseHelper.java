@@ -1,20 +1,23 @@
 package com.perrchick.someapplication.data;
 
-import android.arch.lifecycle.LiveData;
-import android.arch.lifecycle.Observer;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
 
-import com.firebase.client.AuthData;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ServerValue;
+import com.google.android.gms.tasks.OnCanceledListener;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseError;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.utilities.AppLogger;
@@ -78,6 +81,7 @@ public class FirebaseHelper {
         });
     }
 
+    // Uncompleted test
     public static void queryIngredients(AppCompatActivity activity, final PerrFuncs.CallbacksHandler<String> callbacksHandler) {
         LiveData liveData = null;
         liveData.observe(activity, new Observer() {
@@ -86,16 +90,18 @@ public class FirebaseHelper {
 
             }
         });
-        Firebase firebaseRef = new Firebase("");
-        firebaseRef.authWithPassword("email", "password", new Firebase.AuthResultHandler() {
-            @Override
-            public void onAuthenticated(AuthData authData) {
-                callbacksHandler.onCallback(authData.getUid());
-            }
 
+        FirebaseAuth.getInstance().signInWithEmailAndPassword("", "").addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
             @Override
-            public void onAuthenticationError(FirebaseError firebaseError) {
-                callbacksHandler.onCallback(null);
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                String uid;
+                if (task.getResult() != null) {
+                    uid = task.getResult().getUser().getUid();
+                } else {
+                    uid = null;
+                }
+
+                callbacksHandler.onCallback(uid);
             }
         });
     }

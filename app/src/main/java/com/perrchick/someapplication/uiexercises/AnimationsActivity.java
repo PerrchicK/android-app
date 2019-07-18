@@ -9,8 +9,6 @@ import android.content.ClipDescription;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
@@ -26,6 +24,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.utilities.PerrFuncs;
