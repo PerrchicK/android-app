@@ -4,7 +4,8 @@ import android.app.job.JobParameters;
 import android.app.job.JobService;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.annotation.RequiresApi;
+
+import androidx.annotation.RequiresApi;
 
 import com.perrchick.someapplication.SomeApplication;
 import com.perrchick.someapplication.utilities.AppLogger;

@@ -15,10 +15,11 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.backendless.exceptions.BackendlessException;
-import com.firebase.client.FirebaseError;
+import com.google.firebase.database.DatabaseError;
 import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
@@ -503,7 +504,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     }
 
     @Override
-    public void onSyncedSharedPreferencesError(FirebaseError error) {
+    public void onSyncedSharedPreferencesError(@NonNull DatabaseError error) {
         // Reconnect?
     }
 

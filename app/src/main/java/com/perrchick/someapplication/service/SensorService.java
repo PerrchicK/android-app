@@ -118,7 +118,6 @@ public class SensorService extends Service implements SensorEventListener {
                 }
 
                 notifyEvaluation(values);
-
             }
         });
     }
