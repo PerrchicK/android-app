@@ -37,6 +37,13 @@ class ListViewAdapter extends RecyclerView.Adapter {
     }
 
     @Override
+    public void onViewRecycled(@NonNull RecyclerView.ViewHolder holder) {
+        super.onViewRecycled(holder);
+        ListViewHolder listViewHolder = (ListViewHolder) holder;
+        listViewHolder.prepareForReuse();
+    }
+
+    @Override
     public int getItemCount() {
         return dataList.size();
     }
