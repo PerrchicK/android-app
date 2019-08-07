@@ -39,6 +39,7 @@ import com.perrchick.someapplication.utilities.SynchronizerV0;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, SensorService.SensorServiceListener, SensorsFragment.SensorsFragmentListener {
@@ -92,6 +93,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //synchronizeAsynchronousOperationsV0();
         synchronizeAsynchronousOperations();
 
+        illustrateHandlerAndLooper();
+
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
 
@@ -132,6 +135,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // Now, this activity has its own bound service, which broadcasts its own info.
             // In this specific case, a fragment listens to the service's broadcast
         }
+    }
+
+    private void illustrateHandlerAndLooper() {
+        final HandlerIllustrator handlerIllustrator = new HandlerIllustrator();
+        handlerIllustrator.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "and running, running...");
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                handlerIllustrator.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "and running, running...");
+                    }
+                });
+            }
+        });
     }
 
     private void synchronizeAsynchronousOperationsV0() {
@@ -645,6 +670,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     void notifyBoundService(String massageFromActivity) {
         if (isServiceBound && binder != null) {
             binder.notifyService(massageFromActivity);
+        }
+    }
+
+    private class HandlerIllustrator {
+
+        private final Thread lopperThread;
+        // Q: Why not using ArrayList?
+        private final LinkedList<Runnable> runnablesQueue;
+
+        HandlerIllustrator() {
+            runnablesQueue = new LinkedList<>();
+
+            lopperThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // Looper illustration
+                    while (!isDestroyed()) { // Better then `while (true)`, otherwise it will produce memory leaks.
+                        if (runnablesQueue.size() > 0) {
+                            Runnable firstRunnable = runnablesQueue.removeFirst();
+                            firstRunnable.run();
+                        }
+                    }
+                }
+            });
+
+            lopperThread.start();
+        }
+
+        public void post(Runnable runnable) {
+            runnablesQueue.add(runnable);
         }
     }
 }
