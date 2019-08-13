@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //synchronizeAsynchronousOperationsV0();
         synchronizeAsynchronousOperations();
 
-        illustrateHandlerAndLooper();
+//        illustrateHandlerAndLooper();
 
         // The main layout (vertical)
         boardLayout = (LinearLayout) findViewById(R.id.verticalLinearLayout);
