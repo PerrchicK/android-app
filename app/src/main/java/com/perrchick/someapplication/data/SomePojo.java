@@ -3,6 +3,8 @@ package com.perrchick.someapplication.data;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import androidx.annotation.Nullable;
+
 import com.google.gson.GsonBuilder;
 
 /**
@@ -12,8 +14,10 @@ import com.google.gson.GsonBuilder;
 public class SomePojo implements Parcelable {
     private String name;
     private String phoneNumber;
-    private double longitude;
+    @Nullable
+    private String imageUrl;
     private double latitude;
+    private double longitude;
 
     public String getName() {
         return name;
@@ -27,16 +31,18 @@ public class SomePojo implements Parcelable {
         return phoneNumber;
     }
 
+
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
 
-    public double getLongitude() {
-        return longitude;
+    @Nullable
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setLongitude(double longitude) {
-        this.longitude = longitude;
+    public void setImageUrl(@Nullable String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public double getLatitude() {
@@ -47,14 +53,23 @@ public class SomePojo implements Parcelable {
         this.latitude = latitude;
     }
 
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
     public SomePojo() {
     }
 
     private SomePojo(Parcel in) {
         this.name = in.readString();
         this.phoneNumber = in.readString();
-        this.longitude = in.readDouble();
+        this.imageUrl = in.readString();
         this.latitude = in.readDouble();
+        this.longitude = in.readDouble();
     }
 
     static public SomePojo createFromJson(String jsonString) {
@@ -75,8 +90,9 @@ public class SomePojo implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(name);
         dest.writeString(phoneNumber);
-        dest.writeDouble(longitude);
+        dest.writeString(imageUrl);
         dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
     }
 
     public static final Creator<SomePojo> CREATOR = new Creator<SomePojo>() {
