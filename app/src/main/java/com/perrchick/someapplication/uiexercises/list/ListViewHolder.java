@@ -9,6 +9,8 @@ import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.data.SomePojo;
 import com.perrchick.someapplication.uiexercises.ImageDownloadActivity;
 import com.perrchick.someapplication.utilities.AppLogger;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.Picasso;
 
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
@@ -43,37 +45,13 @@ class ListViewHolder extends RecyclerView.ViewHolder {
      */
     void configure(SomePojo somePojo) {
         if (somePojo == null) return;
-        
+
         textView.setText(somePojo.getName());
 
         this.data = somePojo;
         final String imageUrl = somePojo.getImageUrl();
         if (imageUrl != null) {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        final Bitmap bmpFromWeb = ImageDownloadActivity.downloadBitmapFromUrl(imageUrl);
-                        try {
-                            Thread.sleep(2000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-
-                        if (data == null || !imageUrl.equals(data.getImageUrl())) return;
-
-                        imageView.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                imageView.setImageBitmap(bmpFromWeb);
-                                AppLogger.log(TAG, "Do some UI work with " + bmpFromWeb);
-                            }
-                        });
-                    } catch (IOException e) {
-                        AppLogger.error(TAG, e);
-                    }
-                }
-            }).start();
+            Picasso.get().load(imageUrl).placeholder(R.drawable.ic_language_swift).into(imageView);
         }
     }
 
@@ -83,6 +61,7 @@ class ListViewHolder extends RecyclerView.ViewHolder {
     void prepareForReuse() {
         textView.setText("");
         imageView.setImageBitmap(null);
+        Picasso.get().cancelRequest(imageView);
         data = null;
     }
 }

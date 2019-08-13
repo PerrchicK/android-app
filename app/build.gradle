@@ -55,6 +55,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:18.1.0'
     implementation 'com.google.firebase:firebase-database:18.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.2'
+
+    implementation 'com.squareup.picasso:picasso:2.71828'
+
 }
 
 // Firebase
