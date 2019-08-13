@@ -80,5 +80,6 @@ class ListViewHolder extends RecyclerView.ViewHolder {
      */
     void prepareForReuse() {
         textView.setText("");
+        imageView.setImageBitmap(null);
     }
 }
