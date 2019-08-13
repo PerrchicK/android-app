@@ -85,14 +85,7 @@ public class ImageDownloadActivity extends AppCompatActivity implements View.OnC
                         @Override
                         public void run() {
                             try {
-                                java.net.URL url = new java.net.URL(imageUrl);
-                                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                                connection.setDoInput(true);
-                                connection.connect();
-                                // Perry: Making a network request here, note that this activity is kept being held in memory until this call is done (GC won't let it go) therefore we are allowing leak here! (try to avoid it and use other ways)
-                                InputStream input = connection.getInputStream();
-                                final Bitmap bmpFromWeb = BitmapFactory.decodeStream(input);
-
+                                final Bitmap bmpFromWeb = downloadBitmapFromUrl(imageUrl);
                                 handler.post(new Runnable() {
                                     @Override
                                     public void run() {
@@ -112,5 +105,22 @@ public class ImageDownloadActivity extends AppCompatActivity implements View.OnC
             case R.id.dataText:
                 break;
         }
+    }
+
+    /**
+     * This method SYNCHRONOUSLY downloads an image from the provided URL.
+     * @param imageUrl The image online address
+     * @return A Bitmap object, in case the download was successful.
+     * @throws IOException In case of an input / output (I/O) error.
+     */
+    public static Bitmap downloadBitmapFromUrl(String imageUrl) throws IOException {
+        java.net.URL url = new java.net.URL(imageUrl);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setDoInput(true);
+        connection.connect();
+        // Perry: Making a network request here, note that this activity is kept being held in memory until this call is done (GC won't let it go) therefore we are allowing leak here! (try to avoid it and use other ways)
+        InputStream input = connection.getInputStream();
+        final Bitmap bmpFromWeb = BitmapFactory.decodeStream(input);
+        return bmpFromWeb;
     }
 }

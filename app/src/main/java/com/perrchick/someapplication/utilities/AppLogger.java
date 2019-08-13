@@ -47,6 +47,7 @@ public class AppLogger {
     }
 
     public static void error(String tag, @Nullable String errorMessage, Throwable throwable, boolean shouldUploadMessage) {
+        if (SomeApplication.isReleaseVersion) return;
         if (throwable == null) return;
 
         if (errorMessage == null) {
@@ -56,6 +57,7 @@ public class AppLogger {
         }
 
         error(tag, errorMessage, shouldUploadMessage);
+        throwable.printStackTrace();
     }
 
     public static void error(String tag, String errorMessage, boolean shouldUploadMessage) {
