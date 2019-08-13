@@ -60,6 +60,8 @@ class ListViewHolder extends RecyclerView.ViewHolder {
                             e.printStackTrace();
                         }
 
+                        if (data == null || !imageUrl.equals(data.getImageUrl())) return;
+
                         imageView.post(new Runnable() {
                             @Override
                             public void run() {
@@ -81,5 +83,6 @@ class ListViewHolder extends RecyclerView.ViewHolder {
     void prepareForReuse() {
         textView.setText("");
         imageView.setImageBitmap(null);
+        data = null;
     }
 }
