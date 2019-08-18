@@ -25,6 +25,13 @@
         android:layout_height="wrap_content" />
 
     <EditText
+        android:id="@+id/txt_encrypted_shared_prefs"
+        android:hint="@string/storage_activity_txt_shared_prefs"
+        android:text=""
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" />
+
+    <EditText
         android:id="@+id/txt_sqlite"
         android:hint="@string/storage_activity_txt_sqlite"
         android:text=""

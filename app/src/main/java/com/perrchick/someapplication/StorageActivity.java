@@ -16,7 +16,10 @@ import android.widget.ListView;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.security.crypto.EncryptedSharedPreferences;
+import androidx.security.crypto.MasterKeys;
 
 import com.backendless.exceptions.BackendlessException;
 import com.google.firebase.database.DatabaseError;
@@ -24,6 +27,7 @@ import com.perrchick.onlinesharedpreferences.OnlineSharedPreferences;
 import com.perrchick.onlinesharedpreferences.SyncedSharedPreferences;
 import com.perrchick.someapplication.data.DictionaryOpenHelper;
 import com.perrchick.someapplication.data.SomePojo;
+import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 
 import java.io.BufferedReader;
@@ -37,6 +41,7 @@ import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -49,10 +54,12 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
     private OnlineSharedPreferences db_backendlessSharedPreferences;
     private SyncedSharedPreferences db_firebaseSharedPreferences;
     private SharedPreferences db_sharedPreferences;
+    private SharedPreferences db_securedSharedPreferences;
     private SharedPreferences.Editor db_sharedPreferencesEditor;
     private DictionaryOpenHelper db_sqLiteHelper;
 
     private EditText editTextSharedPrefs;
+    private EditText editTextSecuredSharedPrefs;
     private EditText editTextSQLite;
     private EditText editTextBackendless;
     private EditText editTextFirebase;
@@ -111,6 +118,8 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
 
         setContentView(R.layout.activity_storage);
 
+        this.db_securedSharedPreferences = generateSecuredSharedPreferences();
+        // use the shared preferences and editor as you normally would
         this.db_sharedPreferences = getSharedPreferences(StorageActivity.class.getSimpleName(), MODE_PRIVATE);
         this.db_sharedPreferencesEditor = db_sharedPreferences.edit();
         // Also 'this' may be passed as context
@@ -119,6 +128,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         this.db_sqLiteHelper = new DictionaryOpenHelper(this);
 
         this.editTextSharedPrefs = (EditText) findViewById(R.id.txt_shared_prefs);
+        this.editTextSecuredSharedPrefs = (EditText) findViewById(R.id.txt_encrypted_shared_prefs);
         this.editTextSQLite = (EditText) findViewById(R.id.txt_sqlite);
         this.editTextBackendless = (EditText) findViewById(R.id.txt_backendless);
         this.editTextFirebase = (EditText) findViewById(R.id.txt_firebase);
@@ -265,6 +275,27 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
         });
     }
 
+@Nullable
+private SharedPreferences generateSecuredSharedPreferences() {
+    SharedPreferences sharedPreferences = null;
+
+    try {
+        String masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC);
+
+        sharedPreferences = EncryptedSharedPreferences.create(
+                "secret_" + StorageActivity.class.getSimpleName(),
+                masterKeyAlias,
+                getApplicationContext(),
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        );
+    } catch (GeneralSecurityException | IOException e) {
+        AppLogger.error(TAG, e);
+    }
+
+    return sharedPreferences;
+}
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -331,6 +362,7 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
 
         // Restore texts
         editTextSharedPrefs.setText(db_sharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
+        editTextSecuredSharedPrefs.setText(db_securedSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, ""));
         editTextSQLite.setText(db_sqLiteHelper.get(EDIT_TEXT_PERSISTENCE_KEY, ""));
         db_backendlessSharedPreferences.getString(EDIT_TEXT_PERSISTENCE_KEY, new OnlineSharedPreferences.GetStringCallback() {
             @Override
@@ -365,6 +397,10 @@ public class StorageActivity extends AppCompatActivity implements SyncedSharedPr
 
         // Shared Preferences
         if (!this.db_sharedPreferencesEditor.putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit()) {
+            PerrFuncs.toast("Failed to update Shared Preferences!");
+        }
+        // Secured Shared Preferences
+        if (!this.db_securedSharedPreferences.edit().putString(EDIT_TEXT_PERSISTENCE_KEY, editTextSharedPrefsString).commit()) {
             PerrFuncs.toast("Failed to update Shared Preferences!");
         }
         // SQLite
