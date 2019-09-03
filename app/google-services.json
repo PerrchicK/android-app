@@ -2,15 +2,15 @@
   "project_info": {
     "project_number": "123456",
     "firebase_url": "https://blah-blah.firebaseio.com",
-    "project_id": "blah-blah",
+    "project_id": "AIzsdasdsd-12dsad-fsfs",
     "storage_bucket": "blah-blah.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "blah-blah-blah",
+        "mobilesdk_app_id": "1:661314956331:android:b6fe3328r53f7108",
         "android_client_info": {
-          "package_name": "com.wallak.hmmmmm"
+          "package_name": "com.perrchick.someapplication"
         }
       },
       "oauth_client": [
