@@ -533,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void refreshToggleOption() {
         menuAction_toggleLocationNotifier
                 .setTitle(BackgroundLocationWorker.Companion
-                        .isEnabled() ?
+                        .isEnabled(this) ?
                         "Disable BG Location Notifier" :
                         "Enable BG Location Notifier");
     }

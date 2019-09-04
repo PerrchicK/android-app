@@ -6,13 +6,13 @@ import android.os.HandlerThread
 import androidx.concurrent.futures.ResolvableFuture
 import androidx.work.ListenableWorker
 import androidx.work.WorkerParameters
-import com.google.android.gms.maps.model.LatLng
 import com.google.common.util.concurrent.ListenableFuture
-import com.google.gson.Gson
 import com.perrchick.someapplication.NotificationsActivity
 import com.perrchick.someapplication.SomeApplication
 import com.perrchick.someapplication.service.location.LocationHelper
 import com.perrchick.someapplication.utilities.AppLogger
+import com.perrchick.someapplication.utilities.loadLatLng
+import com.perrchick.someapplication.utilities.persist
 
 class BackgroundLocationWorker(appContext: Context, workerParams: WorkerParameters) : ListenableWorker(appContext, workerParams) {
     private var taskFuture: ResolvableFuture<Result>? = null
@@ -20,6 +20,20 @@ class BackgroundLocationWorker(appContext: Context, workerParams: WorkerParamete
         val handlerThread = HandlerThread("com.perrchick.somebgworker.location")
         handlerThread.start()
         Handler(handlerThread.looper)
+    }
+
+    class Constants {
+        class Keys {
+            companion object {
+                const val LastLocationCoordinates = "LastLocationCoordinates"
+                const val isEnabled = "IsEnabled"
+            }
+        }
+        class FileNames {
+            companion object {
+                const val LastKnownLocation = "LastKnownLocation"
+            }
+        }
     }
 
     companion object {
@@ -75,41 +89,4 @@ class BackgroundLocationWorker(appContext: Context, workerParams: WorkerParamete
 
         return future
     }
-}
-
-class Constants {
-    class Keys {
-        companion object {
-            const val LastLocationCoordinates = "LastLocationCoordinates"
-            const val isEnabled = "IsEnabled"
-        }
-    }
-    class FileNames {
-        companion object {
-            const val LastKnownLocation = "LastKnownLocation"
-        }
-    }
-
-}
-
-private fun LatLng.persist() {
-    SomeApplication
-            .shared()
-            .getSharedPreferences(Constants.FileNames.LastKnownLocation, Context.MODE_PRIVATE)
-            .edit()
-            .putString(Constants.Keys.LastLocationCoordinates, toJson())
-            .apply()
-}
-
-fun LatLng.toJson(): String {
-    return Gson().toJson(mapOf("latitude" to this.latitude, "longitude" to longitude))
-}
-
-private fun loadLatLng(): LatLng? {
-    val locationCoordinatesJson = SomeApplication
-            .shared()
-            .getSharedPreferences(Constants.FileNames.LastKnownLocation, Context.MODE_PRIVATE)
-            .getString(Constants.Keys.LastLocationCoordinates, "")
-
-    return Gson().fromJson(locationCoordinatesJson, LatLng::class.java)
 }
