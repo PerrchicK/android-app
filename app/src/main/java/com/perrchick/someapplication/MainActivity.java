@@ -15,6 +15,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.BounceInterpolator;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -384,10 +385,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    public void onClick(View v) {
+    public void onClick(final View v) {
         //Toast.makeText(getApplicationContext(), "clicked", Toast.LENGTH_SHORT).show();
         if (v instanceof TicTacToeButton) {
             TicTacToeButton clickedButton = (TicTacToeButton) v;
+
+            v.animate().scaleX(0.1f).scaleY(0.1f).setInterpolator(new BounceInterpolator()).setDuration(300).withEndAction(new Runnable() {
+                @Override
+                public void run() {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(300).start();
+                }
+            }).start();
+
             if (clickedButton.getButtonPlayer() == TicTacToeButtonPlayer.None) {
                 if (mXTurn) {
                     clickedButton.setText("X");
