@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.perrchick.someapplication.service.BackgroundLocationWorker;
 import com.perrchick.someapplication.service.SensorService;
 import com.perrchick.someapplication.service.SensorServiceMock;
 import com.perrchick.someapplication.ui.TicTacToeButton;
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int threadCounter = 0;
     private Intent intentToHandle;
     private SomeApplication.PrivateEventBus.Receiver eventBusReceiver;
+    private MenuItem menuAction_toggleLocationNotifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,39 +104,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         fragmentManager = getSupportFragmentManager();
         sensorsFragment = fragmentManager.findFragmentByTag(SensorsFragment.class.getSimpleName());
-
-        if (!isServiceBound) {
-            // Q: Should I bind it to the main activity or to the app?
-            // A: It doesn't matter as long as you remember to shut the service down / destroy the Application
-            // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
-            if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
-                bindService(new Intent(this, SensorServiceMock.class), serviceConnectionListener, Context.BIND_AUTO_CREATE);
-            } else {
-                Intent serviceIntent = new Intent(this, SensorService.class);
-                bindService(serviceIntent, serviceConnectionListener, Context.BIND_AUTO_CREATE);
-
-                // Nope, using 'startService' may throw an 'IllegalStateException' in Android O and above.
-                //startService(serviceIntent);
-
-                //startForegroundService(serviceIntent); // The app MUST present a local notification to show the user that the app is running
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    SomeApplication.PrivateEventBus.createNewReceiver(new SomeApplication.PrivateEventBus.BroadcastReceiverListener() {
-                        @Override
-                        public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.PrivateEventBus.Receiver receiver) {
-                            receiver.quit(); // Disposable - remove after first notification
-
-                            if (!SomeApplication.registerJobService()) {
-                                AppLogger.error(TAG, "Failed to schedule background job!");
-                            }
-                        }
-                    }, SomeApplication.PrivateEventBus.Action.FIREBASE_IS_READY);
-                }
-
-            }
-            // Now, this activity has its own bound service, which broadcasts its own info.
-            // In this specific case, a fragment listens to the service's broadcast
-        }
     }
 
     private void illustrateHandlerAndLooper() {
@@ -297,6 +266,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 TicTacToeButton btnTicTacToe = new TicTacToeButton(this, column, row);
                 btnTicTacToe.setLayoutParams(new ViewGroup.LayoutParams(buttonWidth, buttonWidth));
                 btnTicTacToe.setOnClickListener(this);
+
+                btnTicTacToe.setBackgroundResource(R.drawable.button_border);
+
                 buttons[row + column * colsNum] = btnTicTacToe;
                 gridLayout.addView(btnTicTacToe);
             }
@@ -326,6 +298,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             intentToHandle = intent;
         }
         handleIntent();
+
+        if (!isServiceBound) {
+            // Q: Should I bind it to the main activity or to the app?
+            // A: It doesn't matter as long as you remember to shut the service down / destroy the Application
+            // (for more info about this discussion go to: http://stackoverflow.com/questions/3154899/binding-a-service-to-an-android-app-activity-vs-binding-it-to-an-android-app-app)
+            if (SHOULD_USE_MOCK) { // if 'true' only the first clause wll be compiled otherwise only the 'else' clause - thanks to the 'final' keyword
+                bindService(new Intent(this, SensorServiceMock.class), serviceConnectionListener, Context.BIND_AUTO_CREATE);
+            } else {
+                Intent serviceIntent = new Intent(this, SensorService.class);
+                bindService(serviceIntent, serviceConnectionListener, Context.BIND_AUTO_CREATE);
+
+                // Nope, using 'startService' may throw an 'IllegalStateException' in Android O and above.
+                //startService(serviceIntent);
+
+                //startForegroundService(serviceIntent); // The app MUST present a local notification to show the user that the app is running
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    SomeApplication.PrivateEventBus.createNewReceiver(new SomeApplication.PrivateEventBus.BroadcastReceiverListener() {
+                        @Override
+                        public void onBroadcastReceived(@NonNull Intent intent, SomeApplication.PrivateEventBus.Receiver receiver) {
+                            receiver.quit(); // Disposable - remove after first notification
+
+                            if (!SomeApplication.registerJobService()) {
+                                AppLogger.error(TAG, "Failed to schedule background job!");
+                            }
+                        }
+                    }, SomeApplication.PrivateEventBus.Action.FIREBASE_IS_READY);
+                }
+
+            }
+            // Now, this activity has its own bound service, which broadcasts its own info.
+            // In this specific case, a fragment listens to the service's broadcast
+        }
     }
 
     private void handleIntent() {
@@ -362,17 +367,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
-
+    protected void onDestroy() {
+        super.onDestroy();
         if (binder != null && binder.getService() != null) {
             binder.getService().setListener(null);
         }
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
         Log.d(TAG, "onDestroy: activity destroyed");
         unbindService(serviceConnectionListener);
         eventBusReceiver.quit();
@@ -514,7 +514,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        menuAction_toggleLocationNotifier = menu.findItem(R.id.action_toggle_location_notifier);
+        refreshToggleOption();
+
         return true;
+    }
+
+    private void refreshToggleOption() {
+        menuAction_toggleLocationNotifier
+                .setTitle(BackgroundLocationWorker.Companion
+                        .isEnabled() ?
+                        "Disable BG Location Notifier" :
+                        "Enable BG Location Notifier");
     }
 
     private void explodeGrid() {
@@ -584,6 +596,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             case R.id.action_go_map:
                 presentMapActivity();
+                return true;
+            case R.id.action_toggle_location_notifier:
+                BackgroundLocationWorker.Companion.toggle();
+                refreshToggleOption();
                 return true;
             case R.id.action_go_storage:
                 presentStorageActivity();

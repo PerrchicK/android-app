@@ -13,6 +13,8 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.perrchick.someapplication.data.SomePojo;
 
 import java.util.List;
@@ -37,6 +39,7 @@ public class SensorService extends Service implements SensorEventListener {
     private boolean isListening = false;
     private HandlerThread sensorThread;
     private Handler sensorHandler;
+    @Nullable
     private SensorServiceListener listener;
 
     @Override

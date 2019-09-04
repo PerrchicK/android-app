@@ -22,15 +22,22 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Constraints;
+import androidx.work.ExistingPeriodicWorkPolicy;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.facebook.stetho.Stetho;
 import com.perrchick.someapplication.data.FirebaseHelper;
+import com.perrchick.someapplication.service.BackgroundLocationWorker;
 import com.perrchick.someapplication.service.SomeJobService;
 import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.perrchick.someapplication.utilities.Synchronizer;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by perrchick on 12/16/15.
@@ -68,6 +75,7 @@ public class SomeApplication extends android.app.Application {
     @Nullable
     public static Activity getTopActivity() { return ApplicationHolder.sharedInstance.application.topActivity != null ? ApplicationHolder.sharedInstance.application.topActivity.get() : null; }
     public static Context getContext() { return ApplicationHolder.sharedInstance.application.getApplicationContext(); }
+    public static SomeApplication shared() { return ApplicationHolder.sharedInstance.application; }
     public static void setContext(Context context) {
         if (context == null) return;
         if (!(context.getApplicationContext() instanceof SomeApplication)) return;
@@ -104,6 +112,8 @@ public class SomeApplication extends android.app.Application {
     public void onCreate() {
         super.onCreate();
 
+        registerBackgroundJobService();
+
         mainThreadHandler = new Handler(Looper.getMainLooper());
 
         HandlerThread appBackgroundThread = new HandlerThread(SomeApplication.class.getSimpleName() + "_BackgroundThread");
@@ -118,6 +128,18 @@ public class SomeApplication extends android.app.Application {
         exampleForSyncedAsyncOperations();
 
         FirebaseHelper.initialize();
+    }
+
+    private void registerBackgroundJobService() {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED).build();
+        PeriodicWorkRequest locationWork = new PeriodicWorkRequest
+                .Builder(BackgroundLocationWorker.class, BackgroundLocationWorker.INTERVAL_IN_MINUTS, TimeUnit.MINUTES)
+                .addTag(BackgroundLocationWorker.TAG)
+                .setConstraints(constraints).build();
+
+        // Schedule and override the existing workers if any. (to prevent duplicates)
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(BackgroundLocationWorker.NAME, ExistingPeriodicWorkPolicy.REPLACE, locationWork);
     }
 
     // From Oreo and on the Android OS is embracing the iOS attitude about background tasks
@@ -205,6 +227,7 @@ public class SomeApplication extends android.app.Application {
     }
 
     static public class PrivateEventBus {
+
         public class Action {
             public static final String APPLICATION_GOING_BACKGROUND = BuildConfig.APPLICATION_ID + " - yo";
             public static final String APPLICATION_GOING_FOREGROUND = BuildConfig.APPLICATION_ID + " - yoyo";

@@ -15,6 +15,8 @@
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_map" android:title="@string/action_go_map"
         android:orderInCategory="100" app:showAsAction="never" />
+    <item android:id="@+id/action_toggle_location_notifier" android:title="@string/action_toggle_location_notifier"
+        android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_notification" android:title="@string/action_go_notification"
         android:orderInCategory="100" app:showAsAction="never" />
     <item android:id="@+id/action_go_pager" android:title="@string/action_go_pager"

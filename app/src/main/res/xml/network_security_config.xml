@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--https://stackoverflow.com/questions/45940861/android-8-cleartext-http-traffic-not-permitted -->
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">lorempixel.com</domain>
+        <domain includeSubdomains="true">picsum.photos</domain>
+    </domain-config>
+</network-security-config>
