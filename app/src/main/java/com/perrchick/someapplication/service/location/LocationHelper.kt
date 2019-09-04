@@ -36,15 +36,15 @@ class LocationHelper {
     fun fetchLocation(context: Context? = null, callback: ((coordinate: LatLng?) -> Unit)) {
         val fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(SomeApplication.shared())
 
-        val _context: Context?
-        if (context == null) {
+        val appContext: Context?
+        appContext = if (context == null) {
             val topActivity: Activity? = SomeApplication.getTopActivity()
-            _context = topActivity ?: SomeApplication.shared()
+            topActivity ?: SomeApplication.shared()
         } else {
-            _context = context
+            context
         }
 
-        if (_context == null) {
+        if (appContext == null) {
             callback(null)
         } else {
             //TODO, Follow this: https://medium.com/google-developer-experts/exploring-android-q-location-permissions-64d312b0e2e1

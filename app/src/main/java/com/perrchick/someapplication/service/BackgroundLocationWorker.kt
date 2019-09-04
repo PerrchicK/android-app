@@ -13,25 +13,44 @@ import com.perrchick.someapplication.NotificationsActivity
 import com.perrchick.someapplication.SomeApplication
 import com.perrchick.someapplication.service.location.LocationHelper
 import com.perrchick.someapplication.utilities.AppLogger
-import com.perrchick.someapplication.utilities.RunnableWithExtra
 
 class BackgroundLocationWorker(appContext: Context, workerParams: WorkerParameters) : ListenableWorker(appContext, workerParams) {
     private var taskFuture: ResolvableFuture<Result>? = null
     val backgroundHandler: Handler by lazy {
-        val handlerThread :HandlerThread = HandlerThread("com.perrchick.someworker.location")
+        val handlerThread = HandlerThread("com.perrchick.somebgworker.location")
         handlerThread.start()
         Handler(handlerThread.looper)
     }
 
     companion object {
+        fun toggle() {
+            SomeApplication
+                    .shared()
+                    .getSharedPreferences(TAG, Context.MODE_PRIVATE)
+                    .edit()
+                    .putBoolean(Constants.Keys.isEnabled, !isEnabled())
+                    .apply()
+        }
+
+        fun isEnabled(context: Context? = null): Boolean {
+            val appContext = context ?: SomeApplication.shared()
+            return appContext
+                    .getSharedPreferences(TAG, Context.MODE_PRIVATE)
+                    .getBoolean(Constants.Keys.isEnabled, false)
+        }
+
+        @JvmField
+        var INTERVAL_IN_MINUTS: Long = 15
         @JvmField
         var NAME: String = BackgroundLocationWorker.TAG + "_name"
         @JvmField
         var TAG: String = BackgroundLocationWorker::class.simpleName.toString()
     }
 
-    private val bgTask = object : RunnableWithExtra() {
+    private val bgTask = object : Runnable {
         override fun run() {
+            if (!isEnabled(applicationContext)) return
+
             AppLogger.log(TAG, "background worker started... last location was here: ${loadLatLng()}")
 
             LocationHelper.instance.fetchLocation(applicationContext) { coordinate ->
@@ -58,12 +77,27 @@ class BackgroundLocationWorker(appContext: Context, workerParams: WorkerParamete
     }
 }
 
+class Constants {
+    class Keys {
+        companion object {
+            const val LastLocationCoordinates = "LastLocationCoordinates"
+            const val isEnabled = "IsEnabled"
+        }
+    }
+    class FileNames {
+        companion object {
+            const val LastKnownLocation = "LastKnownLocation"
+        }
+    }
+
+}
+
 private fun LatLng.persist() {
     SomeApplication
             .shared()
-            .getSharedPreferences("lastKnownLocation", Context.MODE_PRIVATE)
+            .getSharedPreferences(Constants.FileNames.LastKnownLocation, Context.MODE_PRIVATE)
             .edit()
-            .putString("location_coordinates", toJson())
+            .putString(Constants.Keys.LastLocationCoordinates, toJson())
             .apply()
 }
 
@@ -74,8 +108,8 @@ fun LatLng.toJson(): String {
 private fun loadLatLng(): LatLng? {
     val locationCoordinatesJson = SomeApplication
             .shared()
-            .getSharedPreferences("lastKnownLocation", Context.MODE_PRIVATE)
-            .getString("location_coordinates", "")
+            .getSharedPreferences(Constants.FileNames.LastKnownLocation, Context.MODE_PRIVATE)
+            .getString(Constants.Keys.LastLocationCoordinates, "")
 
     return Gson().fromJson(locationCoordinatesJson, LatLng::class.java)
 }

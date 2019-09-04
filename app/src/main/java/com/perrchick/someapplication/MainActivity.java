@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
+import com.perrchick.someapplication.service.BackgroundLocationWorker;
 import com.perrchick.someapplication.service.SensorService;
 import com.perrchick.someapplication.service.SensorServiceMock;
 import com.perrchick.someapplication.ui.TicTacToeButton;
@@ -65,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private int threadCounter = 0;
     private Intent intentToHandle;
     private SomeApplication.PrivateEventBus.Receiver eventBusReceiver;
+    private MenuItem menuAction_toggleLocationNotifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -512,7 +514,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        menuAction_toggleLocationNotifier = menu.findItem(R.id.action_toggle_location_notifier);
+        refreshToggleOption();
+
         return true;
+    }
+
+    private void refreshToggleOption() {
+        menuAction_toggleLocationNotifier
+                .setTitle(BackgroundLocationWorker.Companion
+                        .isEnabled() ?
+                        "Disable BG Location Notifier" :
+                        "Enable BG Location Notifier");
     }
 
     private void explodeGrid() {
@@ -582,6 +596,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return true;
             case R.id.action_go_map:
                 presentMapActivity();
+                return true;
+            case R.id.action_toggle_location_notifier:
+                BackgroundLocationWorker.Companion.toggle();
+                refreshToggleOption();
                 return true;
             case R.id.action_go_storage:
                 presentStorageActivity();

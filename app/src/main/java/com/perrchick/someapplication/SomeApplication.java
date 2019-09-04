@@ -134,7 +134,7 @@ public class SomeApplication extends android.app.Application {
         Constraints constraints = new Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED).build();
         PeriodicWorkRequest locationWork = new PeriodicWorkRequest
-                .Builder(BackgroundLocationWorker.class, 15, TimeUnit.MINUTES)
+                .Builder(BackgroundLocationWorker.class, BackgroundLocationWorker.INTERVAL_IN_MINUTS, TimeUnit.MINUTES)
                 .addTag(BackgroundLocationWorker.TAG)
                 .setConstraints(constraints).build();
 
