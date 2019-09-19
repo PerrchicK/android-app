@@ -24,12 +24,13 @@ public class ListActivity extends AppCompatActivity {
 
         createData();
 
-        //Volley;
-
         listView = (RecyclerView) findViewById(R.id.listView);
         listView.setLayoutManager(new LinearLayoutManager(this));
 
         multiAutoCompleteTextView = findViewById(R.id.autocomplete_list);
+
+        listViewAdapter = new ListViewAdapter(data);
+        listView.setAdapter(listViewAdapter);
     }
 
     private void createData() {
@@ -38,15 +39,17 @@ public class ListActivity extends AppCompatActivity {
         for (int i = 0; i < 1000; i++) {
             SomePojo obj = new SomePojo();
             obj.setName("obj" + i);
+            obj.setImageUrl("https://picsum.photos/id/" + i + "/250/250");
+//            obj.setImageUrl("http://lorempixel.com/400/200/food/1/" + i);
             data.add(obj);
         }
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
 
-        listViewAdapter = new ListViewAdapter(data);
-        listView.setAdapter(listViewAdapter);
+        // Reload list data
+        listViewAdapter.notifyDataSetChanged();
     }
 }
