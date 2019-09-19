@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TimePicker;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -47,53 +48,14 @@ public class NotificationsActivity extends AppCompatActivity {
         findViewById(R.id.btn_go).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                CharSequence notificationTitle = ((EditText) findViewById(R.id.txtNotificationTitle)).getText();
-                CharSequence notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText();
-                CharSequence notificationData = ((EditText) findViewById(R.id.txtNotificationData)).getText();
-
-                Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                mainActivityIntent.putExtra(EXTRA_NOTIFICATION_DATA_KEY, notificationData.toString()); // Convert CharSequence  to String so using later with 'getString(...)'
-                mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);// What will happen if I'll comment this out?
-
-                int notificationId = /* MY_NOTIFICATION_ID */ (int) (System.currentTimeMillis() & 0xfffffff); // Convert long to int
-                PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(getApplicationContext(), notificationId, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-                NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon, "Open this app's landing screen", mainActivityPendingIntent);
+                String notificationTitle = ((EditText) findViewById(R.id.txtNotificationTitle)).getText().toString();
+                String notificationText = ((EditText) findViewById(R.id.txtNotificationText)).getText().toString();
+                String notificationData = ((EditText) findViewById(R.id.txtNotificationData)).getText().toString();
 
                 TimePicker timePicker = (TimePicker) findViewById(R.id.dateDispatchTime);
                 long scheduledTime = PerrFuncs.getMillisFrom1970(timePicker);
 
-                // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
-                // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
-
-                // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#setChannelId(java.lang.String)
-                String channelId = SomeApplication.getContext().getString(R.string.app_name);
-                Notification notification = new NotificationCompat.Builder(SomeApplication.getContext(), channelId)
-                        .setContentTitle(notificationTitle)
-                        .setContentText(notificationText)
-                        .setPriority(Notification.PRIORITY_MAX) // Determines how "naggy" will the notification be
-                        .setAutoCancel(true)
-                        .setDefaults(Notification.DEFAULT_ALL)
-                        //.setWhen(scheduledTime) // doesn't really do the job
-                        .setSmallIcon(R.drawable.ic_notification_icon)
-                        .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                        .addAction(notificationAction).build(); // Builder Pattern
-
-                notification.defaults |= Notification.DEFAULT_LIGHTS;
-
-                notification.ledARGB = 0xff00ff00;
-                notification.ledOnMS = 100;
-                notification.ledOffMS = 50;
-                notification.flags |= Notification.FLAG_SHOW_LIGHTS;
-
-                //notification.defaults |= Notification.DEFAULT_VIBRATE;
-
-                // Keep playing till treated
-                //notification.flags |= Notification.FLAG_INSISTENT;
-
-                // Dispatch now by calling: NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notification);
-                int timeFromNow = (int) (scheduledTime - System.currentTimeMillis());
-                scheduleNotification(notification, notificationId, timeFromNow);
-                //showNowNotification(notification, notificationId);
+                int timeFromNow = showNotification(notificationTitle, notificationText, notificationData, scheduledTime);
 
                 // Respond to the "starting activity" with result
                 Intent resultIntent = new Intent();
@@ -102,6 +64,60 @@ public class NotificationsActivity extends AppCompatActivity {
                 setResult(Activity.RESULT_OK, resultIntent);
             }
         });
+    }
+
+    public static int showNotification(String notificationTitle, String notificationText) {
+        return showNotification(notificationTitle, notificationText, null);
+    }
+
+    public static int showNotification(String notificationTitle, String notificationText, @Nullable String notificationData) {
+        return showNotification(notificationTitle, notificationText, notificationData, System.currentTimeMillis() + 1000L);
+    }
+
+    public static int showNotification(String notificationTitle, String notificationText, @Nullable String notificationData, long scheduledTime) {
+        Intent mainActivityIntent = new Intent(SomeApplication.getContext(), MainActivity.class);
+        if (notificationData != null) {
+            mainActivityIntent.putExtra(EXTRA_NOTIFICATION_DATA_KEY, notificationData); // Convert CharSequence  to String so using later with 'getString(...)'
+        }
+        mainActivityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);// What will happen if I'll comment this out?
+
+        int notificationId = /* MY_NOTIFICATION_ID */ (int) (System.currentTimeMillis() & 0xfffffff); // Convert long to int
+        PendingIntent mainActivityPendingIntent = PendingIntent.getActivity(SomeApplication.getContext(), notificationId, mainActivityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        NotificationCompat.Action notificationAction = new NotificationCompat.Action(R.drawable.ic_notification_icon, "Open this app's landing screen", mainActivityPendingIntent);
+
+        // Use 'NotificationManagerCompat' for maintaining compatibility on versions of
+        // Android prior to 3.0 (API 11 / HONEYCOMB) that doesn't support newer features
+
+        // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#setChannelId(java.lang.String)
+        String channelId = SomeApplication.getContext().getString(R.string.app_name);
+        Notification notification = new NotificationCompat.Builder(SomeApplication.getContext(), channelId)
+                .setContentTitle(notificationTitle)
+                .setContentText(notificationText)
+                .setPriority(Notification.PRIORITY_MAX) // Determines how "naggy" will the notification be
+                .setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                //.setWhen(scheduledTime) // doesn't really do the job
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+                .addAction(notificationAction).build(); // Builder Pattern
+
+        notification.defaults |= Notification.DEFAULT_LIGHTS;
+
+        notification.ledARGB = 0xff00ff00;
+        notification.ledOnMS = 100;
+        notification.ledOffMS = 50;
+        notification.flags |= Notification.FLAG_SHOW_LIGHTS;
+
+        //notification.defaults |= Notification.DEFAULT_VIBRATE;
+
+        // Keep playing till treated
+        //notification.flags |= Notification.FLAG_INSISTENT;
+
+        // Dispatch now by calling: NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notification);
+        int timeFromNow = (int) (scheduledTime - System.currentTimeMillis());
+        scheduleNotification(notification, notificationId, timeFromNow);
+        //showNowNotification(notification, notificationId);
+        return timeFromNow;
     }
 
     @Override
@@ -130,19 +146,21 @@ public class NotificationsActivity extends AppCompatActivity {
         return notificationDictionary;
     }
 
-    private void showNowNotification(Notification notification, int notificationId) {
-        NotificationManagerCompat.from(getApplicationContext()).notify(notificationId, notification);
+    public static void showNotification(Notification notification, int notificationId) {
+        NotificationManagerCompat.from(SomeApplication.getContext()).notify(notificationId, notification);
     }
 
-    private void scheduleNotification(Notification notification, int notificationId, int delay) {
-        Intent notificationIntent = new Intent(this, NotificationPublisher.class);
+    private static  void scheduleNotification(Notification notification, int notificationId, int delay) {
+        Intent notificationIntent = new Intent(SomeApplication.getContext(), NotificationPublisher.class);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION_ID, notificationId);
         notificationIntent.putExtra(NotificationPublisher.NOTIFICATION, notification);
-        PendingIntent broadcastPendingIntent = PendingIntent.getBroadcast(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent broadcastPendingIntent = PendingIntent.getBroadcast(SomeApplication.getContext(), 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         long futureInMillis = SystemClock.elapsedRealtime() + delay;
-        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, broadcastPendingIntent);
+        AlarmManager alarmManager = (AlarmManager) SomeApplication.getContext().getSystemService(Context.ALARM_SERVICE);
+        if (alarmManager != null) {
+            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, broadcastPendingIntent);
+        }
     }
 
     /**

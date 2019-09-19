@@ -1,7 +1,9 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     dexOptions {
         preDexLibraries = false
@@ -11,13 +13,14 @@ android {
     defaultConfig {
         applicationId "com.perrchick.someapplication"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -48,6 +51,7 @@ dependencies {
     implementation 'com.facebook.stetho:stetho-js-rhino:1.4.2'
 
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
+    implementation 'androidx.multidex:multidex:2.0.1'
 
     // Firebase
     implementation 'com.firebase:firebase-jobdispatcher:0.8.5'
@@ -58,7 +62,17 @@ dependencies {
 
     implementation 'com.squareup.picasso:picasso:2.71828'
 
+    implementation "androidx.work:work-runtime-ktx:2.2.0"
+    implementation "androidx.concurrent:concurrent-futures:1.0.0-rc01"
+
+    compile "org.jetbrains.kotlin:kotlin-reflect:1.3.50"
+    compile "androidx.core:core-ktx:1.0.2"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.google.android.gms:play-services-location:17.0.0'
 }
 
 // Firebase
 apply plugin: 'com.google.gms.google-services'
+repositories {
+    mavenCentral()
+}
