@@ -294,6 +294,17 @@ public class PerrFuncs {
                 || "google_sdk".equals(Build.PRODUCT);
     }
 
+    public static int random(int a, int b) {
+        if (a == b) return b;
+
+        Random random = new Random();
+        int _min = Math.min(a, b);
+        int _max = Math.max(a, b);
+        int diff = _max - _min;
+
+        return random.nextInt(diff) + _min;
+    }
+
     public interface CallbacksHandler<T> {
         void onCallback(T callbackObject);
     }

@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.work.Configuration;
 import androidx.work.Constraints;
 import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.NetworkType;
@@ -35,6 +36,7 @@ import com.perrchick.someapplication.service.SomeJobService;
 import com.perrchick.someapplication.utilities.AppLogger;
 import com.perrchick.someapplication.utilities.PerrFuncs;
 import com.perrchick.someapplication.utilities.Synchronizer;
+import com.squareup.leakcanary.LeakCanary;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.TimeUnit;
@@ -42,9 +44,17 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by perrchick on 12/16/15.
  */
-public class SomeApplication extends android.app.Application {
+public class SomeApplication extends android.app.Application implements Configuration.Provider {
     static {
         isReleaseVersion = !BuildConfig.DEBUG;
+    }
+
+    @NonNull
+    @Override
+    public Configuration getWorkManagerConfiguration() {
+        return new Configuration.Builder()
+                .setMinimumLoggingLevel(android.util.Log.INFO)
+                .build();
     }
 
     /**
@@ -128,6 +138,8 @@ public class SomeApplication extends android.app.Application {
         exampleForSyncedAsyncOperations();
 
         FirebaseHelper.initialize();
+
+        LeakCanary.install(this); // Normal app init code...
     }
 
     private void registerBackgroundJobService() {

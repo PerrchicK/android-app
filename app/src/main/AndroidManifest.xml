@@ -11,7 +11,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="ANDROID.PERMISSION.BODY_SENSORS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> <!-- Solved this issue for me, in a specific machine: https://stackoverflow.com/questions/47062866/android-studio-3-0-unknown-element-library-found/52435886 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="replace" />
+
+    <library tools:node="removeAll" />
 
     <application
         android:name=".SomeApplication"
@@ -67,7 +70,6 @@
             android:label="@string/title_activity_google_maps" />
         <activity android:name=".PagerActivity" />
 
-
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyB700S2zCSx_iq_nvSKkVShhDylpk9Hufg" />
@@ -78,12 +80,10 @@
         <service
             android:name=".service.SensorServiceMock"
             android:enabled="true" />
-        <service android:name=".service.SomeJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true" />
+        <service
+            android:name=".service.SomeJobService"
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
     </application>
-
-    <!-- Solved this issue for me, in a specific machine: https://stackoverflow.com/questions/47062866/android-studio-3-0-unknown-element-library-found/52435886 -->
-    <library tools:node="removeAll" />
 
 </manifest>
