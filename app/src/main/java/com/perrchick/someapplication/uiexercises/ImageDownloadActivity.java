@@ -22,7 +22,7 @@ public class ImageDownloadActivity extends AppCompatActivity implements View.OnC
 
     private static final String TAG = ImageDownloadActivity.class.getSimpleName();
 
-    private String imageUrl = "http://static.srcdn.com/wp-content/uploads/the-simpsons-renewed-season-24-25.jpg";
+    private String imageUrl = "https://ichef.bbci.co.uk/news/304/media/images/47104000/jpg/_47104670_homer_226other.jpg";
     private final static boolean shouldAllowMemoryLeakExample = true;
 
     @Override
