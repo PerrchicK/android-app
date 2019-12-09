@@ -40,6 +40,7 @@ public class FirebaseHelper {
     private static final DatabaseReference CLOCK_DIFF_REFERENCE;
 
     static {
+        FirebaseApp.initializeApp(SomeApplication.getContext());
         DB_ROOT = FirebaseDatabase.getInstance().getReference();
         isConnectedReference = FirebaseDatabase.getInstance().getReference(".info/connected");
         CLOCK_DIFF_REFERENCE = DB_ROOT.child(Keys.CLOCK_DIFF_REFERENCE_KEY);
