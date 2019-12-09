@@ -219,11 +219,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     void tickOnMainThreadForever() {
         // Will count forever (unless... ideas?)
-        final Handler handler= new Handler();
+        final Handler handler = new Handler();
         Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 tick();
+
                 // this => that's the runnable that keeps running all the time...
                 handler.postDelayed(this, 1000);
             }
@@ -614,8 +615,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 presentStorageActivity();
                 return true;
             case R.id.action_go_easy_list:
-                // Experimenting - POC for starting activity via application context:
-                SomeApplication.getTopActivity().startActivity(new Intent(SomeApplication.getContext(), EasyListActivity.class));
+                startActivity(new Intent(SomeApplication.getContext(), EasyListActivity.class));
+                return true;
+            case R.id.action_go_play:
+                PerrFuncs.getTextFromUser(this, "Choose your destiny (lanes 3-8, difficulty 1-3)‍", new PerrFuncs.CallbacksHandler<String>() {
+                    @Override
+                    public void onCallback(String callbackObject) {
+                        Intent intent = new Intent(MainActivity.this, GameActivity.class);
+                        String[] tuple = callbackObject.replace(" ", "").split(",");
+                        if (tuple.length != 2) return;
+                        String lanesCountString = tuple[0];
+                        String difficultyString = tuple[1];
+                        int lanesCount = PerrFuncs.tryParseInt(lanesCountString, 0);
+                        if (lanesCount == 0) return;
+
+                        Long difficulty = null;
+                        switch (PerrFuncs.tryParseInt(difficultyString, 0)) {
+                            case 1:
+                                difficulty = GameActivity.Configurations.Speed.SLOW;
+                                break;
+                            case 2:
+                                difficulty = GameActivity.Configurations.Speed.FAST;
+                                break;
+                            case 3:
+                                difficulty = GameActivity.Configurations.Speed.CRAZY;
+                                break;
+                            default:
+                                AppLogger.error(TAG, "User chose a wrong level");
+                        }
+
+                        if (difficulty == null) return;
+
+                        intent.putExtra(GameActivity.Configurations.Speed.Key, difficulty);
+                        intent.putExtra(GameActivity.Configurations.Lanes.Key, lanesCount);
+                        startActivity(intent);
+                    }
+                });
                 return true;
             case R.id.action_go_list:
                 startActivity(new Intent(this, ListActivity.class));
