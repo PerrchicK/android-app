@@ -15,6 +15,7 @@
     <string name="action_toggle_location_notifier">Toggle Location Notifier</string>
     <string name="action_go_storage">Storage</string>
     <string name="action_go_easy_list">Easy List (RecyclerView)</string>
+    <string name="action_go_play">Gaming time</string>
     <string name="action_go_list">RecyclerView (list)</string>
     <string name="action_go_to_animations">Animations</string>
     <string name="action_go_notification">Go Notify</string>
