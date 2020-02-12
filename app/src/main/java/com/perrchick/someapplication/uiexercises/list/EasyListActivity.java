@@ -39,6 +39,7 @@ public class EasyListActivity extends AppCompatActivity {
             obj.setName("obj" + i);
             list.add(obj);
         }
+
         mainLayout.addView(easyRecyclerView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         easyRecyclerView.setData(list);
     }
