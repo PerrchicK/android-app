@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -622,10 +623,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void onCallback(String callbackObject) {
                         Intent intent = new Intent(MainActivity.this, GameActivity.class);
-                        String[] tuple = callbackObject.replace(" ", "").split(",");
-                        if (tuple.length != 2) return;
-                        String lanesCountString = tuple[0];
-                        String difficultyString = tuple[1];
+                        String[] components = callbackObject.replace(" ", "").split(",");
+                        if (components.length != 2) return;
+
+                        Pair<String, String> tuple = Pair.create(components[0], components[1]);
+                        String lanesCountString = tuple.first;
+                        String difficultyString = tuple.second;
+
                         int lanesCount = PerrFuncs.tryParseInt(lanesCountString, 0);
                         if (lanesCount == 0) return;
 

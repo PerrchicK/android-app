@@ -1,6 +1,5 @@
 package com.perrchick.someapplication
 
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.view.Gravity

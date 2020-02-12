@@ -7,6 +7,8 @@ import com.perrchick.someapplication.SomeApplication;
 import java.util.ArrayList;
 
 /**
+ * A helper class that syncs all callbacks into one callback.
+ *
  * Created by roee on 18/01/2017, supervised and improved by Perry.
  */
 public class Synchronizer<RESULT_TYPE> {
