@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.perrchick.someapplication.R;
 import com.perrchick.someapplication.data.SomePojo;
-import com.perrchick.someapplication.ui.EasyRecyclerView;
+import com.perrchick.ui.EasyRecyclerView;
 
 import java.util.ArrayList;
 

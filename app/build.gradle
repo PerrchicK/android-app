@@ -76,6 +76,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.google.android.gms:play-services-location:17.0.0'
 
+    implementation 'com.github.PerrchicK:EasyRecyclerView:0.0.1'
+    implementation 'com.github.crashops:android-sdk:0.0.1'
+//    implementation 'com.CrashOps.sdk:CrashOps:0.0.1'
+
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.5.1'
 }
 

@@ -14,8 +14,8 @@ import com.perrchick.someapplication.SomeApplication;
 /**
  * Created by perrchick on 11/19/15.
  */
-public class SomeApplicationProvider extends ContentProvider {
-    // In MANIFEST.XML: <provider android:name=".data.SomeApplicationProvider" android:authorities={PROVIDER_NAME} />
+public class SomeContentProvider extends ContentProvider {
+    // In MANIFEST.XML: <provider android:name=".data.SomeContentProvider" android:authorities={PROVIDER_NAME} />
     static final String PROVIDER_NAME = "com.perrchick.someapplication.provider";
     static final String URL = "content://" + PROVIDER_NAME + "/string/Key";
     static final Uri CONTENT_URI = Uri.parse(URL);
@@ -52,7 +52,7 @@ public class SomeApplicationProvider extends ContentProvider {
         // content://contacts/people/5
         Cursor cursor = null;
 
-        switch (SomeApplicationProvider.uriMatcher.match(uri)) {
+        switch (SomeContentProvider.uriMatcher.match(uri)) {
             case URI_MATCH_KEY_VALUE:
                 cursor = this.db_sqLiteHelper.getCursor(selection);
                 break;
